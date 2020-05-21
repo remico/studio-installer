@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-""" Contains all defined partitions in the partitioning scheme """
+""" Contains a partitioning scheme """
 
 __author__ = 'remico <remicollab@gmail.com>'
 
@@ -14,6 +14,7 @@ class Scheme:
         self.scheme = partitions
 
     def __iter__(self):
+        # TODO implement custom iterator with special iteration order (physical volumes first)
         return self.scheme.__iter__()
 
     def add(self, pt: Partition):
