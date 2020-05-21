@@ -1,9 +1,9 @@
 # studio-installer
 Let's automate boring Ubuntu Studio Linux installation process.
 
-:pushpin: **The tool is under development and can't be used by enduser at the moment**
-
 ###### DISCLAIMER
+> :pushpin: **The tool is under development and can't be used by enduser at the moment**
+
 > :warning: Current implementation will remove EVERYTHING on the disk you select!
 >
 > This is intentional behavior: the tool will use the whole disk space for the new OS.
@@ -39,7 +39,7 @@ The tool's working cycle consists of several stages:
   - configure and install bootloader
   - some extra actions, e.g. install additional packages, setup user settings, etc 
 
-See [Wiki](../../wiki/Home) to know how to configure partitions and edit the preseeding file.
+:pushpin: See [Wiki](../../wiki/Home) to know how to configure partitions and edit the preseeding file.
 
 ### Requirements
 - python >= 3.8 (on Ubuntu 20.04 live CD works out of the box)
