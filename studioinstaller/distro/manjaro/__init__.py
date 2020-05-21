@@ -10,16 +10,5 @@
 #  License text is available in the LICENSE file and online:
 #  http://www.opensource.org/licenses/MIT
 #
-#  Copyright (c) 2020 remico
+#  Copyright (c) 2021 remico
 
-"""Partitions hierarchy"""
-
-from .partitionbase import Partition
-
-__all__ = ['Container']
-
-
-class Container(Partition):
-    @property
-    def iscontainer(self):
-        return True

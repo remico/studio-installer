@@ -10,16 +10,19 @@
 #  License text is available in the LICENSE file and online:
 #  http://www.opensource.org/licenses/MIT
 #
-#  Copyright (c) 2020 remico
+#  Copyright (c) 2021 remico
 
-"""Partitions hierarchy"""
+from dataclasses import dataclass
 
-from .partitionbase import Partition
+from .argparser import ArgParser
+from .scheme import Scheme
 
-__all__ = ['Container']
+__all__ = ['RuntimeConfig']
 
 
-class Container(Partition):
-    @property
-    def iscontainer(self):
-        return True
+@dataclass
+class RuntimeConfig:
+    plugin_api: int
+    disk: str
+    scheme: Scheme
+    op: ArgParser

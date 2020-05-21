@@ -1,65 +1,52 @@
-# studio-installer
-Let's automate boring Ubuntu Studio Linux installation process.
-
-:pushpin: **The tool is under development and can't be used by enduser at the moment**
+# Linux Studio Installer
+Let's automate boring Linux installation process
 
 ###### DISCLAIMER
-> :warning: Current implementation will remove EVERYTHING on the disk you select!
->
-> This is intentional behavior: the tool will use the whole disk space for the new OS.
+> :pushpin: **The tool has limitations and doesn't handle many corner cases**
 
-> :warning: Under a live CD session the tool will get superuser privileges without any password confirmation.
-> If something goes wrong, it can damage all data on your HDD, SSD, etc. Use the tool at your own risk.  
+> :warning: Under a live CD session the tool will run with superuser privileges without any password confirmation.
+> If something goes wrong, it can damage all data on your HDD. YOU HAS BEEN WARNED.
+
+## About
+This is a console tool aimed to (semi-)automate installation of Ubuntu/Manjaro Linux.
+
+**The tool can help to automate some routine work one usually does during OS installation:**
+- create new partitions
+- encrypt, mount, unmount, format them
+- install an OS according to the preconfigured partitioning scheme
+- automate some post-installation actions (e.g. install a bootloader, update configuration files, etc)
+
+**The tool has a lot of limitations, e.g.:**
+- partitioning algorithm doesn't support existing partitions yet, new partitions need to be created
+- ext* and btrfs FS are supported only
+- many parameters/options are hardcoded
+- entered passwords are visible in the logs
+- only very basic installation scenarios have been tested so far
+
+
+## Requirements
+- Ubuntu/Manjaro Linux
+- python >= 3.8
+- pip
+- git
+
+## Getting the tool
 ```
-When you run the tool, it will ask you for the target device (e.g. /dev/sda). 
-After you specify any valid device and press Enter, the whole device will be cleared, the partition table
-will be rewritten, new partitions will be created and formatted according to the defined configuration.
-```  
-
->:information_source: The tool can be used with other Ubuntu-like distro installers
-> provided they use `ubiquity` and `partman`.
-
-### How it works
-It's a console tool.
-All partitioning requirements can be defined in the partitioning scheme.
-Automatic answers for most of the questions during the installation process can be defined in the preseeding file. 
-
-The tool's working cycle consists of several stages:
-- Prepare partitions:
-  - process a defined partitioning scheme
-  - cleanup space
-  - create partitions
-  - [optionally] encrypt and format partitions, setup LVM
-- Depending on the partitioning scheme, run background bash scripts instructing `partman` how to deal with the partitions
-- Set pre-configured values from the preseeding file
-- Run the OS installer (`ubiquity` at the moment)
-- Run post-installation actions:
-  - configure encryption and LVM systems (if there are any LUKS and/or LVM devices in the system)
-  - rebuild initrd
-  - configure and install bootloader
-  - some extra actions, e.g. install additional packages, setup user settings, etc 
-
-See [Wiki](../../wiki/Home) to know how to configure partitions and edit the preseeding file.
-
-### Requirements
-- python >= 3.8 (on Ubuntu 20.04 live CD works out of the box)
-- latest version of `pexpect`
-- [`spawned`](https://github.com/remico/spawned) (actually integrated as a submodule)
-
-### Getting the tool
-```
-$ sudo apt install git python3-pip  # install git and pip3
-$ [sudo] pip3 install git+https://github.com/remico/studio-installer.git  # install the tool
+$ pip3 install --extra-index-url=https://remico.github.io/pypi studioinstaller
 ```
 
-### Running the tool
-- `python3 -m studioinstaller`
-- or just `studioinstaller` if it was installed with `sudo`
+## Running the tool
+`$ studioinstaller`
 
 ### How to use
-- boot an Ubuntu Live CD
+- boot a Live CD session
 - get the tool
-- edit the partitioning scheme and the `.seed` file according to your needs
+- edit the partitioning scheme and the `.seed` file (for Ubuntu) according to your needs
 - run the tool (use `--help` to see available options)
-- specify the target disk device (_last chance to backup your data_) and press Enter
+- specify the target disk device (_the last chance to think of backing up your data_) and press Enter
 - answer some questions depending on your configuration and OS distribution
+> :information_source: after the tool creates new partitions, popup messages might appear asking you
+> to mount and/or decrypt the newly created volumes. Just ignore/close such popups.
+>
+> :information_source: if the partitions get mounted somehow, installer will eventually propose you
+>to unmount them, just accept.

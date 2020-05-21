@@ -14,12 +14,14 @@
 
 """Partitions hierarchy"""
 
-from .partitionbase import Partition
+from .base import PV, Container, LUKS, LuksType
 
-__all__ = ['Container']
+__all__ = ['PVLuks']
 
 
-class Container(Partition):
-    @property
-    def iscontainer(self):
-        return True
+class PVLuks(LUKS, PV, Container):
+    def __init__(self, id_, type=LuksType.luks2):
+        super().__init__(type=type, id_=str(id_))
+
+    def _a_execute(self, action):
+        action.serve_luks_pv(self)

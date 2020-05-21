@@ -14,12 +14,14 @@
 
 """Partitions hierarchy"""
 
-from .partitionbase import Partition
+from .base import PV, FS
 
-__all__ = ['Container']
+__all__ = ['PVPlain']
 
 
-class Container(Partition):
-    @property
-    def iscontainer(self):
-        return True
+class PVPlain(PV, FS):
+    def __init__(self, id_, mountpoint=''):
+        super().__init__(id_=str(id_), mountpoint=mountpoint)
+
+    def _a_execute(self, action):
+        action.serve_standard_pv(self)

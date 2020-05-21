@@ -1,19 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#
+#  This file is part of "Linux Studio Installer" project
+#
+#  Author: Roman Gladyshev <remicollab@gmail.com>
+#  License: MIT License
+#
+#  SPDX-License-Identifier: MIT
+#  License text is available in the LICENSE file and online:
+#  http://www.opensource.org/licenses/MIT
+#
+#  Copyright (c) 2020 remico
 
-""" Partitions hierarchy """
-
-__author__ = 'remico <remicollab@gmail.com>'
+"""Partitions hierarchy"""
 
 from abc import abstractmethod
-from enum import Enum
-from .mediumbase import MediumBase, URL_MAPPED, URL_PV, URL_DISK
+from typing import final
+
+from _typing import StringEnum
+
+from .mediumbase import MediumBase, URL_MAPPED, URL_PV, URL_DISK, URL_LVM_LV
+from ...util import blockdevice
 
 __all__ = ['Partition', 'VType']
 
 
-class VType(Enum):
+class VType(StringEnum):
     DEFAULT = ""
+    GRUB_BIOS_BOOT = "ef02"
     EFI = "ef00"
     SWAP = "8200"
     LUKS = "8309"
@@ -21,15 +35,15 @@ class VType(Enum):
     HOME = "8302"
     LINUXLVM = "8e00"
 
-    def __repr__(self):
-        return str(self.value)
-
-    def __str__(self):
-        return self.__repr__()
-
 
 _M = "mapper"
 _D = ":"
+
+# possible partitions distinction by url
+# Plain: len(url) == 2 + 'mapper' not in url
+# LVM LV: len(url) > 2 + 'mapper' not in url
+# LVM VG: ? (not Plain + not LVM LV + not LUKS)
+# LUKS: len(url) > 2 + 'mapper' in url
 
 
 class Partition(MediumBase):
@@ -38,30 +52,41 @@ class Partition(MediumBase):
     """Base class for all supported partition types"""
     @abstractmethod
     def __init__(self, mountpoint='', vg='', lv='', **kwargs):
+        super().__init__(**kwargs)
+
         self.is_new = False
         self.do_format = False
         self.size = ''
         self.type = str(VType.DEFAULT)
         self.fs = ''
+        self.subvolumes = {}
+        self.label = ''
 
         self.lvm_vg = vg
         self.lvm_lv = lv
 
         self.mountpoint = mountpoint
 
-        super().__init__(**kwargs)
-
-    def new(self, size=MAX_SIZE, type_=VType.DEFAULT):
+    def new(self, size=MAX_SIZE, type_=VType.DEFAULT, label=""):
         """Create a new partition"""
         self.is_new = True
         self.size = size
         self.type = str(type_)
+        self.label = label
         return self
 
-    def reformat(self, fs=''):
-        self.do_format = True
-        self.fs = fs.lower()
+    def on(self, parent):
+        self._parent = parent
         return self
+
+    @final
+    def execute(self, action):
+        print(f">>>>> ACTION [{action.__class__.__name__}]:", f"<{self.__class__.__name__}>::{self.id}")
+        self._a_execute(action)
+
+    @abstractmethod
+    def _a_execute(self, action):
+        pass
 
     @property
     def isphysical(self):
@@ -70,7 +95,7 @@ class Partition(MediumBase):
 
     @property
     def iscontainer(self):
-        """Not a top level partition.
+        """Non-FS partition.
         An encrypted partition or an LVM PV:
             - LUKS on /dev/sda1
             - LVM VG on /dev/sda1
@@ -79,14 +104,16 @@ class Partition(MediumBase):
         return False
 
     @property
-    def islvm(self):
-        """Partition belongs to an LVM volume group"""
-        return bool(self.lvm_vg)
+    def islvmlv(self):
+        """Partition is an LVM logical volume"""
+        return bool(self.lvm_vg and self.lvm_lv)
 
     @property
     def disk(self):
-        """Valid for physical partitions only"""
-        return URL_DISK(self.parent.id) if self.isphysical and self.parent else ''
+        p = self
+        while p.parent:
+            p = p.parent
+        return URL_DISK(p.id)
 
     @property
     def mapperID(self):
@@ -96,7 +123,8 @@ class Partition(MediumBase):
     @property
     def url(self):
         """Path to the device in file system"""
-        return URL_PV(self.id) if self.isphysical else URL_MAPPED(self.id)
+        return URL_PV(self.id) if self.isphysical else \
+            URL_LVM_LV(self.lvm_vg, self.lvm_lv) if self.islvmlv else URL_MAPPED(self.id)
 
     @property
     def isswap(self):
@@ -106,4 +134,11 @@ class Partition(MediumBase):
     @property
     def isspecial(self):
         """Not a regular partition, actually a SWAP or EFI partition"""
-        return self.mountpoint == 'swap' or 'efi' in self.mountpoint
+        return self.isswap or 'efi' in self.mountpoint
+
+    @property
+    def uuid(self):
+        """Partition UUID.
+        A luks partition must be open before, otherwise uuid is empty.
+        """
+        return blockdevice.uuid(self.url)

@@ -1,18 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#
+#  This file is part of "Linux Studio Installer" project
+#
+#  Author: Roman Gladyshev <remicollab@gmail.com>
+#  License: MIT License
+#
+#  SPDX-License-Identifier: MIT
+#  License text is available in the LICENSE file and online:
+#  http://www.opensource.org/licenses/MIT
+#
+#  Copyright (c) 2020 remico
 
-""" Abstract base medium """
+"""Abstract base medium"""
 
-__author__ = 'remico <remicollab@gmail.com>'
-
+import re
 from abc import ABC, abstractmethod
-from typing import final
 
-__all__ = ['MediumBase', 'URL_PV', 'URL_DISK', 'URL_MAPPED']
+__all__ = ['MediumBase', 'URL_PV', 'URL_DISK', 'URL_MAPPED', 'URL_LVM_LV']
 
 
-def _cut_digits(s):
-    return ''.join(i for i in s if not i.isdigit())
+def _cut_trailing_digits(s):
+    return re.match(r".*?(?=\d*$)", s).group()
 
 
 def URL_PV(id_):
@@ -23,8 +32,12 @@ def URL_MAPPED(id_):
     return f"/dev/mapper/{id_}"
 
 
+def URL_LVM_LV(vg, lv):
+    return f"/dev/{vg}/{lv}"
+
+
 def URL_DISK(id_):
-    return f"/dev/{_cut_digits(id_)}"
+    return f"/dev/{_cut_trailing_digits(id_)}"
 
 
 class MediumBase(ABC):
@@ -32,35 +45,20 @@ class MediumBase(ABC):
     def __init__(self, id_, **kwargs):
         super().__init__(**kwargs)
 
-        self._ready = False
         self._parent = None
-        self._id = id_
-
-    @abstractmethod
-    def do_serve(self):
-        # TODO support pre-allocated (existing) partitions in all descendants
-        pass
-
-    @final
-    def serve(self):
-        print("serve:", f"<{self.__class__.__name__}>", self.id)
-        if self.parent:
-            self.parent.serve()
-        if not self.ready:
-            self.do_serve()
-            self._ready = True
-
-    def on(self, parent):
-        self._parent = parent
-        return self
+        self._id = str(id_)
 
     @property
     def parent(self):
         return self._parent
 
     @property
-    def ready(self):
-        return self._ready
+    def pchain(self):
+        items = [self]
+        p = self
+        while p := p.parent:
+            items.append(p)
+        return tuple(items)
 
     @property
     def id(self):

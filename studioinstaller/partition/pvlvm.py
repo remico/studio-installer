@@ -14,12 +14,10 @@
 
 """Partitions hierarchy"""
 
-from .partitionbase import Partition
+from .base import PV, Container
 
-__all__ = ['Container']
+__all__ = ['PVLvm']
 
 
-class Container(Partition):
-    @property
-    def iscontainer(self):
-        return True
+class PVLvm(PV, Container):
+    pass

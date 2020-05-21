@@ -12,14 +12,16 @@
 #
 #  Copyright (c) 2020 remico
 
-"""Partitions hierarchy"""
+"""Returns string values instead of keys"""
 
-from .partitionbase import Partition
+from enum import Enum
 
-__all__ = ['Container']
+__all__ = ['StringEnum']
 
 
-class Container(Partition):
-    @property
-    def iscontainer(self):
-        return True
+class StringEnum(Enum):
+    def __repr__(self):
+        return str(self.value)
+
+    def __str__(self):
+        return self.__repr__()

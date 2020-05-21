@@ -12,14 +12,7 @@
 #
 #  Copyright (c) 2020 remico
 
-"""Partitions hierarchy"""
-
-from .partitionbase import Partition
-
-__all__ = ['Container']
-
-
-class Container(Partition):
-    @property
-    def iscontainer(self):
-        return True
+from .iniconfig import *
+from .fstabconfig import *
+from .xmlconfig import *
+from .yamlconfig import *

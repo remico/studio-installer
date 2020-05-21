@@ -1,0 +1,9 @@
+{
+    "python.pythonPath": "venv/bin/python",
+    "psi-header.config": {
+        "license": "MIT",
+    },
+    "psi-header.variables": [
+        ["projectname", "Linux Studio Installer"],
+    ],
+}

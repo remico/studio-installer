@@ -1,39 +1,30 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#
+#  This file is part of "Linux Studio Installer" project
+#
+#  Author: Roman Gladyshev <remicollab@gmail.com>
+#  License: MIT License
+#
+#  SPDX-License-Identifier: MIT
+#  License text is available in the LICENSE file and online:
+#  http://www.opensource.org/licenses/MIT
+#
+#  Copyright (c) 2020 remico
 
-""" Partitions hierarchy """
-
-__author__ = 'remico <remicollab@gmail.com>'
+"""Partitions hierarchy"""
 
 from .partitionbase import Partition
-from ...spawned import SpawnedSU
 
 __all__ = ['FS']
 
 
 class FS(Partition):
-    def format(self):
-        if "efi" in self.mountpoint:
-            cmd = "mkfs.vfat -F32 %s"
-        elif self.mountpoint == "/boot":
-            cmd = "mkfs.ext2 %s"
-        elif self.mountpoint == "swap":
-            cmd = "mkswap %s"
-        elif self.fs:
-            cmd = f"mkfs.{self.fs} %s"
-        else:
-            cmd = "mkfs.ext4 %s"
-        SpawnedSU.do(cmd % self.url)
+    def makefs(self, fs='', subvolumes={}):
+        self.do_format = True
+        self.fs = fs.lower()
 
-    def mount(self, chroot=None):
-        mountpoint = chroot or self.mountpoint
-        if mountpoint and not self.isswap:
-            SpawnedSU.do(f"mount {self.url} {mountpoint}")
-        elif self.isswap:
-            SpawnedSU.do(f"swapon {self.url}")
+        if self.fs == "btrfs" and subvolumes:
+            self.subvolumes.update(subvolumes)
 
-    def umount(self):
-        if not self.isswap:
-            SpawnedSU.do(f"umount {self.url}")
-        else:
-            SpawnedSU.do(f"swapoff {self.url}")
+        return self

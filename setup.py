@@ -1,19 +1,31 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+#  This file is part of "Linux Studio Installer" project
+#
+#  Author: Roman Gladyshev <remicollab@gmail.com>
+#  License: MIT License
+#
+#  SPDX-License-Identifier: MIT
+#  License text is available in the LICENSE file and online:
+#  http://www.opensource.org/licenses/MIT
+#
+#  Copyright (c) 2020 remico
+
+import platform
 import setuptools
-from pkg_resources import resource_string
+from pathlib import Path
 
 
-with open("README.md") as f:
-    long_description = f.read()
+if 'linux' not in platform.system().lower():
+    raise OSError('The package requires GNU Linux. Aborting installation...')
 
 
-def version():
-    return resource_string('studioinstaller', 'VERSION').decode("utf-8")
-
-
-def dependency_links():
-    pkgs = setuptools.find_packages()
-    print("@@ packages:", pkgs)
-    return [] if 'spawned' in pkgs else ['git+https://github.com/remico/spawned.git@master']
+def data_files():
+    return [
+        ('studioinstaller-data', [str(f) for f in Path("preseed").glob("*") if f.is_file()]),
+        ('studioinstaller-data/calamares', [str(f) for f in Path("preseed/calamares").glob("*") if f.is_file()])
+    ]
 
 
 # make the distribution platform dependent
@@ -23,37 +35,15 @@ try:
         def finalize_options(self):
             _bdist_wheel.finalize_options(self)
             self.root_is_pure = False
+            # self.plat_name_supplied = True
+            # self.plat_name = "manylinux1_x86_64"
 except ImportError:
     bdist_wheel = None
 
 
 setuptools.setup(
-    name="studioinstaller",
-    version=version(),
-    author="remico",
-    author_email="remicollab@gmail.com",
-    description="A semi-automatic Ubuntu Studio OS installer",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://github.com/remico/studio-installer",
-    packages=setuptools.find_packages(exclude=['sndbx', 'test', 'tests']),
-    package_data={'': ['VERSION']},
-    # py_modules=[],
-    # register executable <command>=<pkg><module>:<attr>
-    entry_points={
-        'console_scripts': ['studioinstaller=studioinstaller.main:run']
-    },
-    classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: POSIX :: Linux",
-    ],
-    python_requires='>=3.8',
-    install_requires=['pexpect'],
-    dependency_links=dependency_links(),
-    license='MIT',
-    platforms=['POSIX'],
-    cmdclass={'bdist_wheel': bdist_wheel},
+    data_files=data_files(),
+    cmdclass={
+        'bdist_wheel': bdist_wheel
+    }
 )

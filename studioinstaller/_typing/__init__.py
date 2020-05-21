@@ -12,14 +12,5 @@
 #
 #  Copyright (c) 2020 remico
 
-"""Partitions hierarchy"""
-
-from .partitionbase import Partition
-
-__all__ = ['Container']
-
-
-class Container(Partition):
-    @property
-    def iscontainer(self):
-        return True
+from .types import *
+from .stringenum import *

@@ -1,40 +1,51 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#
+#  This file is part of "Linux Studio Installer" project
+#
+#  Author: Roman Gladyshev <remicollab@gmail.com>
+#  License: MIT License
+#
+#  SPDX-License-Identifier: MIT
+#  License text is available in the LICENSE file and online:
+#  http://www.opensource.org/licenses/MIT
+#
+#  Copyright (c) 2020 remico
 
-""" Partitions hierarchy """
+"""Partitions hierarchy"""
 
-__author__ = 'remico <remicollab@gmail.com>'
+from spawned import ask_user, ENV
 
-from os import getenv as ENV
+from _typing import StringEnum
+
 from .partitionbase import Partition
-from ...spawned import SpawnedSU, ask_user
 
-__all__ = ['LUKS']
+
+__all__ = ['LUKS', 'LuksType']
+
+
+class LuksType(StringEnum):
+    luks1 = "luks1"
+    luks2 = "luks2"
 
 
 class LUKS(Partition):
-    def __init__(self, passphrase=None, **kwargs):
-        self._passphrase = passphrase
+    def __init__(self, type=LuksType.luks2, passphrase=None, **kwargs):
         super().__init__(**kwargs)
+        self._passphrase = passphrase or ENV("LUKSPASS")
+        self._type = type
 
     @property
     def passphrase(self):
-        # FIXME remove checking for user
-        if not self._passphrase and ENV('USER') != 'user':
-            self._passphrase = ask_user("Enter LUKS passphrase:")
+        if not self._passphrase:
+            self._passphrase = ask_user(f"Enter LUKS passphrase for '{self.url}':")
         return self._passphrase
 
     @property
-    def _luks_volume(self):
-        return self.url if self.isphysical or (self.islvm and not self.iscontainer) else self.parent.url
+    def mapperID(self):
+        # FIXME replace the magic attribute with a descriptor or use another more clear way
+        return getattr(self, '_evaluated_mapper_id', None)  # warning: magic attribute
 
-    def luks_open(self, passphrase=None, mapper_id=None):
-        assert self.mapperID or mapper_id, "mapperID is not defined for this partition"
-        if passphrase:
-            self._passphrase = passphrase
-        with SpawnedSU(f"cryptsetup open {self._luks_volume} {self.mapperID or mapper_id}") as t:
-            t.interact("Enter passphrase for", self.passphrase)
-
-    def luks_close(self, mapper_id=None):
-        assert self.mapperID or mapper_id, "mapperID is not defined for this partition"
-        SpawnedSU.do(f"cryptsetup close {self.mapperID or mapper_id}")
+    @property
+    def luks_type(self):
+        return self._type
