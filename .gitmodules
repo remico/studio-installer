@@ -1,0 +1,3 @@
+[submodule "spawned"]
+	path = studioinstaller/spawned
+	url = https://github.com/remico/spawned.git
