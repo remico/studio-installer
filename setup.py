@@ -38,6 +38,7 @@ setuptools.setup(
     url="https://github.com/remico/studio-installer",
     packages=setuptools.find_packages(exclude=['sndbx', 'test', 'tests']),
     package_data={'': ['VERSION']},
+    # TODO add the preseeding file to resources, extract to ~/Desktop
     # py_modules=[],
     # register executable <command>=<pkg><module>:<attr>
     entry_points={
