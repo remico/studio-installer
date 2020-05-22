@@ -1,5 +1,6 @@
 import setuptools
 from pkg_resources import resource_string
+from pathlib import Path
 
 
 with open("README.md") as f:
@@ -16,6 +17,13 @@ def dependency_links():
     return [] if 'spawned' in pkgs else ['git+https://github.com/remico/spawned.git@master']
 
 
+def data_files():
+    files = [
+        'stuff/ubuntustudio.seed'
+    ]
+    return [('studioinstaller-data', [f for f in files if Path(f).exists()])]
+
+
 # make the distribution platform dependent
 try:
     from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
@@ -23,6 +31,8 @@ try:
         def finalize_options(self):
             _bdist_wheel.finalize_options(self)
             self.root_is_pure = False
+            # self.plat_name_supplied = True
+            # self.plat_name = "manylinux1_x86_64"
 except ImportError:
     bdist_wheel = None
 
@@ -38,7 +48,7 @@ setuptools.setup(
     url="https://github.com/remico/studio-installer",
     packages=setuptools.find_packages(exclude=['sndbx', 'test', 'tests']),
     package_data={'': ['VERSION']},
-    # TODO add the preseeding file to resources, extract to ~/Desktop
+    data_files=data_files(),
     # py_modules=[],
     # register executable <command>=<pkg><module>:<attr>
     entry_points={
@@ -52,7 +62,7 @@ setuptools.setup(
         "Operating System :: POSIX :: Linux",
     ],
     python_requires='>=3.8',
-    install_requires=['pexpect'],
+    install_requires=['pexpect', 'setuptools', 'wheel'],
     dependency_links=dependency_links(),
     license='MIT',
     platforms=['POSIX'],
