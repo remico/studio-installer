@@ -62,7 +62,7 @@ setuptools.setup(
         "Operating System :: POSIX :: Linux",
     ],
     python_requires='>=3.8',
-    install_requires=['pexpect', 'setuptools', 'wheel'],
+    install_requires=['pexpect'],
     dependency_links=dependency_links(),
     license='MIT',
     platforms=['POSIX'],
