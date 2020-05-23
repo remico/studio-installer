@@ -44,8 +44,7 @@ def hard_cleanup():
 
 
 def run_os_installation():
-    # FIXME change path to /cdrom/ubuntustudio.seed
-    SpawnedSU.do("debconf-set-selections $(find /home -name *.seed)")
+    SpawnedSU.do(f"debconf-set-selections {preseeding_file()}")
 
     # parse the .desktop file to get the installation command
     data = Spawned.do("grep '^Exec' ~/Desktop/*.desktop | tail -1 | sed 's/^Exec=//'")
@@ -72,6 +71,13 @@ def clear_installation_cache():
 def select_target_disk():
     SpawnedSU.do(r"parted -l | egrep --color 'Disk\s+/dev|[kMG\d]B\s|Size'")
     return ask_user("Select target disk:").replace('/dev/', '')
+
+
+def preseeding_file():
+    # TODO move .seed file inside the package and use resource API
+    from importlib.metadata import files as app_files
+    if l := [f for f in app_files(__package__) if '.seed' in str(f)]:
+        return l[0].locate()
 
 
 def run():
