@@ -13,7 +13,7 @@
 __author__ = 'remico <remicollab@gmail.com>'
 
 import argparse
-from pathlib import Path
+from importlib.metadata import version as app_version
 from .partition.base import VType
 from .partition import Disk, StandardPV, LuksPV, LvmOnLuksVG, LvmLV
 from .partitioner import Partitioner
@@ -96,7 +96,7 @@ def run():
         Spawned.enable_debug_commands()
 
     if op.version:
-        print(Path(__file__).parent.joinpath('VERSION').read_text().strip())
+        print(app_version(__package__))
         exit(0)
 
     if op.hard:
