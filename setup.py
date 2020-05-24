@@ -36,10 +36,14 @@ setuptools.setup(
     version=version(),
     author="remico",
     author_email="remicollab@gmail.com",
-    description="A semi-automatic Ubuntu Studio OS installer",
+    description="A console tool for Ubuntu Studio OS installation",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/remico/studio-installer",
+    project_urls={
+        "Source Code": "https://github.com/remico/studio-installer",
+        "Documentation": "https://github.com/remico/studio-installer/wiki"
+    },
     packages=setuptools.find_packages(exclude=['sndbx', 'test', 'tests']),
     package_data={'': ['VERSION']},
     data_files=data_files(),
