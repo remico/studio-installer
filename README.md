@@ -16,43 +16,41 @@ After you specify any valid device and press Enter, the whole device will be cle
 will be rewritten, new partitions will be created and formatted according to the defined configuration.
 ```  
 
->:information_source: The tool can be used with other Ubuntu-like distro installers
-> provided they use `ubiquity` and `partman`.
+## About
+- This is a console tool
+- All partitioning requirements can be defined in the partitioning scheme
+- Automatic answers for most of the questions during the installation process can be defined in the preseeding file
 
-### How it works
-It's a console tool.
-All partitioning requirements can be defined in the partitioning scheme.
-Automatic answers for most of the questions during the installation process can be defined in the preseeding file. 
+:information_source: Initially the tool is intended for Ubuntu Studio distro, but in fact, it can also be used
+with other Ubuntu-like distro installers provided they use `ubiquity` and `partman`. 
 
-The tool's working cycle consists of several stages:
-- Prepare partitions:
-  - process a defined partitioning scheme
-  - cleanup space
-  - create partitions
-  - [optionally] encrypt and format partitions, setup LVM
-- Depending on the partitioning scheme, run background bash scripts instructing `partman` how to deal with the partitions
-- Set pre-configured values from the preseeding file
-- Run the OS installer (`ubiquity` at the moment)
-- Run post-installation actions:
-  - configure encryption and LVM systems (if there are any LUKS and/or LVM devices in the system)
-  - rebuild initrd
-  - configure and install bootloader
-  - some extra actions, e.g. install additional packages, setup user settings, etc 
+**It can help to automate some routine work one usually does during Ubuntu OS installation:**
+- create new partitions (it supports LVM)
+- encrypt, mount, unmount, format them
+- install OS according to the preconfigured partitioning scheme
+- automate some post-installation actions (e.g. install a bootloader, update configuration files, etc)
 
-:pushpin: See [Wiki](../../wiki/Home) to know how to configure partitions and edit the preseeding file.
+**Limitations:**
+- the partitioning algorithm does NOT support pre-existing partitions yet
+- the whole disk drive (user selected) gets cleared even if the new partitions require less space
 
-### Requirements
-- python >= 3.8 (on Ubuntu 20.04 live CD works out of the box)
+:pushpin: **See [Wiki](../../wiki) for details of:**
+- how to configure partitions and edit the preseeding file
+- the tool internals
+
+## Requirements
+- Ubuntu-like OS (usually, a running Live CD session of the distro you're going to install)
+- python >= 3.8
 - latest version of `pexpect`
 - [`spawned`](https://github.com/remico/spawned) (actually integrated as a submodule)
 
-### Getting the tool
+## Getting the tool
 ```
 $ sudo apt install git python3-pip  # install git and pip3
 $ [sudo] pip3 install git+https://github.com/remico/studio-installer.git  # install the tool
 ```
 
-### Running the tool
+## Running the tool
 - `python3 -m studioinstaller`
 - or just `studioinstaller` if it was installed with `sudo`
 
@@ -63,3 +61,5 @@ $ [sudo] pip3 install git+https://github.com/remico/studio-installer.git  # inst
 - run the tool (use `--help` to see available options)
 - specify the target disk device (_last chance to backup your data_) and press Enter
 - answer some questions depending on your configuration and OS distribution
+- :information_source: during the tool is creating new partitions, popup messages might appear asking you
+to mount and/or decrypt the newly created volumes. Just ignore/close these popups.
