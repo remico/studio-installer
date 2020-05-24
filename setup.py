@@ -11,15 +11,9 @@ def version():
     return resource_string('studioinstaller', 'VERSION').decode("utf-8")
 
 
-def dependency_links():
-    pkgs = setuptools.find_packages()
-    print("@@ packages:", pkgs)
-    return [] if 'spawned' in pkgs else ['git+https://github.com/remico/spawned.git@master']
-
-
 def data_files():
     files = [
-        'stuff/ubuntustudio.seed'
+        'stuff/studioinstaller.seed'
     ]
     return [('studioinstaller-data', [f for f in files if Path(f).exists()])]
 
@@ -62,8 +56,10 @@ setuptools.setup(
         "Operating System :: POSIX :: Linux",
     ],
     python_requires='>=3.8',
-    install_requires=['pexpect'],
-    dependency_links=dependency_links(),
+    install_requires=[
+        'pexpect',
+        # 'spawned @ git+https://github.com/remico/spawned.git@master'  # integrated as a submodule
+    ],
     license='MIT',
     platforms=['POSIX'],
     cmdclass={'bdist_wheel': bdist_wheel},
