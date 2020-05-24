@@ -4,9 +4,9 @@ Let's automate boring Ubuntu Studio Linux installation process.
 ###### DISCLAIMER
 > :pushpin: **The tool is under development and can't be used by enduser at the moment**
 
-> :warning: Current implementation will remove EVERYTHING on the disk you select!
+> :warning: Current implementation will remove EVERYTHING on the disk drive you select!
 >
-> This is intentional behavior: the tool will use the whole disk space for the new OS.
+> This is intentional behavior: the tool will use the whole drive space for the new OS.
 
 > :warning: Under a live CD session the tool will get superuser privileges without any password confirmation.
 > If something goes wrong, it can damage all data on your HDD, SSD, etc. Use the tool at your own risk.  
@@ -22,7 +22,7 @@ will be rewritten, new partitions will be created and formatted according to the
 - Automatic answers for most of the questions during the installation process can be defined in the preseeding file
 
 :information_source: Initially the tool is intended for Ubuntu Studio distro, but in fact, it can also be used
-with other Ubuntu-like distro installers provided they use `ubiquity` and `partman`. 
+with other Ubuntu-like distros provided they use `ubiquity` and `partman`. 
 
 **It can help to automate some routine work one usually does during Ubuntu OS installation:**
 - create new partitions (it supports LVM)
