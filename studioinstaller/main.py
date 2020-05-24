@@ -14,6 +14,7 @@ __author__ = 'remico <remicollab@gmail.com>'
 
 import argparse
 from importlib.metadata import version as app_version
+from sys import exit as app_exit
 from .partition.base import VType
 from .partition import Disk, StandardPV, LuksPV, LvmOnLuksVG, LvmLV
 from .partitioner import Partitioner
@@ -90,6 +91,7 @@ def run():
     argparser.add_argument("-p", type=str, metavar="PASSWORD", help="User password")
     argparser.add_argument("-d", action="store_true", help="Enable commands debug output")
     argparser.add_argument("--version", action="store_true", help="Show version and exit")
+    argparser.add_argument("--selftest", action="store_true", help="Check environment and own resources and exit")
     op = argparser.parse_args()
 
     # optional actions
@@ -101,9 +103,13 @@ def run():
     if op.d:
         Spawned.enable_debug_commands()
 
+    if op.selftest:
+        # TODO check required linux commands, .seed file, ubiquity, ubiquity.desktop file, partman, debconf database
+        app_exit()
+
     if op.version:
         print(app_version(__package__))
-        exit(0)
+        app_exit()
 
     if op.hard:
         hard_cleanup()
