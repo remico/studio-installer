@@ -3,21 +3,24 @@
 
 """ Create partition action """
 
-__author__ = 'remico <remicollab@gmail.com>'
-
 from .actionbase import ActionBase
 from ..partition.base import PV
+
+__author__ = "Roman Gladyshev"
+__email__ = "remicollab@gmail.com"
+__copyright__ = "Copyright 2020, Studio Installer"
+__license__ = "MIT"
 
 __all__ = ['Create']
 
 
 class Create(ActionBase):
     def iterator(self, scheme):
-        # include disks (aka PVs' parents) first
-        disks = [pv.parent for pv in scheme.partitions(PV)]
+        # include disks (aka PVs' parents) first; avoid duplications
+        to_iter = [{pv.parent for pv in scheme.partitions(PV)}]
         # filter only partitions to be created
-        disks.extend([pt for pt in scheme if pt.is_new])
-        return disks.__iter__()
+        to_iter.extend([pt for pt in scheme if pt.is_new])
+        return to_iter.__iter__()
 
     def serve_disk(self, disk):
         disk.create_new_partition_table()
