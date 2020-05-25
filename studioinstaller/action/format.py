@@ -15,7 +15,33 @@
 
 """ Format partition action """
 
+from .actionbase import ActionBase
+
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
+
+__all__ = ['Format']
+
+
+class Format(ActionBase):
+    def iterator(self, scheme):
+        # filter only partitions to be formatted
+        to_iter = [pt for pt in scheme if pt.do_format]
+        return to_iter.__iter__()
+
+    def serve_disk(self, disk):
+        pass
+
+    def serve_standard_pv(self, pt):
+        pt.format()
+
+    def serve_luks_pv(self, pt):
+        pass
+
+    def serve_lvm_on_luks_vg(self, pt):
+        pass
+
+    def serve_lvm_lv(self, pt):
+        pt.format()

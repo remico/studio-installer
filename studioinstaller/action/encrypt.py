@@ -15,7 +15,33 @@
 
 """ Encrypt partition using cryptsetup """
 
+from .actionbase import ActionBase
+from ..partition.base import LUKS, PV
+
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
+
+__all__ = ['Encrypt']
+
+
+class Encrypt(ActionBase):
+    def iterator(self, scheme):
+        to_iter = [pt for pt in scheme.partitions(LUKS, PV)]
+        return to_iter.__iter__()
+
+    def serve_disk(self, disk):
+        pass
+
+    def serve_standard_pv(self, pt):
+        pass
+
+    def serve_luks_pv(self, pt):
+        pt.encrypt()
+
+    def serve_lvm_on_luks_vg(self, pt):
+        pass
+
+    def serve_lvm_lv(self, pt):
+        pass
