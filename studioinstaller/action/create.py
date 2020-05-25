@@ -5,6 +5,7 @@
 
 from .actionbase import ActionBase
 from ..partition.base import PV
+from ..spawned import SpawnedSU
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -40,6 +41,7 @@ class Create(ActionBase):
 
     def serve_lvm_lv(self, pt):
         assert pt.lvm_vg, "No LVM VG is defined for an LVM LV. Abort."
-        pt.create()
+        l_option = "-l" if "%" in pt.size else "-L"
+        SpawnedSU.do(f"lvcreate {l_option} {pt.size} {pt.lvm_vg} -n {pt.lvm_lv}")
         # if pt.do_format or pt.isswap:
         #     pt.format()

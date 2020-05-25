@@ -7,7 +7,6 @@ __author__ = 'remico <remicollab@gmail.com>'
 
 from .base import FS, LVM_ID, LVM
 from .lvmpv import LvmPV
-from ..spawned import SpawnedSU
 
 __all__ = ['LvmLV']
 
@@ -15,10 +14,6 @@ __all__ = ['LvmLV']
 class LvmLV(FS, LVM):
     def __init__(self, lv, mountpoint=''):
         super().__init__(id_='', lv=lv, mountpoint=mountpoint)
-
-    def create(self):
-        l_option = "-l" if "%" in self.size else "-L"
-        SpawnedSU.do(f"lvcreate {l_option} {self.size} {self.lvm_vg} -n {self.lvm_lv}")
 
     def _a_execute(self, action):
         action.serve_lvm_lv(self)
