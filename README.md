@@ -1,4 +1,4 @@
-# studio-installer
+# Ubuntu Studio Installer
 Let's automate boring Ubuntu Studio Linux installation process.
 
 ###### DISCLAIMER
