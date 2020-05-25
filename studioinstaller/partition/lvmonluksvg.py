@@ -14,7 +14,5 @@ class LvmOnLuksVG(LUKS, Container, LVM):
     def __init__(self, vg, id_, **kwargs):
         super().__init__(id_=id_, vg=vg, **kwargs)
 
-    def do_serve(self):
-        if self.is_new:
-            self.luks_open()
-            self.init_vg()
+    def _a_execute(self, action):
+        action.serve_lvm_on_luks_vg(self)

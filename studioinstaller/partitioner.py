@@ -5,6 +5,7 @@
 
 __author__ = 'remico <remicollab@gmail.com>'
 
+from .action import Create
 from .partition.base import Partition, LVM, URL_DISK
 from .partition import LvmLV
 from .scheme import Scheme
@@ -38,5 +39,4 @@ class Partitioner:
             assert not pt.islvm or pt.lvm_vg in LvmLV.groups(self.scheme), "LVM VGs do not match"
 
     def prepare_partitions(self):
-        for pt in self.scheme:
-            pt.serve()
+        self.scheme.execute(Create())

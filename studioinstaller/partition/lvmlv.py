@@ -20,12 +20,8 @@ class LvmLV(FS, LVM):
         l_option = "-l" if "%" in self.size else "-L"
         SpawnedSU.do(f"lvcreate {l_option} {self.size} {self.lvm_vg} -n {self.lvm_lv}")
 
-    def do_serve(self):
-        assert self.lvm_vg, "No LVM VG is defined for an LVM LV. Abort."
-        if self.is_new:
-            self.create()
-        if self.do_format or self.isswap:
-            self.format()
+    def _a_execute(self, action):
+        action.serve_lvm_lv(self)
 
     def on(self, parent: LvmPV):
         self.lvm_vg = parent.lvm_vg

@@ -23,7 +23,5 @@ class LuksPV(LUKS, PV, Container):
             t.interact("Enter passphrase for", self.passphrase)
             t.interact("Verify passphrase", self.passphrase)
 
-    def do_serve(self):
-        if self.is_new:
-            self.create()
-            self.encrypt()
+    def _a_execute(self, action):
+        action.serve_luks_pv(self)

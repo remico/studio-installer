@@ -14,7 +14,8 @@ class Scheme:
         self.scheme = partitions
 
     def __iter__(self):
-        # TODO implement custom iterator with special iteration order (physical volumes first)
+        for pt in self.scheme:
+            pt._ready = False  # mark unvisited
         return self.scheme.__iter__()
 
     def add(self, pt: Partition):
@@ -26,3 +27,7 @@ class Scheme:
 
     def partition(self, mountpoint) -> Partition:
         return next((pt for pt in self.scheme if mountpoint in pt.mountpoint), None)
+
+    def execute(self, action):
+        for pt in action.iterator(self):
+            pt.execute(action)

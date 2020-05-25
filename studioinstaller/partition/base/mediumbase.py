@@ -36,19 +36,16 @@ class MediumBase(ABC):
         self._parent = None
         self._id = id_
 
-    @abstractmethod
-    def do_serve(self):
-        # TODO support pre-allocated (existing) partitions in all descendants
-        pass
-
     @final
-    def serve(self):
-        print("serve:", f"<{self.__class__.__name__}>", self.id)
-        if self.parent:
-            self.parent.serve()
+    def execute(self, action):
+        print(f"execute <{action.__class__.__name__}>:", f"<{self.__class__.__name__}>::{self.id}")
         if not self.ready:
-            self.do_serve()
+            self._a_execute(action)
             self._ready = True
+
+    @abstractmethod
+    def _a_execute(self, action):
+        pass
 
     def on(self, parent):
         self._parent = parent

@@ -23,9 +23,8 @@ class Disk(MediumBase):
             t.interact(basic_prompt, "w")
             t.interact("proceed?", "Y")
 
-    def do_serve(self):
-        if brandnew := True:
-            self.create_new_partition_table()
+    def _a_execute(self, action):
+        action.serve_disk(self)
 
     @property
     def url(self):
