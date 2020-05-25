@@ -39,9 +39,7 @@ class MediumBase(ABC):
     @final
     def execute(self, action):
         print(f"execute <{action.__class__.__name__}>:", f"<{self.__class__.__name__}>::{self.id}")
-        if not self.ready:
-            self._a_execute(action)
-            self._ready = True
+        self._a_execute(action)
 
     @abstractmethod
     def _a_execute(self, action):

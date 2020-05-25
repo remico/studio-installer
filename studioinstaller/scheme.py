@@ -14,8 +14,6 @@ class Scheme:
         self.scheme = partitions
 
     def __iter__(self):
-        for pt in self.scheme:
-            pt._ready = False  # mark unhandled
         return self.scheme.__iter__()
 
     def add(self, pt: Partition):
