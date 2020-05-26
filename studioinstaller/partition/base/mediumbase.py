@@ -13,7 +13,7 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-""" Abstract base medium """
+"""Abstract base medium"""
 
 from abc import ABC, abstractmethod
 from typing import final

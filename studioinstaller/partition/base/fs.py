@@ -13,7 +13,7 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-""" Partitions hierarchy """
+"""Partitions hierarchy"""
 
 from .partitionbase import Partition
 from ...spawned import SpawnedSU

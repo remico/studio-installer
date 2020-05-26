@@ -13,7 +13,7 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-""" Create partition action """
+"""Create partition action"""
 
 from .actionbase import ActionBase
 from ..partition.base import PV

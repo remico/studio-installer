@@ -13,7 +13,7 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-""" Abstract action interface """
+"""Abstract action interface"""
 
 from abc import ABC, abstractmethod
 

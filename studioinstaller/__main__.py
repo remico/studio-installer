@@ -13,8 +13,8 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-""" Allows to run the application directly with 'python -m studioinstaller',
-    just like a regular python module
+"""Allows to run the application directly with 'python -m studioinstaller',
+   just like a regular python module
 """
 
 from . import main

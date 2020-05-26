@@ -13,7 +13,7 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-""" Encapsulates a partitioning scheme """
+"""Encapsulates a partitioning scheme"""
 
 from typing import List
 from .partition.base import Partition

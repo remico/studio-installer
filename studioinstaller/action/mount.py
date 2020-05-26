@@ -13,7 +13,7 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-""" Mount partition action """
+"""Mount partition action"""
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"

@@ -13,7 +13,7 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-""" Hardware medium """
+"""Hardware medium"""
 
 from .base import MediumBase, URL_DISK
 from ..spawned import SpawnedSU

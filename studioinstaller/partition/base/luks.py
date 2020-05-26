@@ -13,7 +13,7 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-""" Partitions hierarchy """
+"""Partitions hierarchy"""
 
 from os import getenv as ENV
 from .partitionbase import Partition

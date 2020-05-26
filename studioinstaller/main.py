@@ -13,9 +13,9 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-""" OS Linux semi-automatic installer:
+"""Ubuntu Studio semi-automatic installer:
     - create/change partitions map
-    - encrypt the partitions
+    - encrypt partitions
     - configure lvm
     - install OS
     - mount/unmount encrypted partitions

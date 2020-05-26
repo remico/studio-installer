@@ -13,7 +13,7 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-""" Post-installation setup """
+"""Post-installation setup"""
 
 from .partition.base import Partition
 from .partitioner import Partitioner

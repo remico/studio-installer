@@ -13,7 +13,7 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-""" Encrypt partition using cryptsetup """
+"""Encrypt partition using cryptsetup"""
 
 from .actionbase import ActionBase
 from ..partition.base import LUKS, PV

@@ -13,7 +13,7 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-""" Prepare partitions for OS installation according to the partitioning scheme """
+"""Prepare partitions for OS installation according to the partitioning scheme"""
 
 from .action import Create, Format, Encrypt
 from .partition.base import Partition, LVM, FS, URL_DISK

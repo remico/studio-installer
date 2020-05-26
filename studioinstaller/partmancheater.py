@@ -13,18 +13,17 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-""" Manipulates partman's file markers according to the partman rules
+"""Manipulates partman's file markers according to the partman rules
 
-    partman's rules can't handle existing partitions in automatic mode clearly, but in manual mode - it can.
-    so the main idea is in emulating of "manual" user actions by tracking the partman's DB in background
-    and manipulate the special marker files inside, according to predefined partitioning requirements
+   partman's rules can't handle existing partitions in automatic mode clearly, but in manual mode - it can.
+   so the main idea is in emulating of "manual" user actions by tracking the partman's DB in background
+   and manipulate the special marker files inside, according to predefined partitioning requirements
 """
 
 import re
 from pathlib import Path
-from .partition.base import Partition
 from .scheme import Scheme
-from .spawned import SpawnedSU, Spawned, logger as log
+from .spawned import SpawnedSU, Spawned
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
