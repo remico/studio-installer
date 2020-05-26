@@ -13,11 +13,9 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-import sys
+from .types import *
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
-
-sys.path.append(__path__[0])  # import _typing

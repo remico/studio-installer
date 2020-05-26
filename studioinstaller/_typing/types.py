@@ -13,11 +13,38 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-import sys
+"""In combination with __future__.annotations, provides ability for IDE
+to perform type checking.
+
+Usage:
+at the top of a python module add::
+
+    from __future__ import annotations
+    from _typing import *
+
+"""
+
+from typing import TYPE_CHECKING, final
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-sys.path.append(__path__[0])  # import _typing
+
+if TYPE_CHECKING:
+    # builtin
+    from typing import List, Tuple, Iterable, Iterator
+
+    # top-level module
+    from partitioner import *
+    from partmancheater import *
+    from scheme import *
+    from postinstaller import *
+
+    # inner modules
+    from studioinstaller.action import *
+    from studioinstaller.action.actionbase import *
+    from studioinstaller.partition import *
+    from studioinstaller.partition.base import *
+    from studioinstaller.spawned import *
