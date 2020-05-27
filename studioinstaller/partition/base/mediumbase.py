@@ -53,7 +53,7 @@ class MediumBase(ABC):
 
     @final
     def execute(self, action):
-        print(f"execute <{action.__class__.__name__}>:", f"<{self.__class__.__name__}>::{self.id}")
+        print(f">>>>> EXECUTE <{action.__class__.__name__}>:", f"<{self.__class__.__name__}>::{self.id}")
         self._a_execute(action)
 
     @abstractmethod

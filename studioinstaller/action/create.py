@@ -16,6 +16,7 @@
 """Create partition action"""
 
 from .actionbase import ActionBase
+from .encrypt import Encrypt
 from ..partition.base import PV
 from ..spawned import SpawnedSU
 
@@ -43,6 +44,7 @@ class Create(ActionBase):
 
     def serve_luks_pv(self, pt):
         pt.create()
+        pt.execute(Encrypt())
 
     def serve_lvm_on_luks_vg(self, pt):
         pt.luks_open()

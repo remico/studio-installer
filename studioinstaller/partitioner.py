@@ -56,5 +56,4 @@ class Partitioner:
 
     def prepare_partitions(self):
         self.scheme.execute(Create())
-        self.scheme.execute(Encrypt())
         self.scheme.execute(Format())
