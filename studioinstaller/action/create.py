@@ -17,7 +17,7 @@
 
 from .actionbase import ActionBase
 from .encrypt import Encrypt
-from ..partition.base import PV
+from ..partition.base import Partition
 from ..spawned import SpawnedSU
 
 __author__ = "Roman Gladyshev"
@@ -31,9 +31,10 @@ __all__ = ['Create']
 class Create(ActionBase):
     def iterator(self, scheme):
         # include disks (aka PVs' parents) first; avoid duplications
-        to_iter = list({pv.parent for pv in scheme.partitions(PV)})
+        to_iter = scheme.disks()
         # filter only partitions to be created
-        to_iter.extend([pt for pt in scheme if pt.is_new])
+        to_iter.extend(scheme.partitions(Partition, new=True))
+        # TODO sorted() Disks[1,2,..] => PV[1,2,..] => containers by depth of id
         return to_iter.__iter__()
 
     def serve_disk(self, disk):

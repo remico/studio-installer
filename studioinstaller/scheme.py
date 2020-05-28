@@ -17,6 +17,7 @@
 
 from typing import List
 from .partition.base import Partition
+from .partition import Disk
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -28,13 +29,27 @@ __all__ = ['Scheme']
 
 class Scheme:
     def __init__(self, partitions: List[Partition] = None):
-        self.scheme = partitions
+        self.scheme = set()
+        for pt in partitions:
+            while self._add_pt(pt):
+                pass
+        print(self.scheme)
 
     def __iter__(self):
         return self.scheme.__iter__()
 
+    def _add_pt(self, pt):
+        if isinstance(pt, Partition):
+            self.scheme.add(pt)
+        return pt.parent
+
     def add(self, pt: Partition):
-        self.scheme.append(pt)
+        assert isinstance(pt, Partition)
+        self._add_pt(pt)
+
+    def disks(self) -> List[Disk]:
+        disks = {pt.parent for pt in self.scheme if isinstance(pt.parent, Disk)}
+        return list(disks)
 
     def partitions(self, *types, new=None) -> List[Partition]:
         return [pt for pt in self.scheme if all(isinstance(pt, T) for T in types)
@@ -44,5 +59,6 @@ class Scheme:
         return next((pt for pt in self.scheme if mountpoint in pt.mountpoint), None)
 
     def execute(self, action):
+        # TODO get a set from the action => while set.pop(): do()
         for pt in action.iterator(self):
             pt.execute(action)
