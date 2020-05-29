@@ -26,6 +26,9 @@ __all__ = ['Format']
 
 
 class Format(ActionBase):
+    def __next__(self):
+        pass
+
     def iterator(self, scheme):
         # filter only partitions to be formatted
         to_iter = [pt for pt in scheme if pt.do_format or pt.isswap]

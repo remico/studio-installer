@@ -73,11 +73,6 @@ class Partition(MediumBase):
         self.type = str(type_)
         return self
 
-    def reformat(self, fs=''):
-        self.do_format = True
-        self.fs = fs.lower()
-        return self
-
     @property
     def isphysical(self):
         """A real partition on the physical drive (e.g. /dev/sda1)"""

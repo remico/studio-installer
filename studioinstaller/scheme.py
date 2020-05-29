@@ -31,7 +31,7 @@ class Scheme:
     def __init__(self, partitions: List[Partition] = None):
         self.scheme = set()
         for pt in partitions:
-            while self._add_pt(pt):
+            while pt := self._add_pt(pt):  # instead of recursive calls
                 pass
         print(self.scheme)
 
@@ -51,7 +51,8 @@ class Scheme:
         disks = {pt.parent for pt in self.scheme if isinstance(pt.parent, Disk)}
         return list(disks)
 
-    def partitions(self, *types, new=None) -> List[Partition]:
+    def partitions(self, *types, new=None, disk=None) -> List[Partition]:
+        # TODO filter by disk
         return [pt for pt in self.scheme if all(isinstance(pt, T) for T in types)
                 and (pt.is_new == new if new is not None else True)]
 

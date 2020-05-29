@@ -17,7 +17,7 @@
 
 from .actionbase import ActionBase
 from .encrypt import Encrypt
-from ..partition.base import Partition
+from ..partition.base import PV
 from ..spawned import SpawnedSU
 
 __author__ = "Roman Gladyshev"
@@ -29,13 +29,39 @@ __all__ = ['Create']
 
 
 class Create(ActionBase):
+    def __next__(self):
+        for p in self.nodes:
+            while p and p.parent in self.nodes:
+                p = p.parent
+            self.nodes.remove(p)
+            return p
+        raise StopIteration
+
     def iterator(self, scheme):
-        # include disks (aka PVs' parents) first; avoid duplications
-        to_iter = scheme.disks()
-        # filter only partitions to be created
-        to_iter.extend(scheme.partitions(Partition, new=True))
-        # TODO sorted() Disks[1,2,..] => PV[1,2,..] => containers by depth of id
-        return to_iter.__iter__()
+        self.nodes = scheme.disks()
+
+        # sort PVs first
+        # filter: PVs, to be created only
+        pvs = scheme.partitions(PV, new=True)
+        # URL is valid key for sorting PVs
+        self.nodes.extend(sorted(pvs, key=lambda p: p.url))
+
+        # then sort non-PVs
+        def _k(p):
+            if p.iscontainer:  # LUKS, LVM ? (TODO: luks_on_lvm first, then lvm_on_luks)
+                return 0
+            if p.mountpoint == "/":
+                return 1
+            elif p.isswap:
+                return 2
+            else:
+                return 3 + len(p.mountpoint.split('/'))
+
+        # filter: non-PVs, to be created only
+        non_pvs = [pt for pt in scheme if not isinstance(pt, PV) and pt.is_new]
+        self.nodes.extend(sorted(non_pvs, key=_k))
+
+        return self
 
     def serve_disk(self, disk):
         disk.create_new_partition_table()

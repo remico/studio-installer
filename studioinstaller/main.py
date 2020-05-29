@@ -135,12 +135,12 @@ def run():
     disk = Disk(select_target_disk())
 
     # edit partitioning configuration according to your needs
-    p1 = StandardPV(1, '/boot/efi').new("100M", VType.EFI).on(disk).reformat()
+    p1 = StandardPV(1, '/boot/efi').new("100M", VType.EFI).on(disk).makefs()
     p2 = LuksPV(2).new().on(disk)
     lvm_vg = LvmOnLuksVG('vg', 'cryptlvm').new().on(p2)
-    root = LvmLV('root', '/').new("15G").on(lvm_vg).reformat('ext4')
+    root = LvmLV('root', '/').new("15G").on(lvm_vg).makefs('ext4')
     swap = LvmLV('swap', 'swap').new("1G", VType.SWAP).on(lvm_vg)
-    home = LvmLV('home', '/home').new("100%FREE").on(lvm_vg).reformat('ext4')
+    home = LvmLV('home', '/home').new("100%FREE").on(lvm_vg).makefs('ext4')
 
     scheme = Scheme([p1, p2, lvm_vg, root, swap, home])
 

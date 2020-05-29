@@ -27,6 +27,11 @@ __all__ = ['FS']
 
 
 class FS(Partition):
+    def makefs(self, fs=''):
+        self.do_format = True
+        self.fs = fs.lower()
+        return self
+
     def format(self):
         if "efi" in self.mountpoint:
             cmd = "mkfs.vfat -F32 %s"

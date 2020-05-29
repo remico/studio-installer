@@ -16,6 +16,8 @@
 """Abstract action interface"""
 
 from abc import ABC, abstractmethod
+from typing import List, Union, final
+from ..partition.base import MediumBase
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -26,6 +28,17 @@ __all__ = ['ActionBase']
 
 
 class ActionBase(ABC):
+    def __init__(self):  # next()
+        self.nodes: Union[List[MediumBase], None] = None
+
+    @final
+    def __iter__(self):  # for(...)
+        return self
+
+    @abstractmethod
+    def __next__(self):
+        pass
+
     @abstractmethod
     def iterator(self, scheme):
         pass
