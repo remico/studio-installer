@@ -15,9 +15,8 @@
 
 """Partitions hierarchy"""
 
-from os import getenv as ENV
 from .partitionbase import Partition
-from ...spawned import SpawnedSU, ask_user
+from ...spawned import ask_user, ENV
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -40,16 +39,5 @@ class LUKS(Partition):
         return self._passphrase
 
     @property
-    def _luks_volume(self):
+    def luks_url(self):
         return self.url if self.isphysical or (self.islvm and not self.iscontainer) else self.parent.url
-
-    def luks_open(self, passphrase=None, mapper_id=None):
-        assert self.mapperID or mapper_id, "mapperID is not defined for this partition"
-        if passphrase:
-            self._passphrase = passphrase
-        with SpawnedSU(f"cryptsetup open {self._luks_volume} {self.mapperID or mapper_id}") as t:
-            t.interact("Enter passphrase for", self.passphrase)
-
-    def luks_close(self, mapper_id=None):
-        assert self.mapperID or mapper_id, "mapperID is not defined for this partition"
-        SpawnedSU.do(f"cryptsetup close {self.mapperID or mapper_id}")

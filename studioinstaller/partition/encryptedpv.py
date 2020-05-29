@@ -28,6 +28,3 @@ __all__ = ['EncryptedPV']
 class EncryptedPV(LUKS, FS):
     def __init__(self, id_, mountpoint=''):
         super().__init__(id_=id_, mountpoint=mountpoint)
-
-    def do_serve(self):
-        pass

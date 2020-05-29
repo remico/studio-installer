@@ -13,12 +13,18 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-"""Create partition action"""
+"""Create a partition:
+- create a standard partition
+- create and encrypt a LUKS partition
+- register PV and VG for an LVM group
+- create an LVM LV
+"""
 
 from .actionbase import ActionBase
 from .encrypt import Encrypt
+from .involve import Involve
 from ..partition.base import PV
-from ..spawned import SpawnedSU
+from ..spawned import SpawnedSU, Spawned
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -38,8 +44,6 @@ class Create(ActionBase):
         raise StopIteration
 
     def iterator(self, scheme):
-        self.nodes = scheme.disks()
-
         # sort PVs first
         # filter: PVs, to be created only
         pvs = scheme.partitions(PV, new=True)
@@ -48,14 +52,12 @@ class Create(ActionBase):
 
         # then sort non-PVs
         def _k(p):
-            if p.iscontainer:  # LUKS, LVM ? (TODO: luks_on_lvm first, then lvm_on_luks)
+            if p.iscontainer:  # LUKS, LVM ?
                 return 0
-            if p.mountpoint == "/":
+            elif p.mountpoint == "/":
                 return 1
-            elif p.isswap:
-                return 2
             else:
-                return 3 + len(p.mountpoint.split('/'))
+                return len(p.mountpoint.split('/'))
 
         # filter: non-PVs, to be created only
         non_pvs = [pt for pt in scheme if not isinstance(pt, PV) and pt.is_new]
@@ -63,21 +65,37 @@ class Create(ActionBase):
 
         return self
 
-    def serve_disk(self, disk):
-        disk.create_new_partition_table()
+    @staticmethod
+    def _create(partition, t: Spawned = None):
+        locally = not t
+        if locally:
+            t = SpawnedSU(f"gdisk {partition.disk}")
+
+        if partition.is_new:
+            basic_prompt = "Command (? for help)"
+            t.interact(basic_prompt, "n")
+            t.interact("Partition number", partition.id if str(partition.id).isdigit() else Spawned.ANSWER_DEFAULT)
+            t.interact("First sector", Spawned.ANSWER_DEFAULT)
+            t.interact("Last sector", f"+{partition.size}" if partition.size else Spawned.ANSWER_DEFAULT)
+            t.interact("Hex code or GUID", partition.type or Spawned.ANSWER_DEFAULT)
+
+        if locally:
+            t.interact("Command (? for help)", "w")
+            t.interact("proceed?", "Y")
+            t.waitfor(Spawned.TASK_END)
 
     def serve_standard_pv(self, pt):
-        pt.create()
+        self._create(pt)
 
     def serve_luks_pv(self, pt):
-        pt.create()
+        self._create(pt)
         pt.execute(Encrypt())
 
     def serve_lvm_on_luks_vg(self, pt):
-        pt.luks_open()
-        pt.init_vg()
+        pt.parent.execute(Involve(), mapper_id=pt.mapperID)
+        SpawnedSU.do(f"pvcreate {pt.url} && vgcreate {pt.lvm_vg} {pt.url}")
 
     def serve_lvm_lv(self, pt):
-        assert pt.lvm_vg, "No LVM VG is defined for an LVM LV. Abort."
+        assert pt.lvm_vg, f"No LVM VG is defined for LVM LV {pt.id}. Abort."
         l_option = "-l" if "%" in pt.size else "-L"
         SpawnedSU.do(f"lvcreate {l_option} {pt.size} {pt.lvm_vg} -n {pt.lvm_lv}")

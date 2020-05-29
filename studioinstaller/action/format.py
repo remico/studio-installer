@@ -13,9 +13,10 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-"""Format partition action"""
+"""Make file system"""
 
 from .actionbase import ActionBase
+from ..spawned import SpawnedSU
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -27,18 +28,29 @@ __all__ = ['Format']
 
 class Format(ActionBase):
     def __next__(self):
-        pass
+        return super().__next__()
 
     def iterator(self, scheme):
         # filter only partitions to be formatted
-        to_iter = [pt for pt in scheme if pt.do_format or pt.isswap]
-        return to_iter.__iter__()
+        self.nodes.extend([pt for pt in scheme if pt.do_format or pt.isswap])
+        return self
 
-    def serve_disk(self, disk):
-        pass
+    @staticmethod
+    def _format(partition):
+        if "efi" in partition.mountpoint:
+            cmd = "mkfs.vfat -F32 %s"
+        elif partition.mountpoint == "/boot":
+            cmd = "mkfs.ext2 %s"
+        elif partition.mountpoint == "swap":
+            cmd = "mkswap %s"
+        elif partition.fs:
+            cmd = f"mkfs.{partition.fs} %s"
+        else:
+            cmd = "mkfs.ext4 %s"
+        SpawnedSU.do(cmd % partition.url)
 
     def serve_standard_pv(self, pt):
-        pt.format()
+        self._format(pt)
 
     def serve_luks_pv(self, pt):
         pass
@@ -47,4 +59,4 @@ class Format(ActionBase):
         pass
 
     def serve_lvm_lv(self, pt):
-        pt.format()
+        self._format(pt)

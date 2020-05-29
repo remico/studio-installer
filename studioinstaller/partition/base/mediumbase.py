@@ -16,7 +16,6 @@
 """Abstract base medium"""
 
 from abc import ABC, abstractmethod
-from typing import final
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -50,15 +49,6 @@ class MediumBase(ABC):
         self._ready = False
         self._parent = None
         self._id = id_
-
-    @final
-    def execute(self, action):
-        print(f">>>>> ACTION [{action.__class__.__name__}]:", f"<{self.__class__.__name__}>::{self.id}")
-        self._a_execute(action)
-
-    @abstractmethod
-    def _a_execute(self, action):
-        pass
 
     def on(self, parent):
         self._parent = parent

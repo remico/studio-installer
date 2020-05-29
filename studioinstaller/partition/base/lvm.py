@@ -16,7 +16,6 @@
 """Partitions hierarchy"""
 
 from .partitionbase import Partition
-from ...spawned import SpawnedSU
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -34,7 +33,3 @@ class LVM(Partition):
     @property
     def islvm(self):
         return True
-
-    def init_vg(self):
-        SpawnedSU.do(f"pvcreate {self.url}")
-        SpawnedSU.do(f"vgcreate {self.lvm_vg} {self.url}")

@@ -29,5 +29,5 @@ class StandardPV(PV, FS):
     def __init__(self, id_, mountpoint=''):
         super().__init__(id_=str(id_), mountpoint=mountpoint)
 
-    def _a_execute(self, action):
-        action.serve_standard_pv(self)
+    def _a_execute(self, action, **kwargs):
+        action.serve_standard_pv(self, **kwargs)

@@ -15,8 +15,8 @@
 
 from .create import *
 from .encrypt import *
-from .mount import *
-from .unmount import *
+from .involve import *
+from .dismiss import *
 from .format import *
 
 __author__ = "Roman Gladyshev"

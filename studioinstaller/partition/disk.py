@@ -38,9 +38,6 @@ class Disk(MediumBase):
             t.interact(basic_prompt, "w")
             t.interact("proceed?", "Y")
 
-    def _a_execute(self, action):
-        action.serve_disk(self)
-
     @property
     def url(self):
         return URL_DISK(self.id)

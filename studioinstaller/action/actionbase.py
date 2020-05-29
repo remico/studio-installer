@@ -29,7 +29,7 @@ __all__ = ['ActionBase']
 
 class ActionBase(ABC):
     def __init__(self):  # next()
-        self.nodes: Union[List[MediumBase], None] = None
+        self.nodes: Union[List[MediumBase], None] = []
 
     @final
     def __iter__(self):  # for(...)
@@ -37,14 +37,12 @@ class ActionBase(ABC):
 
     @abstractmethod
     def __next__(self):
-        pass
+        if self.nodes:
+            return self.nodes.pop()
+        raise StopIteration
 
     @abstractmethod
     def iterator(self, scheme):
-        pass
-
-    @abstractmethod
-    def serve_disk(self, disk):
         pass
 
     @abstractmethod

@@ -17,6 +17,7 @@
 
 from abc import abstractmethod
 from enum import Enum
+from typing import final
 from .mediumbase import MediumBase, URL_MAPPED, URL_PV, URL_DISK
 
 __author__ = "Roman Gladyshev"
@@ -72,6 +73,15 @@ class Partition(MediumBase):
         self.size = size
         self.type = str(type_)
         return self
+
+    @final
+    def execute(self, action, **kwargs):
+        print(f">>>>> ACTION [{action.__class__.__name__}]:", f"<{self.__class__.__name__}>::{self.id}")
+        self._a_execute(action, **kwargs)
+
+    @abstractmethod
+    def _a_execute(self, action, **kwargs):
+        pass
 
     @property
     def isphysical(self):

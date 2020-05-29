@@ -13,10 +13,14 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-"""Encrypt partition using cryptsetup"""
+"""Dismiss an unnecessary partition:
+- unmount a regular partition
+- close a LUKS device
+- deactivate a SWAP partition
+- deactivate all LMV LVs in an LVM VG
+"""
 
 from .actionbase import ActionBase
-from ..partition.base import LUKS, PV
 from ..spawned import SpawnedSU
 
 __author__ = "Roman Gladyshev"
@@ -24,34 +28,38 @@ __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['Encrypt']
+__all__ = ['Dismiss']
 
 
-class Encrypt(ActionBase):
+class Dismiss(ActionBase):
     def __next__(self):
-        return super().__next__()
+        # impl
+        raise StopIteration
 
     def iterator(self, scheme):
-        self.nodes.extend([pt for pt in scheme.partitions(LUKS)])
+        # impl
         return self
 
     @staticmethod
-    def _encrypt(partition, passphrase=None):
-        if passphrase:
-            partition._passphrase = passphrase
-        with SpawnedSU(f"cryptsetup luksFormat {partition.url}") as t:
-            t.interact("Type uppercase yes", "YES")
-            t.interact("Enter passphrase for", partition.passphrase)
-            t.interact("Verify passphrase", partition.passphrase)
+    def _luks_close(partition, mapper_id=None):
+        assert partition.mapperID or mapper_id, "mapperID is not defined for this partition"
+        SpawnedSU.do(f"cryptsetup close {partition.mapperID or mapper_id}")
+
+    @staticmethod
+    def _umount(partition):
+        if not partition.isswap:
+            SpawnedSU.do(f"umount {partition.url}")
+        else:
+            SpawnedSU.do(f"swapoff {partition.url}")
 
     def serve_standard_pv(self, pt):
-        pass
+        self._umount(pt)
 
-    def serve_luks_pv(self, pt):
-        self._encrypt(pt)
+    def serve_luks_pv(self, pt, mapper_id=None):
+        self._luks_close(pt, mapper_id)
 
     def serve_lvm_on_luks_vg(self, pt):
-        pass
+        SpawnedSU.do(f"vgchange -a n {pt.lvm_vg}")
 
     def serve_lvm_lv(self, pt):
-        pass
+        self._umount(pt)
