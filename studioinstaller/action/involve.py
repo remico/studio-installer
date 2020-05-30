@@ -49,15 +49,15 @@ class Involve(ActionBase):
             t.interact("Enter passphrase for", partition.passphrase)
 
     @staticmethod
-    def _mount(partition, chroot=None):
-        mountpoint = chroot or partition.mountpoint
+    def _mount(partition, mountpoint=None):
+        mpoint = mountpoint or partition.mountpoint
         if mountpoint and not partition.isswap:
-            SpawnedSU.do(f"mount {partition.url} {mountpoint}")
+            SpawnedSU.do(f"mount {partition.url} {mpoint}")
         elif partition.isswap:
             SpawnedSU.do(f"swapon {partition.url}")
 
-    def serve_standard_pv(self, pt, chroot=None):
-        self._mount(pt, chroot)
+    def serve_standard_pv(self, pt, mountpoint=None):
+        self._mount(pt, mountpoint)
 
     def serve_luks_pv(self, pt, passphrase=None, mapper_id=None):
         self._luks_open(pt, passphrase, mapper_id)
@@ -65,5 +65,5 @@ class Involve(ActionBase):
     def serve_lvm_on_luks_vg(self, pt):
         SpawnedSU.do(f"sudo vgchange -ay {pt.lvm_vg}")
 
-    def serve_lvm_lv(self, pt, chroot=None):
-        self._mount(pt, chroot)
+    def serve_lvm_lv(self, pt, mountpoint=None):
+        self._mount(pt, mountpoint)

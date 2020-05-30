@@ -40,4 +40,6 @@ class LUKS(Partition):
 
     @property
     def luks_url(self):
-        return self.url if self.isphysical or (self.islvm and not self.iscontainer) else self.parent.url
+        # FIXME is this correct for all use cases?
+        # return self.url if self.isphysical or (self.islvm and not self.iscontainer) else self.parent.url
+        return self.url
