@@ -25,13 +25,15 @@
 import argparse
 from importlib.metadata import version as app_version
 from sys import exit as app_exit
+
+from spawned import SpawnedSU, Spawned, ask_user, SETENV
+
 from .partition.base import VType
 from .partition import Disk, StandardPV, LuksPV, LvmOnLuksVG, LvmLV
 from .partitioner import Partitioner
 from .partmancheater import PartmanCheater
 from .postinstaller import PostInstaller
 from .scheme import Scheme
-from .spawned import SpawnedSU, Spawned, ask_user, SETENV
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"

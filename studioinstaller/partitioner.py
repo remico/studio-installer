@@ -15,11 +15,12 @@
 
 """Prepare partitions for OS installation according to the partitioning scheme"""
 
+from spawned import ask_user, logger as log
+
 from .action import Create, Format, Encrypt
 from .partition.base import Partition, LVM, FS, URL_DISK
 from .partition import LvmLV
 from .scheme import Scheme
-from .spawned import ask_user, logger as log
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"

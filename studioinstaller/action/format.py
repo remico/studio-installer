@@ -15,8 +15,8 @@
 
 """Make file system"""
 
+from spawned import SpawnedSU
 from .actionbase import ActionBase
-from ..spawned import SpawnedSU
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"

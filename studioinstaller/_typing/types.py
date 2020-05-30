@@ -43,8 +43,9 @@ if TYPE_CHECKING:
     from postinstaller import *
 
     # inner modules
+    from spawned import *
+
     from studioinstaller.action import *
     from studioinstaller.action.actionbase import *
     from studioinstaller.partition import *
     from studioinstaller.partition.base import *
-    from studioinstaller.spawned import *

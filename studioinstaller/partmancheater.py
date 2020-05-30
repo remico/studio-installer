@@ -22,8 +22,10 @@
 
 import re
 from pathlib import Path
+
+from spawned import SpawnedSU, Spawned
+
 from .scheme import Scheme
-from .spawned import SpawnedSU, Spawned
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"

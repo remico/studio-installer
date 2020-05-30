@@ -20,11 +20,12 @@
 - create an LVM LV
 """
 
+from spawned import SpawnedSU, Spawned
+
 from .actionbase import ActionBase
 from .encrypt import Encrypt
 from .involve import Involve
 from ..partition.base import PV
-from ..spawned import SpawnedSU, Spawned
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"

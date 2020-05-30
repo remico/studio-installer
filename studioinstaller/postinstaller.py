@@ -15,10 +15,11 @@
 
 """Post-installation setup"""
 
+from spawned import SpawnedSU, logger as log
+
 from .partition.base import Partition
 from .partitioner import Partitioner
 from .scheme import Scheme
-from .spawned import SpawnedSU, logger as log
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"

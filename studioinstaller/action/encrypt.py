@@ -15,9 +15,10 @@
 
 """Encrypt partition using cryptsetup"""
 
+from spawned import SpawnedSU
+
 from .actionbase import ActionBase
 from ..partition.base import LUKS, PV
-from ..spawned import SpawnedSU
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"

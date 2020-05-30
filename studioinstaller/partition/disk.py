@@ -15,8 +15,8 @@
 
 """Hardware medium"""
 
+from spawned import SpawnedSU
 from .base import MediumBase, URL_DISK
-from ..spawned import SpawnedSU
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"

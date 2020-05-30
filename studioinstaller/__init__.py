@@ -20,4 +20,4 @@ __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-sys.path.append(__path__[0])  # import _typing
+sys.path.append(__path__[0])  # import _typing, spawned

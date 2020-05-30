@@ -15,8 +15,8 @@
 
 """Partitions hierarchy"""
 
+from spawned import ask_user, ENV
 from .partitionbase import Partition
-from ...spawned import ask_user, ENV
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
