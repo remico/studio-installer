@@ -92,8 +92,6 @@ def run():
     argparser.add_argument("--selftest", action="store_true", help="Check environment and own resources and exit")
     op = argparser.parse_args()
 
-    # optional actions
-
     # set password before one needs it
     if op.p:
         SETENV["UPASS"] = op.p
@@ -111,7 +109,9 @@ def run():
 
     clear_installation_cache()
 
-    # main actions
+    # =======================================
+    # ========= PARTITIONING SCHEME =========
+    # =======================================
     disk = Disk(select_target_disk())
 
     # edit partitioning configuration according to your needs
@@ -123,6 +123,7 @@ def run():
     home = LvmLV('home', '/home').new("100%FREE").on(lvm_vg).makefs('ext4')
 
     scheme = Scheme([p1, p2, lvm_vg, root, swap, home])
+    # ================= END =================
 
     if op.hard:
         scheme.execute(Release())

@@ -46,31 +46,31 @@ class Create(ActionBase):
 
     def iterator(self, scheme):
         # sort PVs first
-        # filter: PVs, to be created only
-        pvs = scheme.partitions(PV, new=True)
+        pvs = scheme.partitions(PV)
         # URL is valid key for sorting PVs
         self.nodes.extend(sorted(pvs, key=lambda p: p.url))
 
         # then sort non-PVs
-        # filter: non-PVs, to be created only
-        non_pvs = [pt for pt in scheme if not isinstance(pt, PV) and pt.is_new]
+        non_pvs = [pt for pt in scheme if not isinstance(pt, PV)]
         self.nodes.extend(sorted(non_pvs, key=_sort_key))
 
         return self
 
     @staticmethod
     def _create(partition, t: Spawned = None):
+        if not partition.is_new:
+            return
+
         locally = not t
         if locally:
             t = SpawnedSU(f"gdisk {partition.disk}")
 
-        if partition.is_new:
-            basic_prompt = "Command (? for help)"
-            t.interact(basic_prompt, "n")
-            t.interact("Partition number", partition.id if str(partition.id).isdigit() else Spawned.ANSWER_DEFAULT)
-            t.interact("First sector", Spawned.ANSWER_DEFAULT)
-            t.interact("Last sector", f"+{partition.size}" if partition.size else Spawned.ANSWER_DEFAULT)
-            t.interact("Hex code or GUID", partition.type or Spawned.ANSWER_DEFAULT)
+        basic_prompt = "Command (? for help)"
+        t.interact(basic_prompt, "n")
+        t.interact("Partition number", partition.id if str(partition.id).isdigit() else Spawned.ANSWER_DEFAULT)
+        t.interact("First sector", Spawned.ANSWER_DEFAULT)
+        t.interact("Last sector", f"+{partition.size}" if partition.size else Spawned.ANSWER_DEFAULT)
+        t.interact("Hex code or GUID", partition.type or Spawned.ANSWER_DEFAULT)
 
         if locally:
             t.interact("Command (? for help)", "w")
