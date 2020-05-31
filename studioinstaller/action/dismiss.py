@@ -21,7 +21,7 @@
 """
 
 from spawned import SpawnedSU
-from .actionbase import ActionBase
+from .actionbase import ActionBase, _sort_key
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -33,17 +33,17 @@ __all__ = ['Dismiss']
 
 class Dismiss(ActionBase):
     def __next__(self):
-        # impl
-        raise StopIteration
+        return super().__next__()
 
     def iterator(self, scheme):
-        # impl
+        self.nodes.extend(sorted(scheme.partitions(), key=_sort_key, reverse=True))
         return self
 
     @staticmethod
     def _luks_close(partition, mapper_id=None):
-        assert partition.mapperID or mapper_id, "mapperID is not defined for this partition"
-        SpawnedSU.do(f"cryptsetup close {partition.mapperID or mapper_id}")
+        name_to_close = partition.mapperID or mapper_id
+        assert name_to_close, f"Is it LUKS? 'mapperID' is not defined for {partition.id}"
+        SpawnedSU.do(f"cryptsetup close {name_to_close}")
 
     @staticmethod
     def _umount(partition):

@@ -28,6 +28,7 @@ from sys import exit as app_exit
 
 from spawned import SpawnedSU, Spawned, ask_user, SETENV
 
+from .action import Dismiss
 from .partition.base import VType
 from .partition import Disk, StandardPV, LuksPV, LvmOnLuksVG, LvmLV
 from .partitioner import Partitioner
@@ -39,26 +40,6 @@ __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
-
-
-def hard_cleanup():
-    # FIXME magic words
-    # SpawnedSU.do(f"swapoff /dev/mapper/{vg_name}-{swap}")
-
-    # hardcode:
-    # - implies chroot in /target
-    # - implies only one lvm vg
-    # - closes all luks devices
-    # - disables all active swaps
-    SpawnedSU.do_script(r"""
-        swapoff -a
-        umount /target/boot/efi
-        VG=$(sudo vgscan | grep -oP '(?<=\").*(?=\")')
-        echo "@@ LVM VG >>> $VG"
-        umount /dev/mapper/$VG-*
-        vgchange -a n $VG
-        find /dev/mapper -type l | xargs cryptsetup close --
-    """)
 
 
 def run_os_installation():
@@ -128,9 +109,6 @@ def run():
         print(app_version(__package__))
         app_exit()
 
-    if op.hard:
-        hard_cleanup()
-
     clear_installation_cache()
 
     # main actions
@@ -145,6 +123,9 @@ def run():
     home = LvmLV('home', '/home').new("100%FREE").on(lvm_vg).makefs('ext4')
 
     scheme = Scheme([p1, p2, lvm_vg, root, swap, home])
+
+    if op.hard:
+        scheme.execute(Dismiss())
 
     partitioner = Partitioner(scheme)
     partitioner.prepare_partitions()

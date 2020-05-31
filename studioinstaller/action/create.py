@@ -22,7 +22,7 @@
 
 from spawned import SpawnedSU, Spawned
 
-from .actionbase import ActionBase
+from .actionbase import ActionBase, _sort_key
 from .encrypt import Encrypt
 from .involve import Involve
 from ..partition.base import PV
@@ -52,17 +52,9 @@ class Create(ActionBase):
         self.nodes.extend(sorted(pvs, key=lambda p: p.url))
 
         # then sort non-PVs
-        def _k(p):
-            if p.iscontainer:  # LUKS, LVM ?
-                return 0
-            elif p.mountpoint == "/":
-                return 1
-            else:
-                return len(p.mountpoint.split('/'))
-
         # filter: non-PVs, to be created only
         non_pvs = [pt for pt in scheme if not isinstance(pt, PV) and pt.is_new]
-        self.nodes.extend(sorted(non_pvs, key=_k))
+        self.nodes.extend(sorted(non_pvs, key=_sort_key))
 
         return self
 
@@ -93,7 +85,7 @@ class Create(ActionBase):
         pt.execute(Encrypt())
 
     def serve_lvm_on_luks_vg(self, pt):
-        pt.parent.execute(Involve(), mapper_id=pt.mapperID)
+        pt.parent.execute(Involve(), mapper_id=pt.mapperID)  # parent dependency
         SpawnedSU.do(f"pvcreate {pt.url} && vgcreate {pt.lvm_vg} {pt.url}")
 
     def serve_lvm_lv(self, pt):

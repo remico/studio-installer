@@ -24,7 +24,16 @@ __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['ActionBase']
+__all__ = ['ActionBase', '_sort_key']
+
+
+def _sort_key(pt):
+    if pt.iscontainer:  # LUKS, LVM ?
+        return len(pt.url.split('/'))
+    elif pt.mountpoint == "/":
+        return 100
+    else:
+        return 101 + len(pt.mountpoint.split('/'))
 
 
 class ActionBase(ABC):
@@ -38,7 +47,7 @@ class ActionBase(ABC):
     @abstractmethod
     def __next__(self):  # next()
         if self.nodes:
-            return self.nodes.pop()
+            return self.nodes.pop(0)
         raise StopIteration
 
     @abstractmethod

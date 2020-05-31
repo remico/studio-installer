@@ -21,7 +21,7 @@
 """
 
 from spawned import SpawnedSU
-from .actionbase import ActionBase
+from .actionbase import ActionBase, _sort_key
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -33,19 +33,19 @@ __all__ = ['Involve']
 
 class Involve(ActionBase):
     def __next__(self):
-        # impl
-        raise StopIteration
+        return super().__next__()
 
     def iterator(self, scheme):
-        # impl
+        self.nodes.extend(sorted(scheme.partitions(), key=_sort_key))
         return self
 
     @staticmethod
     def _luks_open(partition, passphrase=None, mapper_id=None):
-        assert partition.mapperID or mapper_id, f"Is it LUKS? 'mapperID' is not defined for {partition.id}"
+        name_to_open = partition.mapperID or mapper_id
+        assert name_to_open, f"Is it LUKS? 'mapperID' is not defined for {partition.id}"
         if passphrase:
             partition._passphrase = passphrase
-        with SpawnedSU(f"cryptsetup open {partition.url} {partition.mapperID or mapper_id}") as t:
+        with SpawnedSU(f"cryptsetup open {partition.url} {name_to_open}") as t:
             t.interact("Enter passphrase for", partition.passphrase)
 
     @staticmethod

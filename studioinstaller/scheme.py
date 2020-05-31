@@ -33,7 +33,11 @@ class Scheme:
         for pt in partitions:
             while pt := self._add_pt(pt):  # instead of recursive calls
                 pass
-        print(self.scheme)
+
+        print("\n============= Partitions to be processed: =============")
+        for pt in sorted(self.scheme, key=lambda p: len(p.url.split('/'))):
+            print(f"{pt.__class__.__name__} :: {pt.url} :: {pt.mountpoint}")
+        print("\n")
 
     def __iter__(self):
         return self.scheme.__iter__()
@@ -53,6 +57,7 @@ class Scheme:
 
     def partitions(self, *types, new=None, disk=None) -> List[Partition]:
         # TODO filter by disk
+        types = types or (Partition,)  # return the whole scheme if no types specified
         return [pt for pt in self.scheme if all(isinstance(pt, T) for T in types)
                 and (pt.is_new == new if new is not None else True)]
 
@@ -60,6 +65,5 @@ class Scheme:
         return next((pt for pt in self.scheme if mountpoint in pt.mountpoint), None)
 
     def execute(self, action):
-        # TODO get a set from the action => while set.pop(): do()
         for pt in action.iterator(self):
             pt.execute(action)

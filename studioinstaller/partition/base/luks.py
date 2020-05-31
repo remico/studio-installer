@@ -37,3 +37,8 @@ class LUKS(Partition):
         if not self._passphrase and ENV('USER') != 'user':
             self._passphrase = ask_user("Enter LUKS passphrase:")
         return self._passphrase
+
+    @property
+    def mapperID(self):
+        # FIXME replace the magic attribute with a descriptor or use another more clear way
+        return getattr(self, '_evaluated_mapper_id', None)  # warning: magic attribute
