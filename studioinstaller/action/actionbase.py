@@ -32,8 +32,10 @@ def _sort_key(pt):
         return len(pt.url.split('/'))
     elif pt.mountpoint == "/":
         return 100
+    elif pt.isswap:  # allocate swap next to the root partition
+        return 101
     else:
-        return 101 + len(pt.mountpoint.split('/'))
+        return 102 + len(pt.mountpoint.split('/'))
 
 
 class ActionBase(ABC):
