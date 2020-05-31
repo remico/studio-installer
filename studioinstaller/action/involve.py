@@ -45,7 +45,7 @@ class Involve(ActionBase):
         assert partition.mapperID or mapper_id, f"Is it LUKS? 'mapperID' is not defined for {partition.id}"
         if passphrase:
             partition._passphrase = passphrase
-        with SpawnedSU(f"cryptsetup open {partition.luks_url} {partition.mapperID or mapper_id}") as t:
+        with SpawnedSU(f"cryptsetup open {partition.url} {partition.mapperID or mapper_id}") as t:
             t.interact("Enter passphrase for", partition.passphrase)
 
     @staticmethod

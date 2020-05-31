@@ -28,7 +28,7 @@ __all__ = ['ActionBase']
 
 
 class ActionBase(ABC):
-    def __init__(self):  # next()
+    def __init__(self):
         self.nodes: Union[List[MediumBase], None] = []
 
     @final
@@ -36,7 +36,7 @@ class ActionBase(ABC):
         return self
 
     @abstractmethod
-    def __next__(self):
+    def __next__(self):  # next()
         if self.nodes:
             return self.nodes.pop()
         raise StopIteration

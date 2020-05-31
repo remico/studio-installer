@@ -37,9 +37,3 @@ class LUKS(Partition):
         if not self._passphrase and ENV('USER') != 'user':
             self._passphrase = ask_user("Enter LUKS passphrase:")
         return self._passphrase
-
-    @property
-    def luks_url(self):
-        # FIXME is this correct for all use cases?
-        # return self.url if self.isphysical or (self.islvm and not self.iscontainer) else self.parent.url
-        return self.url
