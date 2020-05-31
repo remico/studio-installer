@@ -85,7 +85,7 @@ class Create(ActionBase):
         pt.execute(Encrypt())
 
     def serve_lvm_on_luks_vg(self, pt):
-        pt.parent.execute(Involve(), mapper_id=pt.mapperID)  # parent dependency
+        pt.parent.execute(Involve())  # parent dependency
         SpawnedSU.do(f"pvcreate {pt.url} && vgcreate {pt.lvm_vg} {pt.url}")
 
     def serve_lvm_lv(self, pt):
