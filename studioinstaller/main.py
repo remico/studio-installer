@@ -28,7 +28,7 @@ from sys import exit as app_exit
 
 from spawned import SpawnedSU, Spawned, ask_user, SETENV
 
-from .action import Dismiss
+from .action import Release
 from .partition.base import VType
 from .partition import Disk, StandardPV, LuksPV, LvmOnLuksVG, LvmLV
 from .partitioner import Partitioner
@@ -125,7 +125,7 @@ def run():
     scheme = Scheme([p1, p2, lvm_vg, root, swap, home])
 
     if op.hard:
-        scheme.execute(Dismiss())
+        scheme.execute(Release())
 
     partitioner = Partitioner(scheme)
     partitioner.prepare_partitions()

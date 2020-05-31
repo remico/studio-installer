@@ -13,7 +13,7 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-"""Dismiss an unnecessary partition:
+"""Release an unnecessary partition:
 - unmount a regular partition
 - close a LUKS device
 - deactivate a SWAP partition
@@ -28,10 +28,10 @@ __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['Dismiss']
+__all__ = ['Release']
 
 
-class Dismiss(ActionBase):
+class Release(ActionBase):
     def __next__(self):
         return super().__next__()
 
