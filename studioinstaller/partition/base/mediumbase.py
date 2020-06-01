@@ -48,7 +48,7 @@ class MediumBase(ABC):
 
         self._ready = False
         self._parent = None
-        self._id = id_
+        self._id = str(id_)
 
     def on(self, parent):
         self._parent = parent

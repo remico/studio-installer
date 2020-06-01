@@ -94,7 +94,7 @@ def run():
 
     # set password before one needs it
     if op.p:
-        SETENV["UPASS"] = op.p
+        SETENV("UPASS", op.p)
 
     if op.d:
         Spawned.enable_debug_commands()

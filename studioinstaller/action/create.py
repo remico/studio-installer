@@ -65,9 +65,12 @@ class Create(ActionBase):
         if locally:
             t = SpawnedSU(f"gdisk {partition.disk}")
 
+        # extract numeric ID value from the actual id (e.g. '1' from 'sda1')
+        partition_id = ''.join([ch for ch in partition.id if ch.isdigit()])
+
         basic_prompt = "Command (? for help)"
         t.interact(basic_prompt, "n")
-        t.interact("Partition number", partition.id if str(partition.id).isdigit() else Spawned.ANSWER_DEFAULT)
+        t.interact("Partition number", partition_id or Spawned.ANSWER_DEFAULT)
         t.interact("First sector", Spawned.ANSWER_DEFAULT)
         t.interact("Last sector", f"+{partition.size}" if partition.size else Spawned.ANSWER_DEFAULT)
         t.interact("Hex code or GUID", partition.type or Spawned.ANSWER_DEFAULT)
