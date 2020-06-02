@@ -20,6 +20,7 @@
 - activate an LVM VG
 """
 
+from pathlib import Path
 from spawned import SpawnedSU
 from .actionbase import ActionBase, _sort_key
 
@@ -49,21 +50,36 @@ class Involve(ActionBase):
             t.interact("Enter passphrase for", partition.passphrase)
 
     @staticmethod
-    def _mount(partition, mountpoint=None):
-        mpoint = mountpoint or partition.mountpoint
-        if mountpoint and not partition.isswap:
-            SpawnedSU.do(f"mount {partition.url} {mpoint}")
-        elif partition.isswap:
-            SpawnedSU.do(f"swapon {partition.url}")
+    def _mount(partition, chroot, mountpoint=None):
+        chroot = chroot or "/mnt"  # prevent accidental mounting to current system '/'
 
-    def serve_standard_pv(self, pt, mountpoint=None):
-        self._mount(pt, mountpoint)
+        # if Path() gets several absolute paths, the last one is taken as an anchor
+        # so we need to strip the leading '/' from the second path
+        # TODO find a better way for concatenation of 2 absolute paths
+        mpoint = mountpoint or partition.mountpoint
+        if mpoint.startswith('/'):
+            mpoint = mpoint.lstrip('/')
+        mpoint = Path(chroot, mpoint)
+
+        if partition.isswap:
+            SpawnedSU.do(f"swapon {partition.url}")
+        elif mpoint:
+            SpawnedSU.do(f"mount {partition.url} {mpoint}")
+
+    def serve_standard_pv(self, pt, mountpoint=None, chroot=None):
+        chroot = chroot or self._extra_kw.get('chroot')
+        mountpoint = mountpoint or self._extra_kw.get('mountpoint')
+        self._mount(pt, chroot, mountpoint)
 
     def serve_luks_pv(self, pt, passphrase=None, mapper_id=None):
+        passphrase = passphrase or self._extra_kw.get('passphrase')
+        mapper_id = mapper_id or self._extra_kw.get('mapper_id')
         self._luks_open(pt, passphrase, mapper_id)
 
     def serve_lvm_on_luks_vg(self, pt):
         SpawnedSU.do(f"sudo vgchange -ay {pt.lvm_vg}")
 
-    def serve_lvm_lv(self, pt, mountpoint=None):
-        self._mount(pt, mountpoint)
+    def serve_lvm_lv(self, pt, mountpoint=None, chroot=None):
+        chroot = chroot or self._extra_kw.get('chroot')
+        mountpoint = mountpoint or self._extra_kw.get('mountpoint')
+        self._mount(pt, chroot, mountpoint)

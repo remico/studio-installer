@@ -75,12 +75,12 @@ class Partition(MediumBase):
         return self
 
     @final
-    def execute(self, action, **kwargs):
+    def execute(self, action):
         print(f">>>>> ACTION [{action.__class__.__name__}]:", f"<{self.__class__.__name__}>::{self.id}")
-        self._a_execute(action, **kwargs)
+        self._a_execute(action)
 
     @abstractmethod
-    def _a_execute(self, action, **kwargs):
+    def _a_execute(self, action):
         pass
 
     @property

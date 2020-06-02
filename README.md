@@ -47,12 +47,13 @@ with other Ubuntu-like distros provided they use `ubiquity` and `partman`.
 ## Getting the tool
 ```
 $ sudo apt install git python3-pip  # install git and pip3
-$ [sudo] pip3 install git+https://github.com/remico/studio-installer.git  # install the tool
+$ pip3 install git+https://github.com/remico/studio-installer.git  # install the tool
+$ . ~/.profile  # update $PATH for current shell
 ```
 
 ## Running the tool
 - `python3 -m studioinstaller`
-- or just `studioinstaller` if it was installed with `sudo`
+- or just `studioinstaller`
 
 ### How to use
 - boot an Ubuntu Live CD

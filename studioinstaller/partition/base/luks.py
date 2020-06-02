@@ -35,7 +35,7 @@ class LUKS(Partition):
     def passphrase(self):
         # FIXME remove checking for user
         if not self._passphrase and ENV('USER') != 'user':
-            self._passphrase = ask_user("Enter LUKS passphrase:")
+            self._passphrase = ask_user(f"Enter LUKS passphrase for '{self.url}':")
         return self._passphrase
 
     @property

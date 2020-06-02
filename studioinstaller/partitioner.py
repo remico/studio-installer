@@ -42,7 +42,7 @@ class Partitioner:
 
     @property
     def passphrase(self):
-        return self.lukspass or ask_user("Enter LUKS passphrase:")
+        return self.lukspass or ask_user("Enter default LUKS passphrase:")
 
     def validate_scheme(self):
         assert self.scheme, "No partitioning scheme is defined"

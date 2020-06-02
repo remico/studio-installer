@@ -15,7 +15,31 @@ import inspect
 # log.header_s()
 # log.header()
 
-disk = Disk("sdr")
-partition = StandardPV('134', "/var").on(disk)
-partition_id = ''.join([ch for ch in partition.id if ch.isdigit()])
-print(partition.id, partition_id)
+# disk = Disk("sdr")
+# partition = StandardPV('134', "/var").on(disk)
+# partition_id = ''.join([ch for ch in partition.id if ch.isdigit()])
+# print(partition.id, partition_id)
+
+
+# def foo(a, **kw):
+#     print("foo", a, kw)
+#     foo_zoo(**kw)
+#
+#
+# def foo_zoo(c, **kw):
+#     print("foo_zoo", c, kw)
+#
+#
+# def zoo(a, b, **kw):
+#     print("zoo", a, b, kw)
+#
+#
+# def bar(**kw):
+#     print("========")
+#     foo(**kw)
+#     zoo(**kw)
+#     print("bar", kw)
+#
+#
+# for i in range(3):
+#     bar(a=1, b=2, c=3, d=4)

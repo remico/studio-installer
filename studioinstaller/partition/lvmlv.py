@@ -30,8 +30,8 @@ class LvmLV(FS, LVM):
     def __init__(self, lv, mountpoint=''):
         super().__init__(id_=lv, lv=lv, mountpoint=mountpoint)
 
-    def _a_execute(self, action, **kwargs):
-        action.serve_lvm_lv(self, **kwargs)
+    def _a_execute(self, action):
+        action.serve_lvm_lv(self)
 
     def on(self, parent: LvmPV):
         self.lvm_vg = parent.lvm_vg

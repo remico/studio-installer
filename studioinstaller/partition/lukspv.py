@@ -29,5 +29,5 @@ class LuksPV(LUKS, PV, Container):
     def __init__(self, id_):
         super().__init__(id_=str(id_))
 
-    def _a_execute(self, action, **kwargs):
-        action.serve_luks_pv(self, **kwargs)
+    def _a_execute(self, action):
+        action.serve_luks_pv(self)

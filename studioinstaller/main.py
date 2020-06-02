@@ -28,7 +28,7 @@ from sys import exit as app_exit
 
 from spawned import SpawnedSU, Spawned, ask_user, SETENV
 
-from .action import Release
+from .action import Release, Involve
 from .partition.base import VType
 from .partition import Disk, StandardPV, LuksPV, LvmOnLuksVG, LvmLV
 from .partitioner import Partitioner
@@ -46,9 +46,17 @@ def run_os_installation():
     SpawnedSU.do(f"debconf-set-selections {preseeding_file()}")
 
     # parse the .desktop file to get the installation command
+    # warning: in case of multiple .desktop files are in ~/Desktop dir, returns the last found 'Exec=...' value
     data = Spawned.do("grep '^Exec' ~/Desktop/*.desktop | tail -1 | sed 's/^Exec=//'")
     cmd = data.replace("ubiquity", "ubiquity -b --automatic")
     Spawned(cmd).waitfor(Spawned.TASK_END, timeout_s=Spawned.TO_INFINITE)
+
+
+def preseeding_file():
+    # TODO move .seed file inside the package and use resource API
+    from importlib.metadata import files as app_files
+    if l := [f for f in app_files(__package__) if '.seed' in str(f)]:
+        return l[0].locate()
 
 
 def clear_installation_cache():
@@ -72,17 +80,10 @@ def select_target_disk():
     return ask_user("Select target disk:").replace('/dev/', '')
 
 
-def preseeding_file():
-    # TODO move .seed file inside the package and use resource API
-    from importlib.metadata import files as app_files
-    if l := [f for f in app_files(__package__) if '.seed' in str(f)]:
-        return l[0].locate()
-
-
 def run():
     Spawned.enable_logging()
 
-    argparser = argparse.ArgumentParser()
+    argparser = argparse.ArgumentParser(prog=__package__)
     argparser.add_argument("--hard", action="store_true",
                            help="Deactivates LVM volumes and target swap, unmounts target filesystems"
                                 " and closes encrypted LUKS devices before the script starts")
@@ -90,6 +91,13 @@ def run():
     argparser.add_argument("-d", action="store_true", help="Enable commands debug output")
     argparser.add_argument("--version", action="store_true", help="Show version and exit")
     argparser.add_argument("--selftest", action="store_true", help="Check environment and own resources and exit")
+
+    mount_opts = argparser.add_mutually_exclusive_group()
+    DEFAULT_ROOT = "/target"
+    mount_opts.add_argument("--mount", type=str, const=DEFAULT_ROOT, metavar="ROOT", nargs='?',
+                            help=f"Mount the whole scheme and exit (Default ROOT: {DEFAULT_ROOT})")
+    mount_opts.add_argument("--umount", action="store_true", help="Unmount the whole scheme and exit")
+
     op = argparser.parse_args()
 
     # set password before one needs it
@@ -127,6 +135,14 @@ def run():
 
     if op.hard:
         scheme.execute(Release())
+
+    if op.mount:
+        scheme.execute(Involve(chroot=op.mount))
+        app_exit()
+
+    if op.umount:
+        scheme.execute(Release())
+        app_exit()
 
     partitioner = Partitioner(scheme)
     partitioner.prepare_partitions()

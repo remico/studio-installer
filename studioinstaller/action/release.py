@@ -47,15 +47,16 @@ class Release(ActionBase):
 
     @staticmethod
     def _umount(partition):
-        if not partition.isswap:
-            SpawnedSU.do(f"umount {partition.url}")
-        else:
+        if partition.isswap:
             SpawnedSU.do(f"swapoff {partition.url}")
+        else:
+            SpawnedSU.do(f"umount {partition.url}")
 
     def serve_standard_pv(self, pt):
         self._umount(pt)
 
     def serve_luks_pv(self, pt, mapper_id=None):
+        mapper_id = mapper_id or self._extra_kw.get('mapper_id')
         self._luks_close(pt, mapper_id)
 
     def serve_lvm_on_luks_vg(self, pt):

@@ -39,8 +39,9 @@ def _sort_key(pt):
 
 
 class ActionBase(ABC):
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.nodes: Union[List[MediumBase], None] = []
+        self._extra_kw = kwargs
 
     @final
     def __iter__(self):  # for(...)
