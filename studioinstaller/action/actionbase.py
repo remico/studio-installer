@@ -47,7 +47,6 @@ class ActionBase(ABC):
     def __iter__(self):  # for(...)
         return self
 
-    @abstractmethod
     def __next__(self):  # next()
         if self.nodes:
             return self.nodes.pop(0)

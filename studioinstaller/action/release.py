@@ -32,9 +32,6 @@ __all__ = ['Release']
 
 
 class Release(ActionBase):
-    def __next__(self):
-        return super().__next__()
-
     def iterator(self, scheme):
         self.nodes.extend(sorted(scheme.partitions(), key=_sort_key, reverse=True))
         return self

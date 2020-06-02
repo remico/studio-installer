@@ -29,9 +29,6 @@ __all__ = ['Encrypt']
 
 
 class Encrypt(ActionBase):
-    def __next__(self):
-        return super().__next__()
-
     def iterator(self, scheme):
         self.nodes.extend([pt for pt in scheme.partitions(LUKS)])
         return self

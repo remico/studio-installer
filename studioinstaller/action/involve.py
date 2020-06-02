@@ -33,9 +33,6 @@ __all__ = ['Involve']
 
 
 class Involve(ActionBase):
-    def __next__(self):
-        return super().__next__()
-
     def iterator(self, scheme):
         self.nodes.extend(sorted(scheme.partitions(), key=_sort_key))
         return self
