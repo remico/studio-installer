@@ -77,12 +77,10 @@ def clear_installation_cache():
 
 def select_target_disk():
     SpawnedSU.do(r"parted -l | egrep --color 'Disk\s+/dev|[kMG\d]B\s|Size'")
-    return ask_user("Select target disk:").replace('/dev/', '')
+    return ask_user("Select target disk:")
 
 
-def run():
-    Spawned.enable_logging()
-
+def parse_cmd_options():
     argparser = argparse.ArgumentParser(prog=__package__)
     argparser.add_argument("--hard", action="store_true",
                            help="Deactivates LVM volumes and target swap, unmounts target filesystems"
@@ -92,13 +90,23 @@ def run():
     argparser.add_argument("--version", action="store_true", help="Show version and exit")
     argparser.add_argument("--selftest", action="store_true", help="Check environment and own resources and exit")
 
+    DEFAULT_CHROOT = "/target"
+
     mount_opts = argparser.add_mutually_exclusive_group()
-    DEFAULT_ROOT = "/target"
-    mount_opts.add_argument("--mount", type=str, const=DEFAULT_ROOT, metavar="ROOT", nargs='?',
-                            help=f"Mount the whole scheme and exit (Default ROOT: {DEFAULT_ROOT})")
+    mount_opts.add_argument("--mount", type=str, const=DEFAULT_CHROOT, metavar="ROOT", nargs='?',
+                            help=f"Mount the whole scheme and exit (Default ROOT: {DEFAULT_CHROOT})")
     mount_opts.add_argument("--umount", action="store_true", help="Unmount the whole scheme and exit")
 
-    op = argparser.parse_args()
+    mount_opts.add_argument("--chroot", type=str, default=DEFAULT_CHROOT,
+                            help=f"Target system's mountpoint (Default: {DEFAULT_CHROOT})")
+
+    return argparser.parse_args()
+
+
+def run():
+    Spawned.enable_logging()
+
+    op = parse_cmd_options()
 
     # set password before one needs it
     if op.p:
@@ -116,15 +124,16 @@ def run():
         app_exit()
 
     clear_installation_cache()
+    target_disk = select_target_disk()
 
     # =======================================
     # ========= PARTITIONING SCHEME =========
     # =======================================
-    disk = Disk(select_target_disk())
+    disk1 = Disk(target_disk)
 
     # edit partitioning configuration according to your needs
-    p1 = StandardPV(1, '/boot/efi').new("100M", VType.EFI).on(disk).makefs()
-    p2 = LuksPV(2).new().on(disk)
+    p1 = StandardPV(1, '/boot/efi').new("100M", VType.EFI).on(disk1).makefs()
+    p2 = LuksPV(2).new().on(disk1)
     lvm_vg = LvmOnLuksVG('vg', 'cryptlvm').new().on(p2)
     root = LvmLV('root', '/').new("15G").on(lvm_vg).makefs('ext4')
     swap = LvmLV('swap', 'swap').new("1G", VType.SWAP).on(lvm_vg)
@@ -144,15 +153,16 @@ def run():
         scheme.execute(Release())
         app_exit()
 
-    partitioner = Partitioner(scheme)
-    partitioner.prepare_partitions()
+    # partitioner = Partitioner(scheme)
+    # partitioner.prepare_partitions()
+    #
+    # # wait for Partman and cheat it
+    # PartmanCheater(scheme).run()
+    #
+    # run_os_installation()
 
-    # wait for Partman and cheat it
-    PartmanCheater(scheme).run()
-
-    run_os_installation()
-
-    pi = PostInstaller(scheme)
+    postinstaller = PostInstaller(scheme, target_disk, chroot=op.chroot)
+    postinstaller.run()
 
 
 if __name__ == '__main__':

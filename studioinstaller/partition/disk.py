@@ -28,7 +28,7 @@ __all__ = ['Disk']
 
 class Disk(MediumBase):
     def __init__(self, id_, **kwargs):
-        super().__init__(id_=id_, **kwargs)
+        super().__init__(id_=id_.replace('/dev/', ''), **kwargs)
 
     def create_new_partition_table(self):
         basic_prompt = "Command (? for help)"

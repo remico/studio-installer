@@ -52,7 +52,7 @@ class Involve(ActionBase):
 
         # if Path() gets several absolute paths, the last one is taken as an anchor
         # so we need to strip the leading '/' from the second path
-        # TODO find a better way for concatenation of 2 absolute paths
+        # TODO find a better way to concatenate 2 absolute paths
         mpoint = mountpoint or partition.mountpoint
         if mpoint.startswith('/'):
             mpoint = mpoint.lstrip('/')

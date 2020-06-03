@@ -28,13 +28,12 @@ __all__ = ['LUKS']
 
 class LUKS(Partition):
     def __init__(self, passphrase=None, **kwargs):
-        self._passphrase = passphrase
+        self._passphrase = passphrase or ENV("LUKSPASS")
         super().__init__(**kwargs)
 
     @property
     def passphrase(self):
-        # FIXME remove checking for user
-        if not self._passphrase and ENV('USER') != 'user':
+        if not self._passphrase:
             self._passphrase = ask_user(f"Enter LUKS passphrase for '{self.url}':")
         return self._passphrase
 

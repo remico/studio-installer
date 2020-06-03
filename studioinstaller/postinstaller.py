@@ -15,10 +15,9 @@
 
 """Post-installation setup"""
 
-from spawned import SpawnedSU, logger as log
+from spawned import SpawnedSU, Chroot
 
-from .partition.base import Partition
-from .partitioner import Partitioner
+from .action import Involve, Release
 from .scheme import Scheme
 
 __author__ = "Roman Gladyshev"
@@ -30,64 +29,73 @@ __all__ = ['PostInstaller']
 
 
 class PostInstaller:
-    def __init__(self, scheme: Scheme):
+    def __init__(self, scheme: Scheme, bl_disk: str, chroot: str):
         self.scheme = scheme
+        self.chroot = chroot
+        self.bl_disk = bl_disk
 
-    def mount_target_system(self):
-        # SpawnedSU.do_script(f"""
-        #     swapon /dev/{vg_name}/swap
-        #     mount /dev/{vg_name}/root /mnt
-        #     mount /dev/{vg_name}/home /mnt/home
-        #     mount {partition_efi} /mnt/boot/efi
-        #     """)
-        root = self.scheme.partition('/')
-        home = self.scheme.partition('/home')
-        SpawnedSU.do_script(f"""
-            mount {root} /target
-            mount {home} /target/home 
-            for n in proc sys dev etc/resolv.conf; do
-                mount --rbind /$n /target/$n;
+        self.unmount_target_system(self.chroot)  # unmount all before start
+
+    def mount_target_system(self, root):
+        SpawnedSU.do(f"mkdir -p {root}")
+        self.scheme.execute(Involve(chroot=root))
+
+        SpawnedSU.do(f"""
+            mount -t proc none {root}/proc
+            for n in sys dev etc/resolv.conf; do
+                mount --bind /$n {root}/$n;
             done
-            chroot /target
-            mount -a
             """)
 
+    def unmount_target_system(self, root):
+        SpawnedSU.do(f"""
+            for n in proc sys dev etc/resolv.conf; do
+                umount {root}/$n;
+            done
+            """)
 
-    def umount_target_system(self):
-        pass
+        self.scheme.execute(Release())
 
-    def handle_mountpoints(self):
-        pass
-        # if a mountpoint specified in the partitioning scheme, but the path doesn't exist => create it in the FS
-        # and register in fstab (and crypttab)
+    @staticmethod
+    def setup_bootloader(root, bl_disk):
+        # grub-install --target=x86_64-efi --efi-directory={root}/boot/efi --boot-directory={root}/boot \
+        # --uefi-secure-boot --bootloader-id=GRUB --recheck {bl_disk}
 
-    def setup_fstab(self):
-        pass
+        Chroot.do(root, 'echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub')
+        Chroot.do(root, 'yes 2>/dev/null | apt install grub-efi-amd64-signed grub-efi-amd64 && update-grub')
 
-    def setup_crypttab(self, target_root):
-        SpawnedSU.do_script(f"""
+        # Set the kernel parameters, so that the initramfs can unlock the encrypted root partition.
+        # Using the encrypt hook:
+        # /etc/default/grub
+        # GRUB_CMDLINE_LINUX="... cryptdevice=UUID=device-UUID:cryptlvm ..."
+
+    @staticmethod
+    def setup_crypttab(root):
+        Chroot.do(root, f"""
             echo "LUKS_BOOT UUID=$(blkid -s UUID -o value ${DEV}p1) /etc/luks/boot_os.keyfile luks,discard" >> /etc/crypttab
             echo "${DM}5_crypt UUID=$(blkid -s UUID -o value ${DEV}p5) /etc/luks/boot_os.keyfile luks,discard" >> /etc/crypttab
             """)
 
-    def setup_initramfs(self):
-        # mount all partitions ?
-        # configure RESUME
-        # configure /etc/crypttab
-        # configure /etc/fstab (root, boot, swap)
+    @staticmethod
+    def setup_fstab():
+        pass
+
+    @staticmethod
+    def setup_resume():
+        pass
+
+    @staticmethod
+    def setup_initramfs(root):
+        Chroot.do(root, "update-initramfs -u -k all")
+
+    def run(self):
+        self.mount_target_system(self.chroot)
+
+        self.setup_bootloader(self.chroot, self.bl_disk)
+        # self.setup_crypttab()
+        # self.setup_fstab()
+        # self.setup_resume()
+        self.setup_initramfs(self.chroot)
         #
-        SpawnedSU.do("sudo update-initramfs -u -k all")
+        # self.unmount_target_system(self.chroot)
 
-    def setup_bootloader(self, disk):
-        SpawnedSU.do('echo "GRUB_ENABLE_CRYPTODISK=y" >> /target/etc/default/grub')
-
-        ## Set the kernel parameters, so that the initramfs can unlock the encrypted root partition. Using the encrypt hook:
-        # /etc/default/grub
-        # GRUB_CMDLINE_LINUX="... cryptdevice=UUID=device-UUID:cryptlvm ..."
-
-        ## install GRUB
-        # grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB --recheck
-
-        ## Generate GRUB's configuration file:
-        # grub-mkconfig -o /boot/grub/grub.cfg
-        # update-grub2
