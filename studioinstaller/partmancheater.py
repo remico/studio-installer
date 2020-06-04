@@ -23,7 +23,7 @@
 import re
 from pathlib import Path
 
-from spawned import SpawnedSU, Spawned
+from spawned import SpawnedSU, Spawned, create_py_script
 
 from .scheme import Scheme
 
@@ -116,7 +116,7 @@ except FileNotFoundError:
 
 
 class PartmanCheater:
-    visuals_updater = Spawned.make_script_py(_text_replacer())
+    visuals_updater = create_py_script(_text_replacer())
 
     def __init__(self, scheme: Scheme):
         self.scheme = scheme

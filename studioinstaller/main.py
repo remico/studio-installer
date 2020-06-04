@@ -49,7 +49,7 @@ def run_os_installation():
     # warning: in case of multiple .desktop files are in ~/Desktop dir, returns the last found 'Exec=...' value
     data = Spawned.do("grep '^Exec' ~/Desktop/*.desktop | tail -1 | sed 's/^Exec=//'")
     cmd = data.replace("ubiquity", "ubiquity -b --automatic")
-    Spawned(cmd).waitfor(Spawned.TASK_END, timeout_s=Spawned.TO_INFINITE)
+    Spawned(cmd).waitfor(Spawned.TASK_END, timeout=Spawned.TO_INFINITE)
 
 
 def preseeding_file():

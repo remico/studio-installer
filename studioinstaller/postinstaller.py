@@ -41,8 +41,7 @@ class PostInstaller:
         self.scheme.execute(Involve(chroot=root))
 
         SpawnedSU.do(f"""
-            mount -t proc none {root}/proc
-            for n in sys dev etc/resolv.conf; do
+            for n in proc sys dev etc/resolv.conf; do
                 mount --bind /$n {root}/$n;
             done
             """)
