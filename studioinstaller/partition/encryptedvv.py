@@ -22,9 +22,12 @@ __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['EncryptedPV']
+__all__ = ['EncryptedVV']
 
 
-class EncryptedPV(LUKS, FS):
+class EncryptedVV(LUKS, FS):
     def __init__(self, id_, mountpoint=''):
         super().__init__(id_=id_, mountpoint=mountpoint)
+
+    def _a_execute(self, action):
+        action.serve_encrypted_pv(self)

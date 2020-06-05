@@ -15,9 +15,9 @@
 
 """Prepare partitions for OS installation according to the partitioning scheme"""
 
-from spawned import ask_user, logger as log
+from spawned import Spawned, ask_user, logger as log
 
-from .action import Create, Format, Encrypt
+from .action import Create, Format
 from .partition.base import Partition, LVM, FS, URL_DISK
 from .partition import LvmLV
 from .scheme import Scheme
@@ -55,6 +55,13 @@ class Partitioner:
             assert not pt.do_format or isinstance(pt, FS), f"Partition {pt.id} can't be formatted"
             assert not pt.disk or pt.disk == URL_DISK(pt.id), "The disk value doesn't match to the partition id"
             assert not pt.islvm or pt.lvm_vg in LvmLV.groups(self.scheme), "LVM VGs do not match"
+            assert "efi" not in pt.mountpoint or self.is_efi_boot(), \
+                "Partitioning scheme contains a EFI partition while the system doesn't look to booted in EFI mode"
+
+    @staticmethod
+    def is_efi_boot():
+        efi_vars = Spawned.do("mount | grep efivars")
+        return bool(efi_vars)
 
     def prepare_partitions(self):
         for d in self.scheme.disks():

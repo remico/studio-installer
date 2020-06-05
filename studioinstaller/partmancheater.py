@@ -102,8 +102,8 @@ file = sys.argv[1]
 format = True if sys.argv[2] == "True" else False
 mountpoint = sys.argv[3]
 
-pattern = r"{re_pattern}"
-repl = r"{re_replacement}" % ('F' if format else 'K', mountpoint)
+pattern = {re_pattern}
+repl = {re_replacement} % ('F' if format else 'K', mountpoint)
 
 try:
     with fileinput.FileInput(file, inplace=True, backup='.bak') as f:

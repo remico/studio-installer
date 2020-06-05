@@ -153,10 +153,10 @@ def run():
         scheme.execute(Release())
         app_exit()
 
-    # partitioner = Partitioner(scheme)
+    partitioner = Partitioner(scheme)
     # partitioner.prepare_partitions()
     #
-    # # wait for Partman and cheat it
+    # # wait for Partman and modify values in background
     # PartmanCheater(scheme).run()
     #
     # run_os_installation()
