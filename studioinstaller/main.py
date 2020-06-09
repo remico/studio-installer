@@ -148,16 +148,13 @@ def run():
 
     postinstaller = PostInstaller(scheme, target_disk, chroot=(op.mount or op.chroot))
 
-    if op.hard:
-        postinstaller.unmount_target_system()
-
     if op.mount:
         postinstaller.mount_target_system()
         app_exit()
 
-    if op.umount:
+    if op.umount or op.hard:
         postinstaller.unmount_target_system()
-        app_exit()
+        op.umount and app_exit()  # exit if this option specified
 
     partitioner = Partitioner(scheme)
     partitioner.prepare_partitions()
