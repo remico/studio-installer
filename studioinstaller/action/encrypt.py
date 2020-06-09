@@ -18,7 +18,7 @@
 from spawned import SpawnedSU
 
 from .actionbase import ActionBase
-from ..partition.base import LUKS, PV
+from ..partition.base import LUKS
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -35,9 +35,10 @@ class Encrypt(ActionBase):
 
     @staticmethod
     def _encrypt(partition, passphrase=None):
+        assert isinstance(partition, LUKS), f"Partition {partition.id} doesn't look like a LUKS volume"
         if passphrase:
             partition._passphrase = passphrase
-        with SpawnedSU(f"cryptsetup luksFormat {partition.url}") as t:
+        with SpawnedSU(f"cryptsetup luksFormat --type={partition.luks_type} {partition.url}") as t:
             t.interact("Type uppercase yes", "YES")
             t.interact("Enter passphrase for", partition.passphrase)
             t.interact("Verify passphrase", partition.passphrase)
@@ -52,4 +53,7 @@ class Encrypt(ActionBase):
         pass
 
     def serve_lvm_lv(self, pt):
+        pass
+
+    def serve_encrypted_vv(self, pt):
         pass

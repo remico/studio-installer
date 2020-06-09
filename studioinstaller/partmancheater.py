@@ -23,7 +23,7 @@
 import re
 from pathlib import Path
 
-from spawned import SpawnedSU, Spawned, create_py_script
+from spawned import SpawnedSU, create_py_script
 
 from .scheme import Scheme
 
@@ -85,7 +85,7 @@ class PathResolver:
         return self.system_volumes[volume][0]
 
     def pm_resolve_device(self, volume: str):
-        return self._pm_path(self.system_volumes[volume][1])
+        return self._pm_path(self.system_disk(volume))
 
     def pm_resolve_volume(self, volume: str):
         return self.pm_resolve_device(volume).joinpath(self.pm_volume_name(volume))

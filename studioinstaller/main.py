@@ -29,8 +29,8 @@ from sys import exit as app_exit
 from spawned import SpawnedSU, Spawned, ask_user, SETENV
 
 from .action import Release, Involve
-from .partition.base import VType
-from .partition import Disk, StandardPV, LuksPV, LvmOnLuksVG, LvmLV
+from .partition.base import VType, LuksType
+from .partition import Disk, StandardPV, LuksPV, LvmOnLuksVG, LvmLV, EncryptedVV
 from .partitioner import Partitioner
 from .partmancheater import PartmanCheater
 from .postinstaller import PostInstaller
@@ -132,14 +132,18 @@ def run():
     disk1 = Disk(target_disk)
 
     # edit partitioning configuration according to your needs
-    p1 = StandardPV(1, '/boot/efi').new("100M", VType.EFI).on(disk1).makefs()
-    p2 = LuksPV(2).new().on(disk1)
-    lvm_vg = LvmOnLuksVG('vg', 'cryptlvm').new().on(p2)
-    root = LvmLV('root', '/').new("15G").on(lvm_vg).makefs('ext4')
-    swap = LvmLV('swap', 'swap').new("1G", VType.SWAP).on(lvm_vg)
-    home = LvmLV('home', '/home').new("100%FREE").on(lvm_vg).makefs('ext4')
+    p1 = StandardPV(1, '/boot/efi').new('100M', VType.EFI).on(disk1).makefs()
+    p2 = LuksPV(2, type=LuksType.luks1).new('500M').on(disk1)
+    p3 = LuksPV(3).new().on(disk1)
 
-    scheme = Scheme([p1, p2, lvm_vg, root, swap, home])
+    lvm_vg = LvmOnLuksVG('vg', 'CRYPTLVM').new().on(p3)
+
+    boot = EncryptedVV('boot', '/boot').new().on(p2).makefs('ext2')
+    root = LvmLV('root', '/').new('15G').on(lvm_vg).makefs('ext4')
+    swap = LvmLV('swap', 'swap').new('1G', VType.SWAP).on(lvm_vg)
+    home = LvmLV('home', '/home').new('100%FREE').on(lvm_vg).makefs('ext4')
+
+    scheme = Scheme([p1, p2, p3, lvm_vg, boot, root, home, swap])
     # ================= END =================
 
     if op.hard:
@@ -154,12 +158,12 @@ def run():
         app_exit()
 
     partitioner = Partitioner(scheme)
-    # partitioner.prepare_partitions()
-    #
-    # # wait for Partman and modify values in background
-    # PartmanCheater(scheme).run()
-    #
-    # run_os_installation()
+    partitioner.prepare_partitions()
+
+    # wait for Partman and modify values in background
+    PartmanCheater(scheme).run()
+
+    run_os_installation()
 
     postinstaller = PostInstaller(scheme, target_disk, chroot=op.chroot)
     postinstaller.run()

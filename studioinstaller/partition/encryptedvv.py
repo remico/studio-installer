@@ -15,7 +15,7 @@
 
 """Partitions hierarchy"""
 
-from .base import LUKS, FS
+from .base import FS
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -25,9 +25,14 @@ __license__ = "MIT"
 __all__ = ['EncryptedVV']
 
 
-class EncryptedVV(LUKS, FS):
+class EncryptedVV(FS):
     def __init__(self, id_, mountpoint=''):
         super().__init__(id_=id_, mountpoint=mountpoint)
 
     def _a_execute(self, action):
-        action.serve_encrypted_pv(self)
+        action.serve_encrypted_vv(self)
+
+    def on(self, parent):
+        # magic attribute, used in LUKS
+        parent._evaluated_mapper_id = self.mapperID  # warning: magic attribute
+        return super().on(parent)

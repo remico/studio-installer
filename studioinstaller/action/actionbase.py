@@ -71,3 +71,7 @@ class ActionBase(ABC):
     @abstractmethod
     def serve_lvm_lv(self, pt):
         pass
+
+    @abstractmethod
+    def serve_encrypted_vv(self, pt):
+        pass

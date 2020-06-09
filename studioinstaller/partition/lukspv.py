@@ -15,7 +15,7 @@
 
 """Partitions hierarchy"""
 
-from .base import PV, Container, LUKS
+from .base import PV, Container, LUKS, LuksType
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -26,8 +26,8 @@ __all__ = ['LuksPV']
 
 
 class LuksPV(LUKS, PV, Container):
-    def __init__(self, id_):
-        super().__init__(id_=str(id_))
+    def __init__(self, id_, type=LuksType.luks2):
+        super().__init__(type=type, id_=str(id_))
 
     def _a_execute(self, action):
         action.serve_luks_pv(self)

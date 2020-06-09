@@ -57,3 +57,6 @@ class Format(ActionBase):
 
     def serve_lvm_lv(self, pt):
         self._format(pt)
+
+    def serve_encrypted_vv(self, pt):
+        self._format(pt)

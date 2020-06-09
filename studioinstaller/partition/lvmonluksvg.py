@@ -33,5 +33,6 @@ class LvmOnLuksVG(Container, LVM):
         action.serve_lvm_on_luks_vg(self)
 
     def on(self, parent):
+        # magic attribute, used in LUKS
         parent._evaluated_mapper_id = self.mapperID  # warning: magic attribute
         return super().on(parent)

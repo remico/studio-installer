@@ -15,7 +15,10 @@
 
 """Partitions hierarchy"""
 
+from enum import Enum
+
 from spawned import ask_user, ENV
+
 from .partitionbase import Partition
 
 __author__ = "Roman Gladyshev"
@@ -23,13 +26,25 @@ __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['LUKS']
+__all__ = ['LUKS', 'LuksType']
+
+
+class LuksType(Enum):
+    luks1 = "luks1"
+    luks2 = "luks2"
+
+    def __repr__(self):
+        return str(self.value)
+
+    def __str__(self):
+        return self.__repr__()
 
 
 class LUKS(Partition):
-    def __init__(self, passphrase=None, **kwargs):
-        self._passphrase = passphrase or ENV("LUKSPASS")
+    def __init__(self, type=LuksType.luks2, passphrase=None, **kwargs):
         super().__init__(**kwargs)
+        self._passphrase = passphrase or ENV("LUKSPASS")
+        self._type = type
 
     @property
     def passphrase(self):
@@ -41,3 +56,7 @@ class LUKS(Partition):
     def mapperID(self):
         # FIXME replace the magic attribute with a descriptor or use another more clear way
         return getattr(self, '_evaluated_mapper_id', None)  # warning: magic attribute
+
+    @property
+    def luks_type(self):
+        return self._type

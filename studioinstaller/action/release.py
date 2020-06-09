@@ -61,3 +61,6 @@ class Release(ActionBase):
 
     def serve_lvm_lv(self, pt):
         self._umount(pt)
+
+    def serve_encrypted_vv(self, pt):
+        self._umount(pt)

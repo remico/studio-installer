@@ -77,6 +77,7 @@ class Involve(ActionBase):
         SpawnedSU.do(f"sudo vgchange -ay {pt.lvm_vg}")
 
     def serve_lvm_lv(self, pt, mountpoint=None, chroot=None):
-        chroot = chroot or self._extra_kw.get('chroot')
-        mountpoint = mountpoint or self._extra_kw.get('mountpoint')
-        self._mount(pt, chroot, mountpoint)
+        self.serve_standard_pv(pt, mountpoint, chroot)
+
+    def serve_encrypted_vv(self, pt, mountpoint=None, chroot=None):
+        self.serve_standard_pv(pt, mountpoint, chroot)

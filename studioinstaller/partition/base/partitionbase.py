@@ -18,6 +18,9 @@
 from abc import abstractmethod
 from enum import Enum
 from typing import final
+
+from spawned import SpawnedSU
+
 from .mediumbase import MediumBase, URL_MAPPED, URL_PV, URL_DISK
 
 __author__ = "Roman Gladyshev"
@@ -54,6 +57,8 @@ class Partition(MediumBase):
     """Base class for all supported partition types"""
     @abstractmethod
     def __init__(self, mountpoint='', vg='', lv='', **kwargs):
+        super().__init__(**kwargs)
+
         self.is_new = False
         self.do_format = False
         self.size = ''
@@ -64,8 +69,6 @@ class Partition(MediumBase):
         self.lvm_lv = lv
 
         self.mountpoint = mountpoint
-
-        super().__init__(**kwargs)
 
     def new(self, size=MAX_SIZE, type_=VType.DEFAULT):
         """Create a new partition"""
@@ -126,4 +129,11 @@ class Partition(MediumBase):
     @property
     def isspecial(self):
         """Not a regular partition, actually a SWAP or EFI partition"""
-        return self.mountpoint == 'swap' or 'efi' in self.mountpoint
+        return self.isswap or 'efi' in self.mountpoint
+
+    @property
+    def uuid(self):
+        """Partition UUID.
+        A luks partition must be open before, otherwise uuid is empty.
+        """
+        return SpawnedSU.do(f"blkid -s UUID -o value {self.url}")

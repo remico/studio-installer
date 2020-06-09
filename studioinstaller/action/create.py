@@ -88,10 +88,13 @@ class Create(ActionBase):
         pt.execute(Encrypt())
 
     def serve_lvm_on_luks_vg(self, pt):
-        pt.parent.execute(Involve())  # parent dependency
+        pt.parent.execute(Involve())
         SpawnedSU.do(f"pvcreate {pt.url} && vgcreate {pt.lvm_vg} {pt.url}")
 
     def serve_lvm_lv(self, pt):
         assert pt.lvm_vg, f"No LVM VG is defined for LVM LV {pt.id}. Abort."
         l_option = "-l" if "%" in pt.size else "-L"
         SpawnedSU.do(f"lvcreate {l_option} {pt.size} {pt.lvm_vg} -n {pt.lvm_lv}")
+
+    def serve_encrypted_vv(self, pt):
+        pt.parent.execute(Involve())

@@ -18,6 +18,7 @@
 from spawned import SpawnedSU, Chroot, ChrootContext
 
 from .action import Involve, Release
+from .partition.base import LUKS, Container
 from .scheme import Scheme
 
 __author__ = "Roman Gladyshev"
@@ -64,8 +65,10 @@ class PostInstaller:
 
         keyfile = "boot_os.keyfile"
         create_keys(self.chroot, keyfile)
-        # add_keys(self.chroot, keyfile)
-        # setup_crypttab(self.chroot, keyfile)
+
+        for pt in self.scheme.partitions(LUKS, Container):
+            luks_add_key(pt.url, keyfile, pt.passphrase)
+            setup_crypttab(self.chroot, pt.mapperID, pt.uuid, keyfile)
 
         # setup_fstab(self.chroot)
         # setup_resume(self.chroot)
@@ -77,11 +80,12 @@ class PostInstaller:
 def setup_bootloader(root, bl_disk):
     Chroot(root).do(f"""
         echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub
+        apt install -y grub-efi
 
-        apt install -y grub-efi \
-        && grub-install --target=x86_64-efi --efi-directory=/boot/efi \
-            --boot-directory=/boot --uefi-secure-boot --bootloader-id=GRUB --recheck {bl_disk} \
-        && update-grub
+        grub-install --target=x86_64-efi --efi-directory=/boot/efi \
+            --boot-directory=/boot --uefi-secure-boot --bootloader-id=GRUB --recheck {bl_disk}
+
+        update-grub
         """)
 
     # Set the kernel parameters, so that the initramfs can unlock the encrypted root partition.
@@ -111,18 +115,15 @@ def create_keys(root, keyfile):
 
 # TODO add new Action LuksAddKey and PostInstall actions
 # TODO or add parameter to Encrypt(addKey={device: key|keyfile, all: key|keyfile})
-def luks_add_key(luks_device, key, passphrase):
-    for pt in scheme.partitions(LUKS, PV, Container):
-        with SpawnedSU(f"cryptsetup luksAddKey {luks_device} {key}") as t:
-            t.interact("Enter any existing passphrase:", passphrase)
+def luks_add_key(pt_url, key, passphrase):
+    with SpawnedSU(f"cryptsetup luksAddKey {pt_url} {key}") as t:
+        t.interact("Enter any existing passphrase:", passphrase)
 
 
-def setup_crypttab(root, keyfile):
+def setup_crypttab(root, pt_vid, pt_uuid, keyfile):
     Chroot(root).do(f"""
         apt install -y cryptsetup-initramfs
-
-        # echo "LUKS_BOOT UUID=$(blkid -s UUID -o value ${DEV}p1) /etc/luks/{keyfile} luks,discard" >> /etc/crypttab
-        # echo "${DM}5_crypt UUID=$(blkid -s UUID -o value ${DEV}p5) /etc/luks/{keyfile} luks,discard" >> /etc/crypttab
+        echo "{pt_vid} UUID={pt_uuid} /etc/luks/{keyfile} luks,discard" >> /etc/crypttab
         """)
 
 
@@ -154,4 +155,9 @@ def reset_changes(root):
         cp /etc/cryptsetup-initramfs/conf-hook.orig /etc/cryptsetup-initramfs/conf-hook
         cp /etc/initramfs-tools/initramfs.conf.orig /etc/initramfs-tools/initramfs.conf
         truncate -s 0 /etc/crypttab
+
+        rm -rf /boot/efi/*
+
+        apt remove -y grub-efi-amd64-bin
+        apt autoremove -y
         """)
