@@ -35,29 +35,27 @@ class PostInstaller:
         self.chroot = chroot
         self.bl_disk = bl_disk
 
-        self.unmount_target_system(self.chroot)  # unmount all before start
-
-    def mount_target_system(self, root):
-        SpawnedSU.do(f"mkdir -p {root}")
-        self.scheme.execute(Involve(chroot=root))
+    def mount_target_system(self):
+        SpawnedSU.do(f"mkdir -p {self.chroot}")
+        self.scheme.execute(Involve(chroot=self.chroot))
 
         SpawnedSU.do(f"""
             for n in proc sys dev etc/resolv.conf; do
-                mount --bind /$n {root}/$n;
+                mount --bind /$n {self.chroot}/$n;
             done
             """)
 
-    def unmount_target_system(self, root):
+    def unmount_target_system(self):
         SpawnedSU.do(f"""
             for n in proc sys dev etc/resolv.conf; do
-                umount {root}/$n;
+                umount {self.chroot}/$n;
             done
             """)
 
         self.scheme.execute(Release())
 
     def run(self):
-        self.mount_target_system(self.chroot)
+        self.mount_target_system()
 
         reset_changes(self.chroot)
 
@@ -74,7 +72,7 @@ class PostInstaller:
         # setup_resume(self.chroot)
         setup_initramfs(self.chroot)
         #
-        # self.unmount_target_system(self.chroot)
+        self.unmount_target_system()
 
 
 def setup_bootloader(root, bl_disk):

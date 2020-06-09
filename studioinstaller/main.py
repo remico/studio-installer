@@ -146,15 +146,17 @@ def run():
     scheme = Scheme([p1, p2, p3, lvm_vg, boot, root, home, swap])
     # ================= END =================
 
+    postinstaller = PostInstaller(scheme, target_disk, chroot=(op.mount or op.chroot))
+
     if op.hard:
-        scheme.execute(Release())
+        postinstaller.unmount_target_system()
 
     if op.mount:
-        scheme.execute(Involve(chroot=op.mount))
+        postinstaller.mount_target_system()
         app_exit()
 
     if op.umount:
-        scheme.execute(Release())
+        postinstaller.unmount_target_system()
         app_exit()
 
     partitioner = Partitioner(scheme)
@@ -164,8 +166,6 @@ def run():
     PartmanCheater(scheme).run()
 
     run_os_installation()
-
-    postinstaller = PostInstaller(scheme, target_disk, chroot=op.chroot)
     postinstaller.run()
 
 
