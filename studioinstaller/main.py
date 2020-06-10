@@ -30,7 +30,7 @@ from spawned import SpawnedSU, Spawned, ask_user, SETENV
 
 from .action import Release, Involve
 from .partition.base import VType, LuksType
-from .partition import Disk, StandardPV, LuksPV, LvmOnLuksVG, LvmLV, EncryptedVV
+from .partition import Disk, PlainPV, LuksPV, LvmOnLuksVG, LvmLV, CryptVV
 from .partitioner import Partitioner
 from .partmancheater import PartmanCheater
 from .postinstaller import PostInstaller
@@ -132,16 +132,17 @@ def run():
     disk1 = Disk(target_disk)
 
     # edit partitioning configuration according to your needs
-    p1 = StandardPV(1, '/boot/efi').new('100M', VType.EFI).on(disk1).makefs()
-    p2 = LuksPV(2, type=LuksType.luks1).new('500M').on(disk1)
-    p3 = LuksPV(3).new().on(disk1)
+    p1 = PlainPV(1, '/boot/efi')           .new('100M', VType.EFI) .on(disk1)  .makefs()
 
-    lvm_vg = LvmOnLuksVG('vg', 'CRYPTLVM').new().on(p3)
+    p2 = LuksPV(2, type=LuksType.luks1)    .new('500M')            .on(disk1)
+    boot = CryptVV('boot', '/boot')        .new()                  .on(p2)     .makefs('ext2')
 
-    boot = EncryptedVV('boot', '/boot').new().on(p2).makefs('ext2')
-    root = LvmLV('root', '/').new('15G').on(lvm_vg).makefs('ext4')
-    swap = LvmLV('swap', 'swap').new('1G', VType.SWAP).on(lvm_vg)
-    home = LvmLV('home', '/home').new('100%FREE').on(lvm_vg).makefs('ext4')
+    p3 = LuksPV(3)                         .new()                  .on(disk1)
+    lvm_vg = LvmOnLuksVG('vg', 'CRYPTLVM') .new()                  .on(p3)
+
+    root = LvmLV('root', '/')              .new('15G')             .on(lvm_vg) .makefs('ext4')
+    swap = LvmLV('swap', 'swap')           .new('1G', VType.SWAP)  .on(lvm_vg)
+    home = LvmLV('home', '/home')          .new('100%FREE')        .on(lvm_vg) .makefs('ext4')
 
     scheme = Scheme([p1, p2, p3, lvm_vg, boot, root, home, swap])
     # ================= END =================

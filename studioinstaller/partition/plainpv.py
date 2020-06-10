@@ -22,10 +22,10 @@ __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['StandardPV']
+__all__ = ['PlainPV']
 
 
-class StandardPV(PV, FS):
+class PlainPV(PV, FS):
     def __init__(self, id_, mountpoint=''):
         super().__init__(id_=str(id_), mountpoint=mountpoint)
 
