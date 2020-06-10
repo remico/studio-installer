@@ -61,28 +61,32 @@ class PostInstaller:
     def run(self):
         self.mount_target_system()
 
-        reset_changes(self.chroot)
+        with ChrootContext(self.chroot) as cntx:
+            reset_changes(cntx)
 
-        # setup_bootloader(self.chroot, self.bl_disk)
+            setup_bootloader(cntx, self.bl_disk)
 
-        keyfile = "/etc/luks/boot_os.keyfile"
-        create_keys(self.chroot, keyfile)
+            keyfile = "/etc/luks/boot_os.keyfile"
 
-        for pt in self.scheme.partitions(LUKS, Container):
-            luks_add_key(self.chroot, pt.url, keyfile, pt.passphrase)
-            setup_crypttab(self.chroot, pt.mapperID, pt.uuid, keyfile)
+            cntx.do("apt install -y cryptsetup-initramfs")
+            create_keys(cntx, keyfile)
 
-        # setup_fstab(self.chroot)
-        # setup_resume(self.chroot)
-        setup_initramfs(self.chroot)
+            for pt in self.scheme.partitions(LUKS, Container):
+                luks_add_key(cntx, pt.url, keyfile, pt.passphrase)
+                cntx.do(f'echo "{pt.mapperID} UUID={pt.uuid} {keyfile} luks,discard" >> /etc/crypttab')
+
+            # setup_fstab(cntx)
+            # setup_resume(cntx)
+
+            cntx.do("update-initramfs -u -k all")
 
         self.unmount_target_system()
 
 
-def setup_bootloader(root, bl_disk):
+def setup_bootloader(cntx, bl_disk):
     # grub-install --target=x86_64-efi --efi-directory=/boot/efi
     #     --boot-directory=/boot --uefi-secure-boot --bootloader-id=studio --recheck {bl_disk}
-    Chroot(root).do(f"""
+    cntx.do(f"""
         echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub
         apt install -y grub-efi
 
@@ -98,9 +102,9 @@ def setup_bootloader(root, bl_disk):
     # GRUB_CMDLINE_LINUX="... cryptdevice=UUID=device-UUID:cryptlvm ..."
 
 
-def create_keys(root, keyfile):
+def create_keys(cntx, keyfile):
     keyfile_dir = Path(keyfile).parent
-    Chroot(root).do(f"""
+    cntx.do(f"""
         echo "KEYFILE_PATTERN={keyfile_dir}/*.keyfile" >> /etc/cryptsetup-initramfs/conf-hook
         echo "UMASK=0077" >> /etc/initramfs-tools/initramfs.conf
 
@@ -118,36 +122,24 @@ def create_keys(root, keyfile):
         """)
 
 
-# TODO add new Action LuksAddKey and PostInstall actions
-# TODO or add parameter to Encrypt(addKey={device: key|keyfile, all: key|keyfile})
-def luks_add_key(root, pt_url, key, passphrase):
-    with ChrootContext(root) as c:
-        t = c.do(f"cryptsetup luksAddKey {pt_url} {key}")
+# TODO think of:
+#  - add new Action LuksAddKey and PostInstall actions
+#  - or add parameter to Encrypt(addKey={device: key|keyfile, all: key|keyfile})
+def luks_add_key(cntx, pt_url, key, passphrase):
+    with cntx.doi(f"cryptsetup luksAddKey {pt_url} {key}") as t:
         t.interact("Enter any existing passphrase:", passphrase)
-        t.waitfor(SpawnedSU.TASK_END)
 
 
-def setup_crypttab(root, pt_vid, pt_uuid, keyfile):
-    Chroot(root).do(f"""
-        apt install -y cryptsetup-initramfs
-        echo "{pt_vid} UUID={pt_uuid} {keyfile} luks,discard" >> /etc/crypttab
-        """)
-
-
-def setup_fstab():
+def setup_fstab(cntx):
     pass
 
 
-def setup_resume():
+def setup_resume(cntx):
     pass
 
 
-def setup_initramfs(root):
-    Chroot(root).do("update-initramfs -u -k all")
-
-
-def reset_changes(root):
-    Chroot(root).do(f"""
+def reset_changes(cntx):
+    cntx.do(f"""
         if [ ! -f /etc/default/grub.orig ]; then cp /etc/default/grub /etc/default/grub.orig; fi
         if [ ! -f /etc/fstab.orig ]; then cp /etc/fstab /etc/fstab.orig; fi
         if [ ! -f /etc/cryptsetup-initramfs/conf-hook.orig ]; then

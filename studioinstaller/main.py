@@ -133,16 +133,15 @@ def run():
     # edit partitioning configuration according to your needs
     p1 = PlainPV(1, '/boot/efi')           .new('100M', VType.EFI) .on(disk1)  .makefs()
 
-    p2 = LuksPV(2, type=LuksType.luks1)    .new('500M')            .on(disk1)
-    boot = CryptVV('boot', '/boot')        .new()                  .on(p2)     .makefs('ext2')
+    p2 = LuksPV(2, type=LuksType.luks1)           .new('500M')            .on(disk1)
+    boot = CryptVV('boot', '/boot')               .new()                  .on(p2)     .makefs('ext2')
 
-    p3 = LuksPV(3)                         .new()                  .on(disk1)
-    # lvm_vg = LvmOnLuksVG('studio-vg', 'CRYPTLVM') .new()                  .on(p3)
-    lvm_vg = LvmOnLuksVG('vg', 'CRYPTLVM') .new()                  .on(p3)
+    p3 = LuksPV(3)                                .new()                  .on(disk1)
+    lvm_vg = LvmOnLuksVG('studio-vg', 'CRYPTLVM') .new()                  .on(p3)
 
-    root = LvmLV('root', '/')              .new('15G')             .on(lvm_vg) .makefs('ext4')
-    swap = LvmLV('swap', 'swap')           .new('1G', VType.SWAP)  .on(lvm_vg)
-    home = LvmLV('home', '/home')          .new('100%FREE')        .on(lvm_vg) .makefs('ext4')
+    root = LvmLV('root', '/')                     .new('15G')             .on(lvm_vg) .makefs('ext4')
+    swap = LvmLV('swap', 'swap')                  .new('1G', VType.SWAP)  .on(lvm_vg)
+    home = LvmLV('home', '/home')                 .new('100%FREE')        .on(lvm_vg) .makefs('ext4')
 
     scheme = Scheme([p1, p2, p3, lvm_vg, boot, root, home, swap])
     # ================= END =================
@@ -157,13 +156,13 @@ def run():
         postinstaller.unmount_target_system()
         op.umount and app_exit()  # exit if this option specified
 
-    # partitioner = Partitioner(scheme)
-    # partitioner.prepare_partitions()
-    #
-    # # wait for Partman and modify values in background
-    # PartmanCheater(scheme).run()
-    #
-    # run_os_installation()
+    partitioner = Partitioner(scheme)
+    partitioner.prepare_partitions()
+
+    # wait for Partman and modify values in background
+    PartmanCheater(scheme).run()
+
+    run_os_installation()
     postinstaller.run()
 
 
