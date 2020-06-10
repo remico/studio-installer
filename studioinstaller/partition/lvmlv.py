@@ -35,7 +35,7 @@ class LvmLV(FS, LVM):
 
     def on(self, parent: LvmPV):
         self.lvm_vg = parent.lvm_vg
-        self._id = LVM_ID(parent.lvm_vg, self.lvm_lv)
+        # self._id = LVM_ID(parent.lvm_vg, self.lvm_lv)
         return super().on(parent)
 
     @staticmethod

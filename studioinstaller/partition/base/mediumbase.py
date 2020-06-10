@@ -22,7 +22,7 @@ __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['MediumBase', 'URL_PV', 'URL_DISK', 'URL_MAPPED']
+__all__ = ['MediumBase', 'URL_PV', 'URL_DISK', 'URL_MAPPED', 'URL_LVM_LV']
 
 
 def _cut_digits(s):
@@ -35,6 +35,10 @@ def URL_PV(id_):
 
 def URL_MAPPED(id_):
     return f"/dev/mapper/{id_}"
+
+
+def URL_LVM_LV(vg, lv):
+    return f"/dev/{vg}/{lv}"
 
 
 def URL_DISK(id_):

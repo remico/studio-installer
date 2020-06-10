@@ -21,7 +21,7 @@ from typing import final
 
 from spawned import SpawnedSU
 
-from .mediumbase import MediumBase, URL_MAPPED, URL_PV, URL_DISK
+from .mediumbase import MediumBase, URL_MAPPED, URL_PV, URL_DISK, URL_LVM_LV
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -104,7 +104,7 @@ class Partition(MediumBase):
     @property
     def islvm(self):
         """Partition belongs to an LVM volume group"""
-        return bool(self.lvm_vg)
+        return bool(self.lvm_vg and self.lvm_lv)
 
     @property
     def disk(self):
@@ -119,7 +119,8 @@ class Partition(MediumBase):
     @property
     def url(self):
         """Path to the device in file system"""
-        return URL_PV(self.id) if self.isphysical else URL_MAPPED(self.id)
+        return URL_PV(self.id) if self.isphysical else \
+            URL_LVM_LV(self.lvm_vg, self.lvm_lv) if self.islvm else URL_MAPPED(self.id)
 
     @property
     def isswap(self):
