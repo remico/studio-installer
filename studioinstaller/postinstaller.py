@@ -15,6 +15,8 @@
 
 """Post-installation setup"""
 
+from pathlib import Path
+
 from spawned import SpawnedSU, Chroot, ChrootContext
 
 from .action import Involve, Release
@@ -40,14 +42,16 @@ class PostInstaller:
         self.scheme.execute(Involve(chroot=self.chroot))
 
         SpawnedSU.do(f"""
-            for n in proc sys dev etc/resolv.conf; do
+            for n in sys dev etc/resolv.conf; do
                 mount --bind /$n {self.chroot}/$n;
             done
+            mount -t proc none {self.chroot}/proc
+            mount -t devpts devpts {self.chroot}/dev/pts
             """)
 
     def unmount_target_system(self):
         SpawnedSU.do(f"""
-            for n in proc sys dev etc/resolv.conf; do
+            for n in dev/pts dev proc sys etc/resolv.conf; do
                 umount {self.chroot}/$n;
             done
             """)
@@ -59,29 +63,31 @@ class PostInstaller:
 
         reset_changes(self.chroot)
 
-        setup_bootloader(self.chroot, self.bl_disk)
+        # setup_bootloader(self.chroot, self.bl_disk)
 
-        keyfile = "boot_os.keyfile"
+        keyfile = "/etc/luks/boot_os.keyfile"
         create_keys(self.chroot, keyfile)
 
         for pt in self.scheme.partitions(LUKS, Container):
-            luks_add_key(pt.url, keyfile, pt.passphrase)
+            luks_add_key(self.chroot, pt.url, keyfile, pt.passphrase)
             setup_crypttab(self.chroot, pt.mapperID, pt.uuid, keyfile)
 
         # setup_fstab(self.chroot)
         # setup_resume(self.chroot)
         setup_initramfs(self.chroot)
-        #
+
         self.unmount_target_system()
 
 
 def setup_bootloader(root, bl_disk):
+    # grub-install --target=x86_64-efi --efi-directory=/boot/efi
+    #     --boot-directory=/boot --uefi-secure-boot --bootloader-id=studio --recheck {bl_disk}
     Chroot(root).do(f"""
         echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub
         apt install -y grub-efi
 
         grub-install --target=x86_64-efi --efi-directory=/boot/efi \
-            --boot-directory=/boot --uefi-secure-boot --bootloader-id=GRUB --recheck {bl_disk}
+            --boot-directory=/boot --bootloader-id=studio --recheck {bl_disk}
 
         update-grub
         """)
@@ -93,35 +99,38 @@ def setup_bootloader(root, bl_disk):
 
 
 def create_keys(root, keyfile):
+    keyfile_dir = Path(keyfile).parent
     Chroot(root).do(f"""
-        echo "KEYFILE_PATTERN=/etc/luks/*.keyfile" >> /etc/cryptsetup-initramfs/conf-hook
+        echo "KEYFILE_PATTERN={keyfile_dir}/*.keyfile" >> /etc/cryptsetup-initramfs/conf-hook
         echo "UMASK=0077" >> /etc/initramfs-tools/initramfs.conf
 
-        mkdir -p /etc/luks
+        mkdir -p {keyfile_dir}
 
-        if [ -f /etc/luks/{keyfile}.orig ]; then
-            cp /etc/luks/{keyfile}.orig /etc/luks/{keyfile}
+        if [ -f {keyfile}.orig ]; then
+            cp {keyfile}.orig {keyfile}
         else
-            dd if=/dev/urandom of=/etc/luks/{keyfile} bs=4096 count=1
-            cp /etc/luks/{keyfile} /etc/luks/{keyfile}.orig
+            dd if=/dev/urandom of={keyfile} bs=4096 count=1
+            cp {keyfile} {keyfile}.orig
         fi
 
-        chmod u=rx,go-rwx /etc/luks
-        chmod u=r,go-rwx /etc/luks/{keyfile}
+        chmod u=rx,go-rwx {keyfile_dir}
+        chmod u=r,go-rwx {keyfile}
         """)
 
 
 # TODO add new Action LuksAddKey and PostInstall actions
 # TODO or add parameter to Encrypt(addKey={device: key|keyfile, all: key|keyfile})
-def luks_add_key(pt_url, key, passphrase):
-    with SpawnedSU(f"cryptsetup luksAddKey {pt_url} {key}") as t:
+def luks_add_key(root, pt_url, key, passphrase):
+    with ChrootContext(root) as c:
+        t = c.do(f"cryptsetup luksAddKey {pt_url} {key}")
         t.interact("Enter any existing passphrase:", passphrase)
+        t.waitfor(SpawnedSU.TASK_END)
 
 
 def setup_crypttab(root, pt_vid, pt_uuid, keyfile):
     Chroot(root).do(f"""
         apt install -y cryptsetup-initramfs
-        echo "{pt_vid} UUID={pt_uuid} /etc/luks/{keyfile} luks,discard" >> /etc/crypttab
+        echo "{pt_vid} UUID={pt_uuid} {keyfile} luks,discard" >> /etc/crypttab
         """)
 
 
@@ -156,6 +165,6 @@ def reset_changes(root):
 
         rm -rf /boot/efi/*
 
-        apt remove -y grub-efi-amd64-bin
-        apt autoremove -y
+        # apt remove -y grub-efi-amd64-bin
+        # apt autoremove -y
         """)

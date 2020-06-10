@@ -26,9 +26,8 @@ import argparse
 from importlib.metadata import version as app_version
 from sys import exit as app_exit
 
-from spawned import SpawnedSU, Spawned, ask_user, SETENV
+from spawned import SpawnedSU, Spawned, ask_user, SETENV, logger as log
 
-from .action import Release, Involve
 from .partition.base import VType, LuksType
 from .partition import Disk, PlainPV, LuksPV, LvmOnLuksVG, LvmLV, CryptVV
 from .partitioner import Partitioner
@@ -138,6 +137,7 @@ def run():
     boot = CryptVV('boot', '/boot')        .new()                  .on(p2)     .makefs('ext2')
 
     p3 = LuksPV(3)                         .new()                  .on(disk1)
+    # lvm_vg = LvmOnLuksVG('studio-vg', 'CRYPTLVM') .new()                  .on(p3)
     lvm_vg = LvmOnLuksVG('vg', 'CRYPTLVM') .new()                  .on(p3)
 
     root = LvmLV('root', '/')              .new('15G')             .on(lvm_vg) .makefs('ext4')
@@ -157,13 +157,13 @@ def run():
         postinstaller.unmount_target_system()
         op.umount and app_exit()  # exit if this option specified
 
-    partitioner = Partitioner(scheme)
-    partitioner.prepare_partitions()
-
-    # wait for Partman and modify values in background
-    PartmanCheater(scheme).run()
-
-    run_os_installation()
+    # partitioner = Partitioner(scheme)
+    # partitioner.prepare_partitions()
+    #
+    # # wait for Partman and modify values in background
+    # PartmanCheater(scheme).run()
+    #
+    # run_os_installation()
     postinstaller.run()
 
 
