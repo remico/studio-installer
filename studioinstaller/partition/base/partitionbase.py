@@ -50,6 +50,12 @@ class VType(Enum):
 _M = "mapper"
 _D = ":"
 
+# possible partitions distinction by url
+# Plain: len(url) == 2 + 'mapper' not in url
+# LVM LV: len(url) > 2 + 'mapper' not in url
+# LVM VG: ? (not Plain + not LVM LV + not LUKS)
+# LUKS: len(url) > 2 + 'mapper' in url
+
 
 class Partition(MediumBase):
     MAX_SIZE = ''

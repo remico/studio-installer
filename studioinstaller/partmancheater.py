@@ -71,24 +71,35 @@ class PathResolver:
                     # group-2 : first Byte of the partition
                     # group-3 : last Byte of the partition
                     volume_key = current_key if "mapper" in current_key else current_key + mo.group(1)
-                    # return a tuple ('volume', 'begin-end', 'disk') for each partition
+                    # return a tuple ('volume_url', 'begin-end', 'disk_url') for each partition
                     return volume_key, "-".join((mo.group(2), mo.group(3))), current_key
 
+            # {volume_url: (begin-end, disk_url)}
             self._system_volumes = {tpl[0]: (tpl[1], tpl[2]) for line in t.datalines if (tpl := prsr(line))}
 
         return self._system_volumes
 
-    def system_disk(self, volume: str):
-        return self.system_volumes[volume][1]
+    def volume(self, volume_url: str):
+        try:
+            return self.system_volumes[volume_url]
+        except KeyError:  # fallback: try LVM LV name conversion rules
+            _v = volume_url.split('/')
+            if len(_v) == 4:
+                volume_url = f"/dev/mapper/{_v[2].replace('-', '--')}-{_v[3]}"
+                return self.system_volumes[volume_url]
+            raise
 
-    def pm_volume_name(self, volume: str):
-        return self.system_volumes[volume][0]
+    def system_disk(self, volume_url: str):
+        return self.volume(volume_url)[1]  # disk_url
 
-    def pm_resolve_device(self, volume: str):
-        return self._pm_path(self.system_disk(volume))
+    def pm_volume_name(self, volume_url: str):
+        return self.volume(volume_url)[0]  # volume's begin-end, partman uses it as the volume name
 
-    def pm_resolve_volume(self, volume: str):
-        return self.pm_resolve_device(volume).joinpath(self.pm_volume_name(volume))
+    def pm_resolve_device(self, volume_url: str):
+        return self._pm_path(self.system_disk(volume_url))
+
+    def pm_resolve_volume(self, volume_url: str):
+        return self.pm_resolve_device(volume_url).joinpath(self.pm_volume_name(volume_url))
 
 
 def _text_replacer():
@@ -139,8 +150,8 @@ class PartmanCheater:
     # use as is: ++ acting_filesystem {ext4}, method {keep}, use_filesystem
     # format: ++ method {format}, format
     # use mounted: ++ mountpoint {<path>}
-    def mark_to_use(self, volume, mountpoint, format, fs):
-        volume_path = self.resolver.pm_resolve_volume(volume)
+    def mark_to_use(self, volume_url, mountpoint, do_format, fs):
+        volume_path = self.resolver.pm_resolve_volume(volume_url)
         SpawnedSU.do_script(f"""
             while [ ! -d {volume_path} ]
             do
@@ -155,7 +166,7 @@ class PartmanCheater:
             touch ${{partman_volume}}/use_filesystem
             echo "{mountpoint}" > ${{partman_volume}}/mountpoint
 
-            if [ "{format}" == "True" ]; then
+            if [ "{do_format}" == "True" ]; then
                 touch ${{partman_volume}}/format
                 echo "format" > ${{partman_volume}}/method
                 echo "{fs}" > ${{partman_volume}}/filesystem
@@ -175,7 +186,7 @@ class PartmanCheater:
 
             # replace visuals
             echo "{mountpoint}" > ${{partman_volume}}/visual_mountpoint
-            python3 {self.visuals_updater} ${{partman_volume}}/view "{format}" "{mountpoint}"
-            python3 {self.visuals_updater} ${{partman_volume}}/../partition_tree_cache "{format}" "{mountpoint}"
-            python3 {self.visuals_updater} {PathResolver.PARTMAN_BASE}/snoop "{format}" "{mountpoint}"
+            python3 {self.visuals_updater} ${{partman_volume}}/view "{do_format}" "{mountpoint}"
+            python3 {self.visuals_updater} ${{partman_volume}}/../partition_tree_cache "{do_format}" "{mountpoint}"
+            python3 {self.visuals_updater} {PathResolver.PARTMAN_BASE}/snoop "{do_format}" "{mountpoint}"
             """)
