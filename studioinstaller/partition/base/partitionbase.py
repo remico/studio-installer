@@ -93,7 +93,7 @@ class Partition(MediumBase):
 
     @property
     def iscontainer(self):
-        """Not a top level partition.
+        """Non-FS partition.
         An encrypted partition or an LVM PV:
             - LUKS on /dev/sda1
             - LVM VG on /dev/sda1
@@ -102,8 +102,8 @@ class Partition(MediumBase):
         return False
 
     @property
-    def islvm(self):
-        """Partition belongs to an LVM volume group"""
+    def islvmlv(self):
+        """Partition is an LVM logical volume"""
         return bool(self.lvm_vg and self.lvm_lv)
 
     @property
@@ -120,7 +120,7 @@ class Partition(MediumBase):
     def url(self):
         """Path to the device in file system"""
         return URL_PV(self.id) if self.isphysical else \
-            URL_LVM_LV(self.lvm_vg, self.lvm_lv) if self.islvm else URL_MAPPED(self.id)
+            URL_LVM_LV(self.lvm_vg, self.lvm_lv) if self.islvmlv else URL_MAPPED(self.id)
 
     @property
     def isswap(self):

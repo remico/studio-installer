@@ -28,7 +28,7 @@ __all__ = ['ActionBase', '_sort_key']
 
 
 def _sort_key(pt):
-    if pt.iscontainer:  # LUKS, LVM ?
+    if pt.iscontainer:  # LUKS, LVM VG/PV?
         return len(pt.url.split('/'))
     elif pt.mountpoint == "/":
         return 100

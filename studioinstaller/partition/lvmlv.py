@@ -15,7 +15,7 @@
 
 """Partitions hierarchy"""
 
-from .base import FS, LVM_ID, LVM
+from .base import FS
 from .lvmpv import LvmPV
 
 __author__ = "Roman Gladyshev"
@@ -26,7 +26,7 @@ __license__ = "MIT"
 __all__ = ['LvmLV']
 
 
-class LvmLV(FS, LVM):
+class LvmLV(FS):
     def __init__(self, lv, mountpoint=''):
         super().__init__(id_=lv, lv=lv, mountpoint=mountpoint)
 
@@ -35,7 +35,6 @@ class LvmLV(FS, LVM):
 
     def on(self, parent: LvmPV):
         self.lvm_vg = parent.lvm_vg
-        # self._id = LVM_ID(parent.lvm_vg, self.lvm_lv)
         return super().on(parent)
 
     @staticmethod

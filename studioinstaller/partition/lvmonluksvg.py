@@ -15,7 +15,7 @@
 
 """Partitions hierarchy"""
 
-from .base import Container, LVM
+from .base import Container
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -25,7 +25,7 @@ __license__ = "MIT"
 __all__ = ['LvmOnLuksVG']
 
 
-class LvmOnLuksVG(Container, LVM):
+class LvmOnLuksVG(Container):
     def __init__(self, vg, id_, **kwargs):
         super().__init__(id_=id_, vg=vg, **kwargs)
 

@@ -18,7 +18,7 @@
 from spawned import Spawned, ask_user, logger as log
 
 from .action import Create, Format
-from .partition.base import Partition, LVM, FS, URL_DISK
+from .partition.base import Partition, FS, URL_DISK
 from .partition import LvmLV
 from .scheme import Scheme
 
@@ -51,10 +51,10 @@ class Partitioner:
             assert isinstance(pt, Partition), "Partitioning scheme must contain Partition's only"
             assert pt.is_new, "All partitions in the scheme must be marked as New"
             assert pt.parent, f"No parent specified for {pt.id}"
-            assert not isinstance(pt, LVM) or pt.lvm_vg, "No LVM VG is defined for an LVM LV"
+            assert not pt.islvmlv or pt.lvm_vg, "No LVM VG is defined for an LVM LV"
+            assert not pt.islvmlv or pt.lvm_vg in LvmLV.groups(self.scheme), "LVM VGs do not match"
             assert not pt.do_format or isinstance(pt, FS), f"Partition {pt.id} can't be formatted"
             assert not pt.disk or pt.disk == URL_DISK(pt.id), "The disk value doesn't match to the partition id"
-            assert not pt.islvm or pt.lvm_vg in LvmLV.groups(self.scheme), "LVM VGs do not match"
             assert "efi" not in pt.mountpoint or self.is_efi_boot(), \
                 "Partitioning scheme contains a EFI partition while the system doesn't look to booted in EFI mode"
 

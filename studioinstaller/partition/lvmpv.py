@@ -15,7 +15,7 @@
 
 """Partitions hierarchy"""
 
-from .base import PV, Container, LVM
+from .base import PV, Container
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -25,5 +25,5 @@ __license__ = "MIT"
 __all__ = ['LvmPV']
 
 
-class LvmPV(PV, Container, LVM):
+class LvmPV(PV, Container):
     pass
