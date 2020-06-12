@@ -26,7 +26,7 @@ import argparse
 from importlib.metadata import version as app_version
 from sys import exit as app_exit
 
-from spawned import SpawnedSU, Spawned, ask_user, SETENV, logger as log
+from spawned import SpawnedSU, Spawned, ask_user, SETENV
 
 from .partition.base import VType, LuksType
 from .partition import Disk, PlainPV, LuksPV, LvmOnLuksVG, LvmLV, CryptVV
@@ -35,6 +35,8 @@ from .partmancheater import PartmanCheater
 from .postinstaller import PostInstaller
 from .scheme import Scheme
 
+from . import util
+
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
@@ -42,36 +44,13 @@ __license__ = "MIT"
 
 
 def run_os_installation():
-    SpawnedSU.do(f"debconf-set-selections {preseeding_file()}")
+    SpawnedSU.do(f"debconf-set-selections {util.preseeding_file()}")
 
     # parse the .desktop file to get the installation command
     # warning: in case of multiple .desktop files are in ~/Desktop dir, returns the last found 'Exec=...' value
     data = Spawned.do("grep '^Exec' ~/Desktop/*.desktop | tail -1 | sed 's/^Exec=//'")
     cmd = data.replace("ubiquity", "ubiquity -b --automatic")
     Spawned(cmd).waitfor(Spawned.TASK_END, timeout=Spawned.TO_INFINITE)
-
-
-def preseeding_file():
-    # TODO move .seed file inside the package and use resource API
-    from importlib.metadata import files as app_files
-    if l := [f for f in app_files(__package__) if '.seed' in str(f)]:
-        return l[0].locate()
-
-
-def clear_installation_cache():
-    # clear partman cache
-    SpawnedSU.do("rm -rf /var/lib/partman")
-    # clear debconf cache
-    # FIXME removing the DB leads the ubiquity installer to crash
-    # SpawnedSU.do("rm -rf /var/cache/debconf")
-    SpawnedSU.do_script("""
-        if [ ! -d /var/cache/debconf.back ]; then
-            cp -r /var/cache/debconf/ /var/cache/debconf.back
-        else
-            rm -rf /var/cache/debconf
-            cp -r /var/cache/debconf.back /var/cache/debconf
-        fi
-        """)
 
 
 def select_target_disk():
@@ -122,7 +101,7 @@ def run():
         print(app_version(__package__))
         app_exit()
 
-    clear_installation_cache()
+    util.clear_installation_cache()
     target_disk = select_target_disk()
 
     # =======================================

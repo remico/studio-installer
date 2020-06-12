@@ -22,6 +22,7 @@ from spawned import SpawnedSU, ChrootContext
 from .action import Involve, Release
 from .partition.base import LUKS, Container
 from .scheme import Scheme
+from .util import is_volume_on_ssd
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -74,7 +75,11 @@ class PostInstaller:
 
             for pt in luks_volumes:
                 luks_add_key(cntx, pt.url, keyfile, pt.passphrase)
-                cntx.do(f'echo "{pt.mapperID} UUID={pt.uuid} {keyfile} luks,discard" >> /etc/crypttab')
+
+                opts = "luks"
+                if is_volume_on_ssd(pt.url):
+                    opts += ",discard"
+                cntx.do(f'echo "{pt.mapperID} UUID={pt.uuid} {keyfile} {opts}" >> /etc/crypttab')
 
             # setup_fstab(cntx)
             # setup_resume(cntx)
@@ -134,6 +139,7 @@ def luks_add_key(cntx, pt_url, key, passphrase):
 
 
 def setup_fstab(cntx):
+    # TODO add noatime,discard options
     pass
 
 

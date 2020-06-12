@@ -13,10 +13,21 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-from .types import *
-from .stringenum import *
+"""Returns string values instead of keys"""
+
+from enum import Enum
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
+
+__all__ = ['StringEnum']
+
+
+class StringEnum(Enum):
+    def __repr__(self):
+        return str(self.value)
+
+    def __str__(self):
+        return self.__repr__()

@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+#  This file is part of "Ubuntu Studio Installer" project
+#
+#  Copyright (c) 2020, REMICO
+#
+#  The software is provided "as is", without warranty of any kind, express or
+#  implied, including but not limited to the warranties of merchantability,
+#  fitness for a particular purpose and non-infringement. In no event shall the
+#  authors or copyright holders be liable for any claim, damages or other
+#  liability, whether in an action of contract, tort or otherwise, arising from,
+#  out of or in connection with the software or the use or other dealings in the
+#  software.
+
+"""Useful functions"""
+
+from spawned import SpawnedSU, Spawned
+
+__author__ = "Roman Gladyshev"
+__email__ = "remicollab@gmail.com"
+__copyright__ = "Copyright (c) 2020, REMICO"
+__license__ = "MIT"
+
+__all__ = ['is_efi_boot',
+           'is_volume_on_ssd',
+           'volume_uuid',
+           'clear_installation_cache',
+           'preseeding_file'
+           ]
+
+
+def is_efi_boot():
+    efi_vars = Spawned.do("mount | grep efivars")
+    return bool(efi_vars)
+
+
+def is_volume_on_ssd(volume_url):
+    return not int(Spawned.do(f"lsblk -n -d -o ROTA {volume_url}").strip())
+
+
+def volume_uuid(volume_url):
+    return SpawnedSU.do(f"blkid -s UUID -o value {volume_url}")
+
+
+def clear_installation_cache():
+    # clear partman cache
+    SpawnedSU.do("rm -rf /var/lib/partman")
+
+    # clear debconf cache
+    # note: removing the DB leads the ubiquity installer to crash
+    SpawnedSU.do_script("""
+        if [ ! -d /var/cache/debconf.back ]; then
+            cp -r /var/cache/debconf/ /var/cache/debconf.back
+        else
+            rm -rf /var/cache/debconf
+            cp -r /var/cache/debconf.back /var/cache/debconf
+        fi
+        """)
+
+
+def preseeding_file():
+    # TODO move .seed file inside the package and use resource API
+    from importlib.metadata import files as app_files
+    if l := [f for f in app_files(__package__) if '.seed' in str(f)]:
+        return l[0].locate()

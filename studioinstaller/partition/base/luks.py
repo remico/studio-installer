@@ -15,11 +15,12 @@
 
 """Partitions hierarchy"""
 
-from enum import Enum
-
 from spawned import ask_user, ENV
 
+from _typing import StringEnum
+
 from .partitionbase import Partition
+
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -29,15 +30,9 @@ __license__ = "MIT"
 __all__ = ['LUKS', 'LuksType']
 
 
-class LuksType(Enum):
+class LuksType(StringEnum):
     luks1 = "luks1"
     luks2 = "luks2"
-
-    def __repr__(self):
-        return str(self.value)
-
-    def __str__(self):
-        return self.__repr__()
 
 
 class LUKS(Partition):

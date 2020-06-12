@@ -16,12 +16,12 @@
 """Partitions hierarchy"""
 
 from abc import abstractmethod
-from enum import Enum
 from typing import final
 
-from spawned import SpawnedSU
+from _typing import StringEnum
 
 from .mediumbase import MediumBase, URL_MAPPED, URL_PV, URL_DISK, URL_LVM_LV
+from ...util import volume_uuid
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -31,7 +31,7 @@ __license__ = "MIT"
 __all__ = ['Partition', 'VType']
 
 
-class VType(Enum):
+class VType(StringEnum):
     DEFAULT = ""
     EFI = "ef00"
     SWAP = "8200"
@@ -39,12 +39,6 @@ class VType(Enum):
     LINUXFS = "8300"
     HOME = "8302"
     LINUXLVM = "8e00"
-
-    def __repr__(self):
-        return str(self.value)
-
-    def __str__(self):
-        return self.__repr__()
 
 
 _M = "mapper"
@@ -143,4 +137,4 @@ class Partition(MediumBase):
         """Partition UUID.
         A luks partition must be open before, otherwise uuid is empty.
         """
-        return SpawnedSU.do(f"blkid -s UUID -o value {self.url}")
+        return volume_uuid(self.url)
