@@ -95,7 +95,7 @@ def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):
     else:
         deps = ""
         opts = ""
-        grub_id_opt = f"--bootloader-id={grub_id}" if grub_id else ""
+        grub_id_opt = ""
 
     cntx.do(f"""
         {cmd_enable_cryptoboot}
