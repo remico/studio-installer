@@ -62,5 +62,8 @@ $ . ~/.profile  # update $PATH for current shell
 - run the tool (use `--help` to see available options)
 - specify the target disk device (_last chance to think of backing up your data_) and press Enter
 - answer some questions depending on your configuration and OS distribution
-- :information_source: during the tool is creating new partitions, popup messages might appear asking you
-to mount and/or decrypt the newly created volumes. Just ignore/close these popups.
+> :information_source: during the tool is creating new partitions, popup messages might appear asking you
+> to mount and/or decrypt the newly created volumes. Just ignore/close these popups.
+>
+> :information_source: if the partitions get mounted somehow, installer will eventually propose you
+>to unmount them. Just agree.

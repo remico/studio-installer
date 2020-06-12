@@ -64,7 +64,7 @@ class PostInstaller:
         with ChrootContext(self.chroot) as cntx:
             reset_changes(cntx)
 
-            setup_bootloader(cntx, self.bl_disk)
+            setup_bootloader(cntx, self.bl_disk, "studio")
 
             keyfile = "/etc/luks/boot_os.keyfile"
 
@@ -83,23 +83,18 @@ class PostInstaller:
         self.unmount_target_system()
 
 
-def setup_bootloader(cntx, bl_disk):
-    # grub-install --target=x86_64-efi --efi-directory=/boot/efi
-    #     --boot-directory=/boot --uefi-secure-boot --bootloader-id=studio --recheck {bl_disk}
+def setup_bootloader(cntx, grub_disk, grub_id=None):
+    grub_id_opt = f"--no-uefi-secure-boot --bootloader-id={grub_id}" if grub_id else ""
+
     cntx.do(f"""
         echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub
         apt install -y grub-efi
 
         grub-install --target=x86_64-efi --efi-directory=/boot/efi \
-            --boot-directory=/boot --bootloader-id=studio --recheck {bl_disk}
+            --boot-directory=/boot --recheck {grub_id_opt} {grub_disk}
 
         update-grub
         """)
-
-    # Set the kernel parameters, so that the initramfs can unlock the encrypted root partition.
-    # Using the encrypt hook:
-    # /etc/default/grub
-    # GRUB_CMDLINE_LINUX="... cryptdevice=UUID=device-UUID:cryptlvm ..."
 
 
 def create_keys(cntx, keyfile):

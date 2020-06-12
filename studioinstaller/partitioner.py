@@ -37,6 +37,7 @@ class Partitioner:
 
         for pt in self.scheme:
             log.print_dict(pt)
+            print("")
 
         self.validate_scheme()
 
