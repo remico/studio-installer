@@ -17,7 +17,7 @@
 
 from pathlib import Path
 
-from spawned import SpawnedSU, Chroot, ChrootContext
+from spawned import SpawnedSU, ChrootContext
 
 from .action import Involve, Release
 from .partition.base import LUKS, Container
@@ -64,14 +64,17 @@ class PostInstaller:
         with ChrootContext(self.chroot) as cntx:
             reset_changes(cntx)
 
-            setup_bootloader(cntx, self.bl_disk, "studio")
+            # TODO check if /boot is encrypted and pass cryptoboot accordingly
+            setup_bootloader(cntx, self.bl_disk, grub_id="studio", cryptoboot=True)
 
-            keyfile = "/etc/luks/boot_os.keyfile"
+            luks_volumes = self.scheme.partitions(LUKS, Container)
 
-            cntx.do("apt install -y cryptsetup-initramfs")
-            create_keys(cntx, keyfile)
+            if luks_volumes:
+                keyfile = "/etc/luks/boot_os.keyfile"
+                cntx.do("apt install -y cryptsetup-initramfs")
+                create_keys(cntx, keyfile)
 
-            for pt in self.scheme.partitions(LUKS, Container):
+            for pt in luks_volumes:
                 luks_add_key(cntx, pt.url, keyfile, pt.passphrase)
                 cntx.do(f'echo "{pt.mapperID} UUID={pt.uuid} {keyfile} luks,discard" >> /etc/crypttab')
 
@@ -83,13 +86,23 @@ class PostInstaller:
         self.unmount_target_system()
 
 
-def setup_bootloader(cntx, grub_disk, grub_id=None):
-    grub_id_opt = f"--no-uefi-secure-boot --bootloader-id={grub_id}" if grub_id else ""
+def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):
+    is_efi = bool(SpawnedSU.do("mount | grep efivars"))
+    cmd_enable_cryptoboot = 'echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub' if cryptoboot else ''
+
+    if is_efi:
+        deps = "apt install -y grub-efi"
+        opts = "--target=x86_64-efi"
+        grub_id_opt = f"--no-uefi-secure-boot --bootloader-id={grub_id}" if grub_id else ""
+    else:
+        deps = ""
+        opts = ""
+        grub_id_opt = f"--bootloader-id={grub_id}" if grub_id else ""
 
     cntx.do(f"""
-        echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub
-        apt install -y grub-efi
-        grub-install --target=x86_64-efi --recheck {grub_id_opt} {grub_disk}
+        {cmd_enable_cryptoboot}
+        {deps}
+        grub-install --recheck {opts} {grub_id_opt} {grub_disk}
         update-grub
         """)
 
