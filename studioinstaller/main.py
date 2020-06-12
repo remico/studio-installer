@@ -131,7 +131,7 @@ def run():
     disk1 = Disk(target_disk)
 
     # edit partitioning configuration according to your needs
-    p1 = PlainPV(1, '/boot/efi')           .new('100M', VType.EFI) .on(disk1)  .makefs()
+    p1 = PlainPV(1, '/boot/efi')                  .new('100M', VType.EFI) .on(disk1)  .makefs()
 
     p2 = LuksPV(2, type=LuksType.luks1)           .new('500M')            .on(disk1)
     boot = CryptVV('boot', '/boot')               .new()                  .on(p2)     .makefs('ext2')

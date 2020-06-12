@@ -62,8 +62,6 @@ class PostInstaller:
         self.mount_target_system()
 
         with ChrootContext(self.chroot) as cntx:
-            reset_changes(cntx)
-
             # TODO check if /boot is encrypted and pass cryptoboot accordingly
             setup_bootloader(cntx, self.bl_disk, grub_id="studio", cryptoboot=True)
 
@@ -141,27 +139,3 @@ def setup_fstab(cntx):
 
 def setup_resume(cntx):
     pass
-
-
-def reset_changes(cntx):
-    cntx.do(f"""
-        if [ ! -f /etc/default/grub.orig ]; then cp /etc/default/grub /etc/default/grub.orig; fi
-        if [ ! -f /etc/fstab.orig ]; then cp /etc/fstab /etc/fstab.orig; fi
-        if [ ! -f /etc/cryptsetup-initramfs/conf-hook.orig ]; then
-            cp /etc/cryptsetup-initramfs/conf-hook /etc/cryptsetup-initramfs/conf-hook.orig
-        fi
-        if [ ! -f /etc/initramfs-tools/initramfs.conf.orig ]; then
-            cp /etc/initramfs-tools/initramfs.conf /etc/initramfs-tools/initramfs.conf.orig
-        fi
-
-        cp /etc/default/grub.orig /etc/default/grub
-        cp /etc/fstab.orig /etc/fstab
-        cp /etc/cryptsetup-initramfs/conf-hook.orig /etc/cryptsetup-initramfs/conf-hook
-        cp /etc/initramfs-tools/initramfs.conf.orig /etc/initramfs-tools/initramfs.conf
-        truncate -s 0 /etc/crypttab
-
-        rm -rf /boot/efi/*
-
-        # apt remove -y grub-efi-amd64-bin
-        # apt autoremove -y
-        """)
