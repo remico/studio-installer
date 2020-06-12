@@ -89,10 +89,7 @@ def setup_bootloader(cntx, grub_disk, grub_id=None):
     cntx.do(f"""
         echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub
         apt install -y grub-efi
-
-        grub-install --target=x86_64-efi --efi-directory=/boot/efi \
-            --boot-directory=/boot --recheck {grub_id_opt} {grub_disk}
-
+        grub-install --target=x86_64-efi --recheck {grub_id_opt} {grub_disk}
         update-grub
         """)
 
