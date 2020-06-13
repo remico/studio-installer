@@ -52,6 +52,7 @@ class Partitioner:
 
         for pt in self.scheme:
             assert isinstance(pt, Partition), "Partitioning scheme must contain Partition's only"
+            assert pt.id, "Partition `id` can't be empty"
             assert pt.is_new, "All partitions in the scheme must be marked as New"
             assert pt.parent, f"No parent specified for {pt.id}"
             assert not pt.islvmlv or pt.lvm_vg, "No LVM VG is defined for an LVM LV"

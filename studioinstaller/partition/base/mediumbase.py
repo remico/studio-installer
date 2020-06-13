@@ -50,21 +50,12 @@ class MediumBase(ABC):
     def __init__(self, id_, **kwargs):
         super().__init__(**kwargs)
 
-        self._ready = False
         self._parent = None
         self._id = str(id_)
-
-    def on(self, parent):
-        self._parent = parent
-        return self
 
     @property
     def parent(self):
         return self._parent
-
-    @property
-    def ready(self):
-        return self._ready
 
     @property
     def id(self):

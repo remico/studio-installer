@@ -77,6 +77,10 @@ class Partition(MediumBase):
         self.type = str(type_)
         return self
 
+    def on(self, parent):
+        self._parent = parent
+        return self
+
     @final
     def execute(self, action):
         print(f">>>>> ACTION [{action.__class__.__name__}]:", f"<{self.__class__.__name__}>::{self.id}")
@@ -108,8 +112,10 @@ class Partition(MediumBase):
 
     @property
     def disk(self):
-        """Valid for physical partitions only"""
-        return URL_DISK(self.parent.id) if self.isphysical and self.parent else ''
+        p = self
+        while p.parent:
+            p = p.parent
+        return URL_DISK(p.id)
 
     @property
     def mapperID(self):

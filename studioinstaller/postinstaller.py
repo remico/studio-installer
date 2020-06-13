@@ -77,7 +77,7 @@ class PostInstaller:
                 luks_add_key(cntx, pt.url, keyfile, pt.passphrase)
 
                 opts = "luks"
-                if util.is_volume_on_ssd(pt.url):
+                if util.is_trim_supported(pt):
                     opts += ",discard"
                 cntx.do(f'echo "{pt.mapperID} UUID={pt.uuid} {keyfile} {opts}" >> /etc/crypttab')
 

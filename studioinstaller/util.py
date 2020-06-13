@@ -26,7 +26,8 @@ __all__ = ['is_efi_boot',
            'is_volume_on_ssd',
            'volume_uuid',
            'clear_installation_cache',
-           'preseeding_file'
+           'preseeding_file',
+           'is_trim_supported'
            ]
 
 
@@ -37,6 +38,12 @@ def is_efi_boot():
 
 def is_volume_on_ssd(volume_url):
     return not int(Spawned.do(f"lsblk -n -d -o ROTA {volume_url}").strip())
+
+
+def is_trim_supported(partition):
+    pattern = "TRIM supported"
+    return is_volume_on_ssd(partition.url) and \
+        pattern in SpawnedSU.do(f'sudo hdparm -I {partition.disk} | grep "{pattern}"')
 
 
 def volume_uuid(volume_url):
