@@ -48,6 +48,7 @@ class Partitioner:
 
     def validate_scheme(self):
         assert self.scheme, "No partitioning scheme is defined"
+        assert len(self.scheme.disks()) == 1, "All partitions in the scheme must belong to a single disk drive"
 
         for pt in self.scheme:
             assert isinstance(pt, Partition), "Partitioning scheme must contain Partition's only"
