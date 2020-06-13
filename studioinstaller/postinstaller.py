@@ -22,7 +22,7 @@ from spawned import SpawnedSU, ChrootContext
 from .action import Involve, Release
 from .partition.base import LUKS, Container
 from .scheme import Scheme
-from .util import is_volume_on_ssd
+from . import util
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -77,7 +77,7 @@ class PostInstaller:
                 luks_add_key(cntx, pt.url, keyfile, pt.passphrase)
 
                 opts = "luks"
-                if is_volume_on_ssd(pt.url):
+                if util.is_volume_on_ssd(pt.url):
                     opts += ",discard"
                 cntx.do(f'echo "{pt.mapperID} UUID={pt.uuid} {keyfile} {opts}" >> /etc/crypttab')
 
@@ -90,10 +90,9 @@ class PostInstaller:
 
 
 def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):
-    is_efi = bool(SpawnedSU.do("mount | grep efivars"))
     cmd_enable_cryptoboot = 'echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub' if cryptoboot else ''
 
-    if is_efi:
+    if util.is_efi_boot():
         deps = "apt install -y grub-efi"
         opts = "--target=x86_64-efi"
         grub_id_opt = f"--no-uefi-secure-boot --bootloader-id={grub_id}" if grub_id else ""
