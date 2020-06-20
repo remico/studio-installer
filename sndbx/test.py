@@ -10,12 +10,16 @@ from studioinstaller.spawned import logger as log
 from studioinstaller import util
 import re, io
 import inspect
+from studioinstaller.configfile import ConfigFile
 
 Spawned.enable_logging()
 Spawned.enable_debug_commands()
 
-disk = Disk("/dev/sdb")
-luks = LuksPV(1).on(disk)
-p1 = CryptVV("home").on(luks)
-print(util.is_trim_supported(p1))
+# disk = Disk("/dev/sdb")
+# luks = LuksPV(1).on(disk)
+# p1 = CryptVV("home").on(luks)
+# print(util.is_trim_supported(p1))
 
+f = ConfigFile("/tmp/qq")
+# f.apply(r"qq1", "bla")
+print(f.owner)

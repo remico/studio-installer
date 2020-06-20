@@ -15,7 +15,7 @@
 
 """Useful functions"""
 
-from spawned import SpawnedSU, Spawned
+from spawned import SpawnedSU, Spawned, logger
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -27,7 +27,8 @@ __all__ = ['is_efi_boot',
            'volume_uuid',
            'clear_installation_cache',
            'preseeding_file',
-           'is_trim_supported'
+           'is_trim_supported',
+           'tagged_printer',
            ]
 
 
@@ -71,3 +72,10 @@ def preseeding_file():
     from importlib.metadata import files as app_files
     if l := [f for f in app_files(__package__) if '.seed' in str(f)]:
         return l[0].locate()
+
+
+def tagged_printer(tag: str):
+    @logger.tagged(tag, logger.ok_blue_s)
+    def _p(*text: str):
+        return text
+    return _p

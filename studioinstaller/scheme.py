@@ -16,6 +16,7 @@
 """Encapsulates a partitioning scheme"""
 
 from typing import List
+
 from .partition.base import Partition
 from .partition import Disk
 

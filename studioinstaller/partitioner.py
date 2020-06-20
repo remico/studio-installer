@@ -58,7 +58,6 @@ class Partitioner:
             assert not pt.islvmlv or pt.lvm_vg, "No LVM VG is defined for an LVM LV"
             assert not pt.islvmlv or pt.lvm_vg in LvmLV.groups(self.scheme), "LVM VGs do not match"
             assert not pt.do_format or isinstance(pt, FS), f"Partition {pt.id} can't be formatted"
-            assert not pt.disk or pt.disk == URL_DISK(pt.id), "The disk value doesn't match to the partition id"
             assert "efi" not in pt.mountpoint or is_efi_boot(), \
                 "Partitioning scheme contains a EFI partition while the system doesn't look to booted in EFI mode"
 
