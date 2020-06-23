@@ -10,7 +10,7 @@ from studioinstaller.spawned import logger as log
 from studioinstaller import util
 import re, io
 import inspect
-from studioinstaller.configfile import ConfigFile
+from studioinstaller.configfile import IniConfig, FstabLine, FstabConfig
 
 Spawned.enable_logging()
 Spawned.enable_debug_commands()
@@ -20,6 +20,8 @@ Spawned.enable_debug_commands()
 # p1 = CryptVV("home").on(luks)
 # print(util.is_trim_supported(p1))
 
-f = ConfigFile("/tmp/qq")
+f = FstabConfig("/tmp/qq")
+f.append("UUID=11212-12-13", "/ee/dd", "ext3", "defaults")
+f.append(FstabLine("UUID=11212-12-12", "/ee/dd", "ext3", "defaults"))
 # f.apply(r"qq1", "bla")
-print(f.owner)
+Spawned.do("cat /tmp/qq")

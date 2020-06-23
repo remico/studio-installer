@@ -20,7 +20,7 @@ from pathlib import Path
 from spawned import SpawnedSU, ChrootContext
 
 from .action import Involve, Release
-from .configfile import ConfigFile
+from .configfile import IniConfig
 from .partition.base import LUKS, Container
 from .scheme import Scheme
 from . import util
@@ -88,8 +88,8 @@ class PostInstaller:
             cntx.do("update-initramfs -u -k all")
 
             # adjust fstrim timer
-            tc = ConfigFile("/lib/systemd/system/fstrim.timer", cntx)
-            tc.apply(r"OnCalendar=.*", "OnCalendar=daily")
+            tc = IniConfig("/lib/systemd/system/fstrim.timer", cntx)
+            tc.replace(r"OnCalendar=.*", "OnCalendar=daily")
 
         self.unmount_target_system()
 

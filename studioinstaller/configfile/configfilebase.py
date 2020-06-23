@@ -13,59 +13,43 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-"""Edit config files content"""
+"""Base file for config files handlers"""
 
 import os
 import stat
-from pathlib import Path
+from abc import abstractmethod, ABC
 
-from spawned import SpawnedSU, Spawned, create_py_script
-
-from . import util
+from spawned import SpawnedSU, Spawned
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['ConfigFile']
+__all__ = ['ConfigFileBase']
 
 
-_tp = util.tagged_printer('[ConfigFile]')
-
-_re_script = create_py_script(r"""
-import fileinput
-import re, sys
-
-_a = sys.argv
-filepath = _a[1]
-re_pattern = _a[2]
-replacement = _a[3]
-
-with fileinput.FileInput(filepath, inplace=True) as f:
-    for line in f:
-        print(re.sub(re_pattern, replacement, line), end='')
-""")
-
-
-class ConfigFile:
+class ConfigFileBase(ABC):
     def __init__(self, filepath, chroot_context=None):
         self.chroot_cntx = chroot_context
         self.filepath = filepath
         self.abs_filepath = '/'.join([chroot_context.root, filepath]) if chroot_context else filepath
 
-    def apply(self, re_pattern, replacement):
-        if not Path(self.abs_filepath).exists():
-            _tp(f"File '{self.abs_filepath}' doesn't exist. No replacement done.")
-            return
-
-        cmd = f"python3 {_re_script} {self.filepath} {re_pattern} {replacement}"
-
+    def _execute(self, cmd: str):
+        """Execute a shell command ``cmd`` in a chroot jail or in current file system"""
         if self.chroot_cntx:
             self.chroot_cntx.do(cmd, user=self.owner)
         else:
             S = Spawned if self.iseditable else SpawnedSU
             S.do_script(cmd, timeout=Spawned.TO_DEFAULT, bg=False)
+
+    @abstractmethod
+    def replace(self, re_old: str, str_new: str):
+        pass
+
+    def append(self, str_new: str):
+        cmd = f'printf "\n{str_new}\n" >> {self.filepath}'
+        self._execute(cmd)
 
     @property
     def stat(self):
