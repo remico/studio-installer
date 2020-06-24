@@ -48,19 +48,24 @@ class Involve(ActionBase):
 
     @staticmethod
     def _mount(partition, chroot, mountpoint=None):
-        chroot = chroot or "/mnt"  # prevent accidental mounting to current system '/'
-
-        # if Path() gets several absolute paths, the last one is taken as an anchor
-        # so we need to strip the leading '/' from the second path
-        # TODO find a better way to concatenate 2 absolute paths
-        mpoint = mountpoint or partition.mountpoint
-        if mpoint.startswith('/'):
-            mpoint = mpoint.lstrip('/')
-        mpoint = Path(chroot, mpoint)
-
         if partition.isswap:
             SpawnedSU.do(f"swapon {partition.url}")
-        elif mpoint:
+
+        else:
+            assert chroot, f"No 'chroot' defined while trying to mount '{partition.id}'"
+            mpoint = mountpoint or partition.mountpoint
+
+            if not mpoint:  # prevent incorrect mounting to chroot's '/'
+                return
+
+            # note: if Path() gets several absolute paths, the last one is taken as an anchor
+            #  so we need to strip the leading '/' from the second path
+            # TODO: find a better way to concatenate 2 absolute paths
+            if mpoint.startswith('/'):
+                mpoint = mpoint.lstrip('/')
+            mpoint = Path(chroot, mpoint)
+
+            SpawnedSU.do(f"mkdir -p {mpoint}")
             SpawnedSU.do(f"mount {partition.url} {mpoint}")
 
     def serve_standard_pv(self, pt, mountpoint=None, chroot=None):

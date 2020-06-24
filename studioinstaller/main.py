@@ -26,7 +26,7 @@ import argparse
 from importlib.metadata import version as app_version
 from sys import exit as app_exit
 
-from spawned import SpawnedSU, Spawned, ask_user, SETENV
+from spawned import SpawnedSU, Spawned, ask_user, SETENV, ENV
 
 from .partition.base import VType, LuksType
 from .partition import Disk, PlainPV, LuksPV, LvmOnLuksVG, LvmLV, CryptVV
@@ -121,8 +121,9 @@ def run():
     root = LvmLV('root', '/')                     .new('15G')             .on(lvm_vg) .makefs('ext4')
     swap = LvmLV('swap', 'swap')                  .new('1G', VType.SWAP)  .on(lvm_vg)
     home = LvmLV('home', '/home')                 .new('100%FREE')        .on(lvm_vg) .makefs('ext4')
+    data = LvmLV('data', '/media/studio-data')    .new('1G')              .on(lvm_vg) .makefs('ext4')
 
-    scheme = Scheme([p1, p2, p3, lvm_vg, boot, root, home, swap])
+    scheme = Scheme([p1, p2, p3, lvm_vg, boot, root, home, swap, data])
     # ================= END =================
 
     postinstaller = PostInstaller(scheme, target_disk, chroot=(op.mount or op.chroot))

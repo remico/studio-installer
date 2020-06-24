@@ -20,8 +20,8 @@ from pathlib import Path
 from spawned import SpawnedSU, ChrootContext
 
 from .action import Involve, Release
-from .configfile import IniConfig
-from .partition.base import LUKS, Container
+from .configfile import IniConfig, FstabConfig
+from .partition.base import LUKS, Container, FS
 from .scheme import Scheme
 from . import util
 
@@ -82,7 +82,7 @@ class PostInstaller:
                     opts += ",discard"
                 cntx.do(f'echo "{pt.mapperID} UUID={pt.uuid} {keyfile} {opts}" >> /etc/crypttab')
 
-            # setup_fstab(cntx)
+            setup_fstab(cntx, self.scheme)
             # setup_resume(cntx)
 
             cntx.do("update-initramfs -u -k all")
@@ -142,9 +142,15 @@ def luks_add_key(cntx, pt_url, key, passphrase):
         t.interact("Enter any existing passphrase:", passphrase)
 
 
-def setup_fstab(cntx):
-    # TODO add noatime,discard options
-    pass
+def setup_fstab(cntx, scheme):
+    fstab = FstabConfig(cntx)
+
+    for pt in scheme.partitions(FS):
+        can_auto_mount = bool(pt.mountpoint and pt.fs)
+        if can_auto_mount and not util.is_in_fstab(pt, fstab.abs_filepath):
+            volume = f"UUID={pt.uuid}" if pt.isphysical else pt.url
+            opts = "defaults,noatime"
+            fstab.append(volume, pt.mountpoint, pt.fs, opts)
 
 
 def setup_resume(cntx):

@@ -40,6 +40,9 @@ class FstabLine:
 
 
 class FstabConfig(ConfigFileBase):
+    def __init__(self, chroot_context=None):
+        super().__init__('/etc/fstab', chroot_context)
+
     def replace(self, re_old: str, str_new: str):
         _tp("INFO: replace() is not implemented for FstabConfig")
 

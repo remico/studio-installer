@@ -25,6 +25,7 @@ __license__ = "MIT"
 __all__ = ['is_efi_boot',
            'is_volume_on_ssd',
            'volume_uuid',
+           'is_in_fstab',
            'clear_installation_cache',
            'preseeding_file',
            'is_trim_supported',
@@ -49,6 +50,10 @@ def is_trim_supported(partition):
 
 def volume_uuid(volume_url):
     return SpawnedSU.do(f"blkid -s UUID -o value {volume_url}")
+
+
+def is_in_fstab(partition, fstab_path):
+    return bool(Spawned.do(f"egrep '{partition.url}|{partition.uuid}' {fstab_path}"))
 
 
 def clear_installation_cache():
