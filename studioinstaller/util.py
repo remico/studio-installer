@@ -53,7 +53,8 @@ def volume_uuid(volume_url):
 
 
 def is_in_fstab(partition, fstab_path):
-    return bool(Spawned.do(f"egrep '{partition.url}|{partition.uuid}' {fstab_path}"))
+    lvm_lv_vid = f"/dev/mapper/{partition.lvm_vg.replace('-', '--')}-{partition.lvm_lv}"
+    return bool(Spawned.do(f"egrep '{partition.url}|{partition.uuid}|{lvm_lv_vid}' {fstab_path}"))
 
 
 def clear_installation_cache():
