@@ -15,7 +15,7 @@
 
 """Partitions hierarchy"""
 
-from .base import FS
+from .base import FS, VType
 from .lvmpv import LvmPV
 
 __author__ = "Roman Gladyshev"
@@ -27,11 +27,16 @@ __all__ = ['LvmLV']
 
 
 class LvmLV(FS):
+    MAX_SIZE = '100%FREE'
+
     def __init__(self, lv, mountpoint=''):
         super().__init__(id_=lv, lv=lv, mountpoint=mountpoint)
 
     def _a_execute(self, action):
         action.serve_lvm_lv(self)
+
+    def new(self, size=MAX_SIZE, type_=VType.DEFAULT):
+        return super().new(size, type_)
 
     def on(self, parent: LvmPV):
         self.lvm_vg = parent.lvm_vg

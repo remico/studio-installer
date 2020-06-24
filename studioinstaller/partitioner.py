@@ -18,7 +18,7 @@
 from spawned import ask_user, logger as log
 
 from .action import Create, Format
-from .partition.base import Partition, FS, URL_DISK
+from .partition.base import Partition, FS
 from .partition import LvmLV
 from .scheme import Scheme
 from .util import is_efi_boot

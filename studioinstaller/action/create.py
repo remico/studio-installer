@@ -52,7 +52,13 @@ class Create(ActionBase):
 
         # then sort non-PVs
         non_pvs = [pt for pt in scheme if not isinstance(pt, PV)]
-        self.nodes.extend(sorted(non_pvs, key=_sort_key))
+        non_pvs = sorted(non_pvs, key=_sort_key)
+
+        # place relative-sized partition at the end of the list
+        def _sort_key_2(pt):
+            return 1 if "100%FREE" in pt.size else 0  # warning: magic value
+
+        self.nodes.extend(sorted(non_pvs, key=_sort_key_2))
 
         return self
 
