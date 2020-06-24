@@ -75,6 +75,13 @@ class Create(ActionBase):
         t.interact("Last sector", f"+{partition.size}" if partition.size else Spawned.ANSWER_DEFAULT)
         t.interact("Hex code or GUID", partition.type or Spawned.ANSWER_DEFAULT)
 
+        # TODO implement multi-pattern Spawned.interact() method,
+        #  since in case of empty GPT table the first question is "Enter name"
+        # if partition_id:
+        #     t.interact("Command (? for help)", "c")
+        #     t.interact("Partition number", partition_id)
+        #     t.interact("Enter name", "studio-" + partition_id)
+
         if locally:
             t.interact("Command (? for help)", "w")
             t.interact("proceed?", "Y")
