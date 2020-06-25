@@ -27,7 +27,7 @@ with other Ubuntu-like distros as long as they use `ubiquity` and `partman`.
 :information_source: Tested distros:
 - Ubuntu Studio 20.04
 
-**It can help to automate some routine work one usually does during Ubuntu OS installation:**
+**The tool can help to automate some routine work one usually does during Ubuntu OS installation:**
 - create new partitions (it supports LVM)
 - encrypt, mount, unmount, format them
 - install OS according to the preconfigured partitioning scheme

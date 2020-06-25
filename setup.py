@@ -33,7 +33,7 @@ def version():
 
 def data_files():
     files = [
-        'stuff/studioinstaller.seed'
+        'preseed/studioinstaller.seed'
     ]
     return [('studioinstaller-data', [f for f in files if Path(f).exists()])]
 
