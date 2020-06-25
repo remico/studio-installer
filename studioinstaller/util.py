@@ -74,9 +74,10 @@ def clear_installation_cache():
 
 
 def preseeding_file():
+    """Returns the first available .seed file"""
     # TODO move .seed file inside the package and use resource API
     from importlib.metadata import files as app_files
-    if l := [f for f in app_files(__package__) if '.seed' in str(f)]:
+    if l := [f for f in app_files(__package__) if str(f).endswith('.seed')]:
         return l[0].locate()
 
 

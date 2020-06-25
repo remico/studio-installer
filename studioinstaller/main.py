@@ -28,13 +28,11 @@ from sys import exit as app_exit
 
 from spawned import SpawnedSU, Spawned, ask_user, SETENV
 
-from .partition.base import VType, LuksType
-from .partition import Disk, PlainPV, LuksPV, LvmOnLuksVG, LvmLV, CryptVV
-from .partitioner import Partitioner
 from .partmancheater import PartmanCheater
+from .preinstaller import PreInstaller
 from .postinstaller import PostInstaller
-from .scheme import Scheme
 
+from . import partitioning
 from . import util
 
 __author__ = "Roman Gladyshev"
@@ -104,27 +102,7 @@ def run():
     util.clear_installation_cache()
     target_disk = select_target_disk()
 
-    # =======================================
-    # ========= PARTITIONING SCHEME =========
-    # =======================================
-    disk1 = Disk(target_disk)
-
-    # edit partitioning configuration according to your needs
-    p1 = PlainPV(1, '/boot/efi')                  .new('100M', VType.EFI) .on(disk1)  .makefs()
-
-    p2 = LuksPV(2, type=LuksType.luks1)           .new('500M')            .on(disk1)
-    boot = CryptVV('boot', '/boot')               .new()                  .on(p2)     .makefs('ext2')
-
-    p3 = LuksPV(3)                                .new()                  .on(disk1)
-    lvm_vg = LvmOnLuksVG('studio-vg', 'CRYPTLVM') .new()                  .on(p3)
-
-    root = LvmLV('root', '/')                     .new('15G')             .on(lvm_vg) .makefs('ext4')
-    swap = LvmLV('swap', 'swap')                  .new('1G', VType.SWAP)  .on(lvm_vg)
-    home = LvmLV('home', '/home')                 .new(LvmLV.MAX_SIZE)    .on(lvm_vg) .makefs('ext4')
-    data = LvmLV('data', '/media/studio-data')    .new('1G')              .on(lvm_vg) .makefs('ext4')
-
-    scheme = Scheme([p1, p2, p3, lvm_vg, boot, root, home, swap, data])
-    # ================= END =================
+    scheme = partitioning.scheme(target_disk)
 
     postinstaller = PostInstaller(scheme, target_disk, chroot=(op.mount or op.chroot))
 
@@ -136,8 +114,8 @@ def run():
         postinstaller.unmount_target_system()
         op.umount and app_exit()  # exit if this option specified
 
-    partitioner = Partitioner(scheme)
-    partitioner.prepare_partitions()
+    preinstaller = PreInstaller(scheme)
+    preinstaller.prepare_partitions()
 
     # wait for Partman and modify values in background
     PartmanCheater(scheme).run()

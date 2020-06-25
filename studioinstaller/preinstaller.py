@@ -28,10 +28,10 @@ __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['Partitioner']
+__all__ = ['PreInstaller']
 
 
-class Partitioner:
+class PreInstaller:
     def __init__(self, scheme: Scheme):
         self.scheme = scheme
         self.lukspass = ''

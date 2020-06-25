@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     from typing import List, Tuple, Iterable, Iterator
 
     # top-level module
-    from partitioner import *
+    from preinstaller import *
     from partmancheater import *
     from scheme import *
     from postinstaller import *
