@@ -24,7 +24,8 @@ will be rewritten, new partitions will be created and formatted according to the
 :information_source: Initially the tool is intended for Ubuntu Studio distro, but in fact, it can also be used
 with other Ubuntu-like distros as long as they use `ubiquity` and `partman`.
 
-:information_source: Tested with *Ubuntu Studio 20.04* distro
+:information_source: Tested distros:
+- Ubuntu Studio 20.04
 
 **It can help to automate some routine work one usually does during Ubuntu OS installation:**
 - create new partitions (it supports LVM)
