@@ -60,42 +60,52 @@ class PostInstaller:
 
         self.scheme.execute(Release())
 
-    def run(self):
+    def run(self, extra=False):
         self.mount_target_system()
 
         with ChrootContext(self.chroot) as cntx:
-            # TODO check if /boot is encrypted and pass cryptoboot accordingly
-            setup_bootloader(cntx, self.bl_disk, grub_id="studio", cryptoboot=True)
-
-            luks_volumes = self.scheme.partitions(LUKS, Container)
-
-            if luks_volumes:
-                keyfile = "/etc/luks/boot_os.keyfile"
-                cntx.do("apt install -y cryptsetup-initramfs")
-                create_keys(cntx, keyfile)
-
-            for pt in luks_volumes:
-                luks_add_key(cntx, pt.url, keyfile, pt.passphrase)
-
-                opts = "luks"
-                if util.is_trim_supported(pt):
-                    opts += ",discard"
-                cntx.do(f'echo "{pt.mapperID} UUID={pt.uuid} {keyfile} {opts}" >> /etc/crypttab')
-
-            setup_fstab(cntx, self.scheme)
-            # setup_resume(cntx)
-
-            cntx.do("update-initramfs -u -k all")
-
-            # adjust fstrim timer
-            tc = IniConfig("/lib/systemd/system/fstrim.timer", cntx)
-            tc.replace(r"OnCalendar=.*", "OnCalendar=daily")
+            self._run_mandatory(cntx)
+            if extra:
+                self._run_extra(cntx)
 
         self.unmount_target_system()
 
+    def _run_mandatory(self, cntx):
+        # TODO check if /boot is encrypted and pass cryptoboot accordingly
+        setup_bootloader(cntx, self.bl_disk, grub_id="studio", cryptoboot=True)
+
+        luks_volumes = self.scheme.partitions(LUKS, Container)
+
+        if luks_volumes:
+            keyfile = "/etc/luks/boot_os.keyfile"
+            cntx.do("apt install -y cryptsetup-initramfs")
+            create_keys(cntx, keyfile)
+
+        cntx.do(f"truncate -s 0 /etc/crypttab")  # fill /etc/crypttab from scratch
+        for pt in luks_volumes:
+            luks_add_key(cntx, pt.url, keyfile, pt.passphrase)
+
+            opts = "luks"
+            if util.is_trim_supported(pt):
+                opts += ",discard"
+            cntx.do(f'echo "{pt.mapperID} UUID={pt.uuid} {keyfile} {opts}" >> /etc/crypttab')
+
+        setup_fstab(cntx, self.scheme)
+        # setup_resume(cntx)
+
+        cntx.do("update-initramfs -u -k all")
+
+        # adjust fstrim timer
+        tc = IniConfig("/lib/systemd/system/fstrim.timer", cntx)
+        tc.replace(r"OnCalendar=.*", "OnCalendar=daily")
+
+    def _run_extra(self, cntx):
+        install_software(cntx)
+
 
 def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):
-    cmd_enable_cryptoboot = 'echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub' if cryptoboot else ''
+    cmd_is_cryptoboot_enabled = 'grep "GRUB_ENABLE_CRYPTODISK=y" /etc/default/grub'
+    cmd_enable_cryptoboot = 'echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub' if cryptoboot else 'true'
 
     if util.is_efi_boot():
         deps = "apt install -y grub-efi"
@@ -107,7 +117,7 @@ def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):
         grub_id_opt = ""
 
     cntx.do(f"""
-        {cmd_enable_cryptoboot}
+        {cmd_is_cryptoboot_enabled} || {cmd_enable_cryptoboot}
         {deps}
         grub-install --recheck {opts} {grub_id_opt} {grub_disk}
         update-grub
@@ -138,6 +148,9 @@ def create_keys(cntx, keyfile):
 #  - add new Action LuksAddKey and PostInstall actions
 #  - or add parameter to Encrypt(addKey={device: key|keyfile, all: key|keyfile})
 def luks_add_key(cntx, pt_url, key, passphrase):
+    if util.test_luks_key(pt_url, '/'.join([cntx.root, key])):
+        return
+
     with cntx.doi(f"cryptsetup luksAddKey {pt_url} {key}") as t:
         t.interact("Enter any existing passphrase:", passphrase)
 
@@ -154,4 +167,8 @@ def setup_fstab(cntx, scheme):
 
 
 def setup_resume(cntx):
+    pass
+
+
+def install_software(cntx):
     pass

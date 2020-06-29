@@ -73,8 +73,12 @@ def parse_cmd_options():
                             help=f"Mount the whole scheme and exit (Default ROOT: {DEFAULT_CHROOT})")
     mount_opts.add_argument("--umount", action="store_true", help="Unmount the whole scheme and exit")
 
-    mount_opts.add_argument("--chroot", type=str, default=DEFAULT_CHROOT,
-                            help=f"Target system's mountpoint (Default: {DEFAULT_CHROOT})")
+    argparser.add_argument("--chroot", type=str, default=DEFAULT_CHROOT,
+                           help=f"Target system's mountpoint (Default: {DEFAULT_CHROOT})")
+
+    argparser.add_argument("-n", action="store_true", help="Skip disk partitioning and OS installation steps,"
+                                                           " keep standard post-install steps")
+    argparser.add_argument("--post", action="store_true", help="Run extra post-install steps")
 
     return argparser.parse_args()
 
@@ -99,11 +103,8 @@ def run():
         print(app_version(__package__))
         app_exit()
 
-    util.clear_installation_cache()
     target_disk = select_target_disk()
-
     scheme = partitioning.scheme(target_disk)
-
     postinstaller = PostInstaller(scheme, target_disk, chroot=(op.mount or op.chroot))
 
     if op.mount:
@@ -114,14 +115,18 @@ def run():
         postinstaller.unmount_target_system()
         op.umount and app_exit()  # exit if this option specified
 
-    preinstaller = PreInstaller(scheme)
-    preinstaller.prepare_partitions()
+    if not op.n:
+        util.clear_installation_cache()
 
-    # wait for Partman and modify values in background
-    PartmanCheater(scheme).run()
+        preinstaller = PreInstaller(scheme)
+        preinstaller.prepare_partitions()
 
-    run_os_installation()
-    postinstaller.run()
+        # wait for Partman and modify values in background
+        PartmanCheater(scheme).run()
+
+        run_os_installation()
+
+    postinstaller.run(op.post)
 
 
 if __name__ == '__main__':

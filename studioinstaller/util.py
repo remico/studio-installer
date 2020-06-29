@@ -26,6 +26,7 @@ __all__ = ['is_efi_boot',
            'is_volume_on_ssd',
            'volume_uuid',
            'is_in_fstab',
+           'test_luks_key',
            'clear_installation_cache',
            'preseeding_file',
            'is_trim_supported',
@@ -55,6 +56,10 @@ def volume_uuid(volume_url):
 def is_in_fstab(partition, fstab_path):
     lvm_lv_vid = f"/dev/mapper/{partition.lvm_vg.replace('-', '--')}-{partition.lvm_lv}"
     return bool(Spawned.do(f"egrep '{partition.url}|{partition.uuid}|{lvm_lv_vid}' {fstab_path}"))
+
+
+def test_luks_key(volume_url, key):
+    return bool(SpawnedSU.do(f"cryptsetup open --test-passphrase -d {key} {volume_url} && echo True"))
 
 
 def clear_installation_cache():
