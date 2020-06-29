@@ -14,7 +14,7 @@
 #  software.
 
 import setuptools
-from pkg_resources import resource_string
+from importlib import resources
 from pathlib import Path
 
 __author__ = "Roman Gladyshev"
@@ -28,15 +28,12 @@ with open("README.md") as f:
 
 
 def version():
-    return resource_string('studioinstaller', 'VERSION').decode("utf-8")
+    return resources.read_text('studioinstaller', 'VERSION')
 
 
 def data_files():
-    files = [
-        'preseed/studioinstaller.seed',
-        'preseed/studioinstaller.seed.tpl',
-    ]
-    return [('studioinstaller-data', [f for f in files if Path(f).exists()])]
+    files = [str(f) for f in Path("preseed").glob("*") if f.is_file()]
+    return [('studioinstaller-data', files)]
 
 
 # make the distribution platform dependent
