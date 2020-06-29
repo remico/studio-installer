@@ -15,33 +15,15 @@
 
 """Partitions hierarchy"""
 
-from .base import FS, VType
-from .lvmpv import LvmPV
+from .base import PV, Container
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['LvmLV']
+__all__ = ['PVLvm']
 
 
-class LvmLV(FS):
-    MAX_SIZE = '100%FREE'
-
-    def __init__(self, lv, mountpoint=''):
-        super().__init__(id_=lv, lv=lv, mountpoint=mountpoint)
-
-    def _a_execute(self, action):
-        action.serve_lvm_lv(self)
-
-    def new(self, size=MAX_SIZE, type_=VType.DEFAULT):
-        return super().new(size, type_)
-
-    def on(self, parent: LvmPV):
-        self.lvm_vg = parent.lvm_vg
-        return super().on(parent)
-
-    @staticmethod
-    def groups(scheme):
-        return set([pt.lvm_vg for pt in scheme if isinstance(pt, LvmLV)])
+class PVLvm(PV, Container):
+    pass

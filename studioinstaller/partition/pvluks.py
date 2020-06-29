@@ -22,10 +22,10 @@ __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['LuksPV']
+__all__ = ['PVLuks']
 
 
-class LuksPV(LUKS, PV, Container):
+class PVLuks(LUKS, PV, Container):
     def __init__(self, id_, type=LuksType.luks2):
         super().__init__(type=type, id_=str(id_))
 

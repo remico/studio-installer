@@ -15,24 +15,19 @@
 
 """Partitions hierarchy"""
 
-from .base import Container
+from .base import PV, FS
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['LvmOnLuksVG']
+__all__ = ['PVPlain']
 
 
-class LvmOnLuksVG(Container):
-    def __init__(self, vg, id_, **kwargs):
-        super().__init__(id_=id_, vg=vg, **kwargs)
+class PVPlain(PV, FS):
+    def __init__(self, id_, mountpoint=''):
+        super().__init__(id_=str(id_), mountpoint=mountpoint)
 
     def _a_execute(self, action):
-        action.serve_lvm_on_luks_vg(self)
-
-    def on(self, parent):
-        # magic attribute, used in LUKS
-        parent._evaluated_mapper_id = self.mapperID  # warning: magic attribute
-        return super().on(parent)
+        action.serve_standard_pv(self)

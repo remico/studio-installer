@@ -21,12 +21,12 @@
 # __all__ = [basename(f)[:-3] for f in modules if isfile(f) and not f.endswith('__init__.py')]
 
 from .disk import *
-from .cryptvv import *
-from .lukspv import *
-from .lvmlv import *
-from .lvmonluksvg import *
-from .lvmpv import *
-from .plainpv import *
+from .lvlvm import *
+from .pvplain import *
+from .pvluks import *
+from .pvlvm import *
+from .vglvmonluks import *
+from .vvcrypt import *
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"

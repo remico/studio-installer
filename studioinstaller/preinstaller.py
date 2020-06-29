@@ -19,7 +19,7 @@ from spawned import ask_user, logger as log
 
 from .action import Create, Format
 from .partition.base import Partition, FS
-from .partition import LvmLV
+from .partition import LVLvm
 from .scheme import Scheme
 from .util import is_efi_boot
 
@@ -56,7 +56,7 @@ class PreInstaller:
             assert pt.is_new, "All partitions in the scheme must be marked as New"
             assert pt.parent, f"No parent specified for {pt.id}"
             assert not pt.islvmlv or pt.lvm_vg, "No LVM VG is defined for an LVM LV"
-            assert not pt.islvmlv or pt.lvm_vg in LvmLV.groups(self.scheme), "LVM VGs do not match"
+            assert not pt.islvmlv or pt.lvm_vg in LVLvm.groups(self.scheme), "LVM VGs do not match"
             assert not pt.do_format or isinstance(pt, FS), f"Partition {pt.id} can't be formatted"
             assert "efi" not in pt.mountpoint or is_efi_boot(), \
                 "Partitioning scheme contains a EFI partition while the system doesn't look to booted in EFI mode"

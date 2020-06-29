@@ -22,10 +22,10 @@ __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['CryptVV']
+__all__ = ['VVCrypt']
 
 
-class CryptVV(FS):
+class VVCrypt(FS):
     def __init__(self, id_, mountpoint=''):
         super().__init__(id_=id_, mountpoint=mountpoint)
 
