@@ -29,7 +29,7 @@ keyboard-configuration keyboard-configuration/toggle select Super+Space
 #keyboard-configuration keyboard-configuration/switch select No temporary switch
 
 # Network
-d-i netcfg/get_hostname string unassigned-hostname
+d-i netcfg/get_hostname string asterisk-studio
 d-i netcfg/get_domain string unassigned-domain
 d-i netcfg/choose_interface select auto
 
