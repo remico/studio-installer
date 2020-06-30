@@ -53,5 +53,5 @@ class IniConfig(ConfigFileBase):
             _tp(f"File '{self.abs_filepath}' doesn't exist. No replacement done.")
             return
 
-        cmd = f"python3 {_re_script} {self.filepath} {re_old} {str_new}"
+        cmd = f'python3 "{_re_script}" "{self.filepath}" "{re_old}" "{str_new}"'
         self._execute(cmd)

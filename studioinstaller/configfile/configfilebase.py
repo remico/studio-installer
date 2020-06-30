@@ -35,13 +35,17 @@ class ConfigFileBase(ABC):
         self.filepath = filepath
         self.abs_filepath = '/'.join([chroot_context.root, filepath]) if chroot_context else filepath
 
-    def _execute(self, cmd: str):
+    def __iter__(self):
+        return self.content.__iter__()
+
+    def _execute(self, cmd: str, edit=True):
         """Execute a shell command ``cmd`` in a chroot jail or in current file system"""
         if self.chroot_cntx:
             self.chroot_cntx.do(cmd, user=self.owner)
         else:
-            S = Spawned if self.iseditable else SpawnedSU
-            S.do_script(cmd, timeout=Spawned.TO_DEFAULT, bg=False)
+            condition = self.iseditable if edit else self.isreadable
+            S_ = Spawned if condition else SpawnedSU
+            S_.do_script(cmd, timeout=Spawned.TO_DEFAULT, bg=False)
 
     @abstractmethod
     def replace(self, re_old: str, str_new: str):
@@ -63,5 +67,14 @@ class ConfigFileBase(ABC):
         return bool(self.stat.st_mode & (stat.S_IWUSR | stat.S_IWGRP))
 
     @property
+    def isreadable(self):
+        return bool(self.stat.st_mode & (stat.S_IRUSR | stat.S_IRGRP))
+
+    @property
     def owner(self):
         return self.stat.st_uid
+
+    @property
+    def content(self):
+        lines = Spawned(f"cat {self.abs_filepath}", sudo=not self.isreadable).datalines
+        return [line_stripped for line in lines if (line_stripped := line.strip())]
