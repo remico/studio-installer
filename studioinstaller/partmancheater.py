@@ -186,7 +186,7 @@ class PartmanCheater:
 
             # replace visuals
             echo "{mountpoint}" > ${{partman_volume}}/visual_mountpoint
-            python3 {self.visuals_updater} ${{partman_volume}}/view "{do_format}" "{mountpoint}"
-            python3 {self.visuals_updater} ${{partman_volume}}/../partition_tree_cache "{do_format}" "{mountpoint}"
-            python3 {self.visuals_updater} {PathResolver.PARTMAN_BASE}/snoop "{do_format}" "{mountpoint}"
+            python3 "{self.visuals_updater}" "${{partman_volume}}/view" "{do_format}" "{mountpoint}"
+            python3 "{self.visuals_updater}" "${{partman_volume}}/../partition_tree_cache" "{do_format}" "{mountpoint}"
+            python3 "{self.visuals_updater}" "{PathResolver.PARTMAN_BASE}/snoop" "{do_format}" "{mountpoint}"
             """)
