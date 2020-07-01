@@ -17,7 +17,7 @@
 
 from pathlib import Path
 
-from spawned import SpawnedSU, ChrootContext
+from spawned import SpawnedSU, ChrootContext, Spawned
 
 from .action import Involve, Release
 from .configfile import IniConfig, FstabConfig
@@ -101,6 +101,7 @@ class PostInstaller:
 
     def _run_extra(self, cntx):
         install_software(cntx)
+        setup_keyboard(cntx)
 
 
 def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):
@@ -171,4 +172,20 @@ def setup_resume(cntx):
 
 
 def install_software(cntx):
-    pass
+    cntx.do("""
+        sudo apt-get install -y \
+        okular okular-extra-backends kate kwrite ttf-mscorefonts-installer \
+        vim build-essential git-gui gitk kdiff3 kompare doxygen graphviz doxyqml python3-pip \
+        krusader chromium-browser \
+        pavucontrol dconf-editor apt-file ethtool nmap p7zip-full unrar-free xterm net-tools htop tilix
+
+        # sudo apt-get install -y pepperflashplugin-nonfree
+        """)
+
+
+def setup_keyboard(cntx):
+    filename = "keyboard-layout.xml"
+    content = Path(util.data_file(filename)).read_text()
+    if user := Spawned.do(f'ls {cntx.root}/home/ | grep -v "lost+found"'):
+        home = f"/home/{user}"
+        cntx.do(f"echo '{content}' > {home}/.config/xfce4/xfconf/xfce-perchannel-xml/{filename}", user=user)

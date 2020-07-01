@@ -28,6 +28,7 @@ __all__ = ['is_efi_boot',
            'is_in_fstab',
            'test_luks_key',
            'clear_installation_cache',
+           'data_file',
            'preseeding_file',
            'is_trim_supported',
            'tagged_printer',
@@ -76,6 +77,13 @@ def clear_installation_cache():
             cp -r /var/cache/debconf.back /var/cache/debconf
         fi
         """)
+
+
+def data_file(filename):
+    """Returns the first available file with matching name"""
+    from importlib.metadata import files as app_files
+    if l := [f for f in app_files(__package__) if str(f).endswith(filename)]:
+        return l[0].locate()
 
 
 def preseeding_file():
