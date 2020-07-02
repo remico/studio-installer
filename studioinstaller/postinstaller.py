@@ -187,6 +187,6 @@ def setup_keyboard(cntx):
     # TODO also check /etc/default/keyboard
     filename = "keyboard-layout.xml"
     content = Path(util.data_file(filename)).read_text()
-    if user := Spawned.do(f'ls {cntx.root}/home/ | grep -v "lost+found"'):
-        home = f"/home/{user}"
+    if user := util.target_user(cntx.root):
+        home = util.target_home(cntx.root)
         cntx.do(f"echo '{content}' > {home}/.config/xfce4/xfconf/xfce-perchannel-xml/{filename}", user=user)

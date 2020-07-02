@@ -119,3 +119,11 @@ with fileinput.FileInput(filepath, inplace=True) as f:
 
 def cmd_edit_inplace(filepath: str, re_old: str, str_new: str):
     return f'python3 "{_edit_inplace_script}" "{filepath}" "{re_old}" "{str_new}"'
+
+
+def target_user(root_fs: str):
+    return Spawned.do(f'ls {root_fs}/home/ | grep -v "lost+found"')
+
+
+def target_home(root_fs: str):
+    return f"{root_fs}/home/{user}" if (user := target_user(root_fs)) else ""
