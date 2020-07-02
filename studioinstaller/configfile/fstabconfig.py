@@ -15,10 +15,9 @@
 
 """/etc/fstab handler"""
 
+from copy import copy
 from functools import singledispatchmethod
 from pathlib import Path
-
-from spawned import create_py_script
 
 from .configfilebase import ConfigFileBase
 from .. import util
@@ -43,7 +42,7 @@ class FstabItem:
         self.dump = dump
         self.pass_ = pass_
 
-        self.origin = None  # original line from /etc/fstab
+        self.origin = copy(self)
 
     def __repr__(self):
         return f"FstabItem({self.volume}, {self.mountpoint}, {self.fs}, [{self.opts}], {self.dump}, {self.pass_})"
@@ -53,9 +52,7 @@ class FstabItem:
 
     @staticmethod
     def build(fstab_line: str):
-        item = FstabItem(*fstab_line.split())
-        item.origin = fstab_line
-        return item
+        return FstabItem(*fstab_line.split())
 
     @property
     def options(self):
@@ -73,21 +70,6 @@ class FstabItem:
             print(f"WARNING: {__class__.__name__}.delete_option('{option}'): {e}")
 
 
-_re_script = create_py_script(r"""
-import fileinput
-import re, sys
-
-_a = sys.argv
-filepath = _a[1]
-old_str = _a[2]
-new_str = _a[3]
-
-with fileinput.FileInput(filepath, inplace=True) as f:
-    for line in f:
-        print(line.replace(old_str, new_str), end='')
-""")
-
-
 class FstabConfig(ConfigFileBase):
     def __init__(self, chroot_context=None):
         super().__init__('/etc/fstab', chroot_context)
@@ -95,18 +77,18 @@ class FstabConfig(ConfigFileBase):
     def __iter__(self):
         return self.items.__iter__()
 
-    def replace(self, old: str, new: str):
+    def replace(self, old: FstabItem, new: FstabItem):
         if not Path(self.abs_filepath).exists():
             _tp(f"File '{self.abs_filepath}' doesn't exist. No replacement done.")
             return
 
-        cmd = f'python3 "{_re_script}" "{self.filepath}" "{old}" "{new}"'
-        print(cmd)
+        re_old = r'[\s\t]+'.join(str(old).split())
+        cmd = util.cmd_edit_inplace(self.filepath, re_old, str(new))
         self._execute(cmd)
 
     def save(self, item: FstabItem):
         if item.origin:
-            self.replace(item.origin, str(item))
+            self.replace(item.origin, item)
 
     @singledispatchmethod
     def append(self, item: FstabItem):

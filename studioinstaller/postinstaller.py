@@ -163,7 +163,7 @@ def setup_fstab(cntx, scheme):
         can_auto_mount = bool(pt.mountpoint and pt.fs)
         if can_auto_mount and not util.is_in_fstab(pt, fstab.abs_filepath):
             volume = f"UUID={pt.uuid}" if pt.isphysical else pt.url
-            opts = "defaults,noatime"
+            opts = "defaults,relatime"
             fstab.append(volume, pt.mountpoint, pt.fs, opts)
 
 
@@ -184,6 +184,7 @@ def install_software(cntx):
 
 
 def setup_keyboard(cntx):
+    # TODO also check /etc/default/keyboard
     filename = "keyboard-layout.xml"
     content = Path(util.data_file(filename)).read_text()
     if user := Spawned.do(f'ls {cntx.root}/home/ | grep -v "lost+found"'):

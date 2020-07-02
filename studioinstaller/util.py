@@ -15,7 +15,7 @@
 
 """Useful functions"""
 
-from spawned import SpawnedSU, Spawned, logger
+from spawned import SpawnedSU, Spawned, logger, create_py_script
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -32,6 +32,7 @@ __all__ = ['is_efi_boot',
            'preseeding_file',
            'is_trim_supported',
            'tagged_printer',
+           'cmd_edit_inplace',
            ]
 
 
@@ -99,3 +100,22 @@ def tagged_printer(tag: str):
     def _p(*text: str):
         return text
     return _p
+
+
+_edit_inplace_script = create_py_script(r"""
+import fileinput
+import re, sys
+
+_a = sys.argv
+filepath = _a[1]
+re_pattern = _a[2]
+replacement = _a[3]
+
+with fileinput.FileInput(filepath, inplace=True) as f:
+    for line in f:
+        print(re.sub(re_pattern, replacement, line), end='')
+""")
+
+
+def cmd_edit_inplace(filepath: str, re_old: str, str_new: str):
+    return f'python3 "{_edit_inplace_script}" "{filepath}" "{re_old}" "{str_new}"'

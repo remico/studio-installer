@@ -17,8 +17,6 @@
 
 from pathlib import Path
 
-from spawned import SpawnedSU, Spawned, create_py_script
-
 from .configfilebase import ConfigFileBase
 from .. import util
 
@@ -32,20 +30,6 @@ __all__ = ['IniConfig']
 
 _tp = util.tagged_printer('[IniConfig]')
 
-_re_script = create_py_script(r"""
-import fileinput
-import re, sys
-
-_a = sys.argv
-filepath = _a[1]
-re_pattern = _a[2]
-replacement = _a[3]
-
-with fileinput.FileInput(filepath, inplace=True) as f:
-    for line in f:
-        print(re.sub(re_pattern, replacement, line), end='')
-""")
-
 
 class IniConfig(ConfigFileBase):
     def replace(self, re_old: str, str_new: str):
@@ -53,5 +37,5 @@ class IniConfig(ConfigFileBase):
             _tp(f"File '{self.abs_filepath}' doesn't exist. No replacement done.")
             return
 
-        cmd = f'python3 "{_re_script}" "{self.filepath}" "{re_old}" "{str_new}"'
+        cmd = util.cmd_edit_inplace(self.filepath, re_old, str_new)
         self._execute(cmd)
