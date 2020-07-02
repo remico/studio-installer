@@ -44,6 +44,7 @@ __all__ = ['is_efi_boot',
            'is_readable',
            'is_editable',
            'owner_uid',
+           'ready_for_postinstall',
            ]
 
 
@@ -171,3 +172,9 @@ def owner_uid(statinfo_or_path):
     if not isinstance(statinfo_or_path, os.stat_result):
         statinfo_or_path = os_stat(statinfo_or_path)
     return statinfo_or_path.st_uid
+
+
+def ready_for_postinstall(chroot):
+    """True if the chroot path exists and nothing mounted inside, False otherwise"""
+    path = Path(chroot)
+    return path.exists() and not any(path.iterdir())

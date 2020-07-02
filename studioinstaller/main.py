@@ -126,7 +126,10 @@ def run():
 
         run_os_installation()
 
-    postinstaller.run(op.post)
+    if util.ready_for_postinstall(op.chroot):
+        postinstaller.run(op.post)
+    else:
+        postinstaller.unmount_target_system()
 
 
 if __name__ == '__main__':
