@@ -173,20 +173,20 @@ def setup_resume(cntx):
 
 def install_software(cntx):
     cntx.do("""
-        sudo apt-get install -y \
-        okular okular-extra-backends kate kwrite ttf-mscorefonts-installer \
+        apt install -y \
+        okular okular-extra-backends kate kwrite \
         vim build-essential git-gui gitk kdiff3 kompare doxygen graphviz doxyqml python3-pip \
-        krusader chromium-browser \
+        krusader \
         pavucontrol dconf-editor apt-file ethtool nmap p7zip-full unrar-free xterm net-tools htop tilix
 
-        # sudo apt-get install -y pepperflashplugin-nonfree
+        # apt install -y ttf-mscorefonts-installer
+        # apt install -y chromium-browser
+        # apt install -y pepperflashplugin-nonfree
         """)
 
 
 def setup_keyboard(cntx):
     # TODO also check /etc/default/keyboard
-    filename = "keyboard-layout.xml"
-    content = Path(util.data_file(filename)).read_text()
-    if user := util.target_user(cntx.root):
-        home = util.target_home(cntx.root)
-        cntx.do(f"echo '{content}' > {home}/.config/xfce4/xfconf/xfce-perchannel-xml/{filename}", user=user)
+    if home := util.target_home(cntx.root):
+        util.deploy_resource("keyboard-layout.xml",
+                             f"{home}/.config/xfce4/xfconf/xfce-perchannel-xml/")

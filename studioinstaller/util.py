@@ -15,6 +15,10 @@
 
 """Useful functions"""
 
+import os
+import stat
+from pathlib import Path
+
 from spawned import SpawnedSU, Spawned, logger, create_py_script
 
 __author__ = "Roman Gladyshev"
@@ -28,11 +32,18 @@ __all__ = ['is_efi_boot',
            'is_in_fstab',
            'test_luks_key',
            'clear_installation_cache',
-           'data_file',
+           'resource_file',
            'preseeding_file',
            'is_trim_supported',
            'tagged_printer',
            'cmd_edit_inplace',
+           'target_user',
+           'target_home',
+           'deploy_resource',
+           'os_stat',
+           'is_readable',
+           'is_editable',
+           'owner_uid',
            ]
 
 
@@ -80,7 +91,7 @@ def clear_installation_cache():
         """)
 
 
-def data_file(filename):
+def resource_file(filename):
     """Returns the first available file with matching name"""
     from importlib.metadata import files as app_files
     if l := [f for f in app_files(__package__) if str(f).endswith(filename)]:
@@ -127,3 +138,36 @@ def target_user(root_fs: str):
 
 def target_home(root_fs: str):
     return f"{root_fs}/home/{user}" if (user := target_user(root_fs)) else ""
+
+
+def deploy_resource(filename, dst_path, owner=None, mode=None):
+    src_path = resource_file(filename)
+    dst_full_path = dst_path if dst_path.endswith(filename) else f"{dst_path}/{filename}"
+    owner = owner or owner_uid(Path(dst_full_path).parent)
+    mode = mode or 0o664
+
+    SpawnedSU.do(f"cp {src_path} {dst_path}")
+    SpawnedSU.do(f"chown {owner}:{owner} {dst_full_path}")
+    SpawnedSU.do(f"chmod {mode} {dst_full_path}")
+
+
+def os_stat(path: str):
+    return os.stat(path)
+
+
+def is_readable(statinfo_or_path):
+    if not isinstance(statinfo_or_path, os.stat_result):
+        statinfo_or_path = os_stat(statinfo_or_path)
+    return bool(statinfo_or_path.st_mode & (stat.S_IRUSR | stat.S_IRGRP))
+
+
+def is_editable(statinfo_or_path):
+    if not isinstance(statinfo_or_path, os.stat_result):
+        statinfo_or_path = os_stat(statinfo_or_path)
+    return bool(statinfo_or_path.st_mode & (stat.S_IWUSR | stat.S_IWGRP))
+
+
+def owner_uid(statinfo_or_path):
+    if not isinstance(statinfo_or_path, os.stat_result):
+        statinfo_or_path = os_stat(statinfo_or_path)
+    return statinfo_or_path.st_uid

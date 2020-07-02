@@ -15,11 +15,11 @@
 
 """Base file for config files handlers"""
 
-import os
-import stat
 from abc import abstractmethod, ABC
 
 from spawned import SpawnedSU, Spawned
+
+from .. import util
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -41,9 +41,10 @@ class ConfigFileBase(ABC):
     def _execute(self, cmd: str, edit=True):
         """Execute a shell command ``cmd`` in a chroot jail or in current file system"""
         if self.chroot_cntx:
-            self.chroot_cntx.do(cmd, user=self.owner)
+            owner = util.owner_uid(self.stat)
+            self.chroot_cntx.do(cmd, user=owner)
         else:
-            condition = self.iseditable if edit else self.isreadable
+            condition = util.is_editable(self.stat) if edit else util.is_readable(self.stat)
             S_ = Spawned if condition else SpawnedSU
             S_.do_script(cmd, timeout=Spawned.TO_DEFAULT, bg=False)
 
@@ -59,22 +60,10 @@ class ConfigFileBase(ABC):
     def stat(self):
         self._st = None
         if not self._st:
-            self._st = os.stat(self.abs_filepath)
+            self._st = util.os_stat(self.abs_filepath)
         return self._st
 
     @property
-    def iseditable(self):
-        return bool(self.stat.st_mode & (stat.S_IWUSR | stat.S_IWGRP))
-
-    @property
-    def isreadable(self):
-        return bool(self.stat.st_mode & (stat.S_IRUSR | stat.S_IRGRP))
-
-    @property
-    def owner(self):
-        return self.stat.st_uid
-
-    @property
     def content(self):
-        lines = Spawned(f"cat {self.abs_filepath}", sudo=not self.isreadable).datalines
+        lines = Spawned(f"cat {self.abs_filepath}", sudo=not util.is_readable(self.stat)).datalines
         return [line_stripped for line in lines if (line_stripped := line.strip())]
