@@ -35,8 +35,8 @@ class LVLvm(FS):
     def _a_execute(self, action):
         action.serve_lvm_lv(self)
 
-    def new(self, size=MAX_SIZE, type_=VType.DEFAULT):
-        return super().new(size, type_)
+    def new(self, size=MAX_SIZE, type_=VType.DEFAULT, label=""):
+        return super().new(size, type_, label)
 
     def on(self, parent: PVLvm):
         self.lvm_vg = parent.lvm_vg

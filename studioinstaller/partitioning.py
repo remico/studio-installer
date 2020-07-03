@@ -29,12 +29,12 @@ __license__ = "MIT"
 def scheme(target_disk: str):
     disk1 = Disk(target_disk)
 
-    p1 = PVPlain(1, '/boot/efi').new('200M', VType.EFI).on(disk1).makefs()
+    p1 = PVPlain(1, '/boot/efi').new('200M', VType.EFI, "EFI").on(disk1).makefs()
 
-    p2 = PVLuks(2, type=LuksType.luks1).new('500M').on(disk1)
+    p2 = PVLuks(2, type=LuksType.luks1).new('500M', label="boot").on(disk1)
     boot = VVCrypt('boot', '/boot').new().on(p2).makefs('ext2')
 
-    p3 = PVLuks(3).new().on(disk1)
+    p3 = PVLuks(3).new(label="lvm-all").on(disk1)
     lvm_vg = VGLvmOnLuks('studio-vg', 'CRYPTLVM').new().on(p3)
 
     root = LVLvm('root', '/').new('30G').on(lvm_vg).makefs('ext4')

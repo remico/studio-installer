@@ -81,13 +81,14 @@ class Create(ActionBase):
         t.interact("Last sector", f"+{partition.size}" if partition.size else Spawned.ANSWER_DEFAULT)
         t.interact("Hex code or GUID", partition.type or Spawned.ANSWER_DEFAULT)
 
-        if partition_id:
+        # add partition label
+        if partition_id and partition.label:
             t.interact("Command (? for help)", "c")
 
             q_0 = "Partition number"
             a_0 = partition_id
             q_1 = "Enter name"
-            a_1 = "studio-" + partition_id
+            a_1 = "studio-" + partition.label
 
             idx = t.interact([q_0, q_1],
                              [a_0, a_1])

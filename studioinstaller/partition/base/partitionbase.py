@@ -64,17 +64,19 @@ class Partition(MediumBase):
         self.size = ''
         self.type = str(VType.DEFAULT)
         self.fs = ''
+        self.label = ''
 
         self.lvm_vg = vg
         self.lvm_lv = lv
 
         self.mountpoint = mountpoint
 
-    def new(self, size=MAX_SIZE, type_=VType.DEFAULT):
+    def new(self, size=MAX_SIZE, type_=VType.DEFAULT, label=""):
         """Create a new partition"""
         self.is_new = True
         self.size = size
         self.type = str(type_)
+        self.label = label
         return self
 
     def on(self, parent):
