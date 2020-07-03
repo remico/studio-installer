@@ -48,6 +48,16 @@ __all__ = ['is_efi_boot',
            ]
 
 
+def tagged_printer(tag: str):
+    @logger.tagged(tag, logger.ok_blue_s)
+    def _p(*text: str):
+        return text
+    return _p
+
+
+_tp = tagged_printer("[util]")
+
+
 def is_efi_boot():
     efi_vars = Spawned.do("mount | grep efivars")
     return bool(efi_vars)
@@ -73,7 +83,7 @@ def is_in_fstab(partition, fstab_path):
 
 
 def test_luks_key(volume_url, key):
-    return not bool(SpawnedSU.do(f"cryptsetup open --test-passphrase -d {key} {volume_url} 2>/dev/null; echo $?"))
+    return not int(SpawnedSU.do(f"cryptsetup open --test-passphrase -d {key} {volume_url} 2>/dev/null; echo $?"))
 
 
 def clear_installation_cache():
@@ -107,13 +117,6 @@ def preseeding_file():
         return l[0].locate()
 
 
-def tagged_printer(tag: str):
-    @logger.tagged(tag, logger.ok_blue_s)
-    def _p(*text: str):
-        return text
-    return _p
-
-
 _edit_inplace_script = create_py_script(r"""
 import fileinput
 import re, sys
@@ -144,6 +147,12 @@ def target_home(root_fs: str):
 def deploy_resource(filename, dst_path, owner=None, mode=None):
     src_path = resource_file(filename)
     dst_full_path = dst_path if dst_path.endswith(filename) else f"{dst_path}/{filename}"
+
+    if not Path(dst_full_path).parent.exists():
+        colored_warn = logger.fail_s("WARNING:")
+        _tp(f"{colored_warn} Path {Path(dst_full_path).parent} doesn't exist; deploy_resource('{filename}') skipped")
+        return  # just skip processing for now
+
     owner = owner or owner_uid(Path(dst_full_path).parent)
     mode = mode or 0o664
 
