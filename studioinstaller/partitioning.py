@@ -26,7 +26,7 @@ __license__ = "MIT"
 
 
 # edit partitioning configuration according to your needs
-def scheme(target_disk: Disk):
+def scheme(target_disk: str):
     disk1 = Disk(target_disk)
 
     p1 = PVPlain(1, '/boot/efi').new('200M', VType.EFI).on(disk1).makefs()

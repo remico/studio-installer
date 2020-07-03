@@ -73,7 +73,7 @@ def is_in_fstab(partition, fstab_path):
 
 
 def test_luks_key(volume_url, key):
-    return bool(SpawnedSU.do(f"cryptsetup open --test-passphrase -d {key} {volume_url} && echo True"))
+    return not bool(SpawnedSU.do(f"cryptsetup open --test-passphrase -d {key} {volume_url} 2>/dev/null; echo $?"))
 
 
 def clear_installation_cache():
