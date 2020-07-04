@@ -59,12 +59,12 @@ _tp = tagged_printer("[util]")
 
 
 def is_efi_boot():
-    efi_vars = Spawned.do("mount | grep efivars")
-    return bool(efi_vars)
+    exit_status = Spawned.do("mount | grep efivars", with_status=True)
+    return exit_status[0] == 0
 
 
 def is_volume_on_ssd(volume_url):
-    return not int(Spawned.do(f"lsblk -n -d -o ROTA {volume_url}").strip())
+    return Spawned.do(f"lsblk -n -d -o ROTA {volume_url}").strip() == "0"  # 0 - SSD, 1 - HDD
 
 
 def is_trim_supported(partition):
@@ -83,7 +83,8 @@ def is_in_fstab(partition, fstab_path):
 
 
 def test_luks_key(volume_url, key):
-    return not int(SpawnedSU.do(f"cryptsetup open --test-passphrase -d {key} {volume_url} 2>/dev/null; echo $?"))
+    exit_status = SpawnedSU.do(f"cryptsetup open --test-passphrase -d {key} {volume_url} 2>/dev/null", with_status=True)
+    return exit_status[0] == 0
 
 
 def clear_installation_cache():
