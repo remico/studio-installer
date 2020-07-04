@@ -78,7 +78,7 @@ class PostInstaller:
 
         if luks_volumes:
             keyfile = "/etc/luks/boot_os.keyfile"
-            cntx.do("apt -q install -y cryptsetup-initramfs")
+            cntx.do("apt -q install -y cryptsetup-initramfs > /dev/null")
             create_keys(cntx, keyfile)
 
         cntx.do(f"truncate -s 0 /etc/crypttab")  # fill /etc/crypttab from scratch
@@ -109,7 +109,7 @@ def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):
     cmd_enable_cryptoboot = 'echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub' if cryptoboot else 'true'
 
     if util.is_efi_boot():
-        deps = "apt -q install -y grub-efi"
+        deps = "apt -q install -y grub-efi > /dev/null"
         opts = "--target=x86_64-efi"
         grub_id_opt = f"--no-uefi-secure-boot --bootloader-id={grub_id}" if grub_id else ""
     else:
@@ -182,11 +182,12 @@ def install_software(cntx):
         okular okular-extra-backends kate kwrite \
         vim build-essential git-gui gitk kdiff3 kompare doxygen graphviz doxyqml python3-pip \
         krusader \
-        pavucontrol dconf-editor apt-file ethtool nmap p7zip-full unrar-free xterm net-tools htop tilix
+        pavucontrol dconf-editor apt-file ethtool nmap p7zip-full unrar-free xterm net-tools htop tilix \
+        > /dev/null
 
-        # apt -q install -y ttf-mscorefonts-installer
-        # apt -q install -y chromium-browser
-        # apt -q install -y pepperflashplugin-nonfree
+        # apt -q install -y ttf-mscorefonts-installer  > /dev/null
+        # apt -q install -y chromium-browser  > /dev/null
+        # apt -q install -y pepperflashplugin-nonfree  > /dev/null
         """)
 
 
