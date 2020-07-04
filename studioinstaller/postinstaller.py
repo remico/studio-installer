@@ -166,6 +166,11 @@ def setup_fstab(cntx, scheme):
             opts = "defaults,relatime"
             fstab.append(volume, pt.mountpoint, pt.fs, opts)
 
+        # assume that additional user partitions are mounted in /media
+        if "/media" in pt.mountpoint:
+            user = util.target_user(cntx.root)
+            cntx.do(f"chown -R {user}:{user} {pt.mountpoint}")
+
 
 def setup_resume(cntx):
     pass
