@@ -129,6 +129,8 @@ def run():
     if util.ready_for_postinstall(op.chroot):
         postinstaller.run(op.post)
     else:
+        print("It looks like the target system is not ready for post-installation actions. "
+              "Trying to unmount the whole partitioning scheme and exit.")
         postinstaller.unmount_target_system()
 
 

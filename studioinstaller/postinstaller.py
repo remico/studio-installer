@@ -17,7 +17,7 @@
 
 from pathlib import Path
 
-from spawned import SpawnedSU, ChrootContext, Spawned
+from spawned import SpawnedSU, ChrootContext
 
 from .action import Involve, Release
 from .configfile import IniConfig, FstabConfig
