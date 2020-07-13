@@ -78,7 +78,8 @@ def parse_cmd_options():
 
     argparser.add_argument("-n", action="store_true", help="Skip disk partitioning and OS installation steps,"
                                                            " keep standard post-install steps")
-    argparser.add_argument("--post", action="store_true", help="Run extra post-install steps")
+    argparser.add_argument("--extra", action="store_true",
+                           help="Schedule extra post-install steps which will be performed on user's GUI login")
 
     return argparser.parse_args()
 
@@ -129,7 +130,7 @@ def run():
         run_os_installation()
 
     if util.ready_for_postinstall(op.chroot):
-        postinstaller.run(op.post)
+        postinstaller.run(op.extra)
     else:
         print("It looks like the target system is not ready for post-installation actions. "
               "Trying to unmount the whole partitioning scheme and exit.")

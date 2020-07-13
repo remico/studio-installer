@@ -68,7 +68,8 @@ setuptools.setup(
     # py_modules=[],
     # register executable <command>=<pkg><module>:<attr>
     entry_points={
-        'console_scripts': ['studioinstaller=studioinstaller.main:run']
+        'console_scripts': ['studioinstaller=studioinstaller.main:run',
+                            'studioinstaller_extra=studioinstaller.postextra']
     },
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",

@@ -17,7 +17,7 @@
 
 from pathlib import Path
 
-from spawned import SpawnedSU, ChrootContext
+from spawned import SpawnedSU, ChrootContext, ENV, Spawned
 
 from .action import Involve, Release
 from .configfile import IniConfig, FstabConfig
@@ -66,7 +66,7 @@ class PostInstaller:
         with ChrootContext(self.chroot) as cntx:
             self._run_mandatory(cntx)
             if extra:
-                self._run_extra(cntx)
+                self._schedule_post_extra(cntx)
 
         self.unmount_target_system()
 
@@ -99,9 +99,19 @@ class PostInstaller:
         tc = IniConfig("/lib/systemd/system/fstrim.timer", cntx)
         tc.replace(r"OnCalendar=.*", "OnCalendar=daily")
 
-    def _run_extra(self, cntx):
-        install_software(cntx)
-        setup_keyboard(cntx)
+    def _schedule_post_extra(self, cntx):
+        cntx.do("apt -q install -y python3-pip git")
+
+        # FIXME: replace the section below with this commented line when the repo's master branch is ready
+        #  cntx.do("pip3 install -U git+https://github.com/remico/studio-installer.git")
+        repo_name = "studio-installer"
+        Spawned.do(f"cp -r {Path(ENV('HOME'), repo_name)} {cntx.chroot_tmp}")
+        tmp = str(cntx.chroot_tmp).replace(cntx.root, "")
+        cntx.do(f"pip3 install -U {Path(tmp, repo_name)}")
+
+        # run extra steps upon user login
+        file = Path(util.target_home(cntx.root), ".profile")
+        SpawnedSU.do(f"grep 'studioinstaller_extra' {file} || echo 'studioinstaller_extra' >> {file}")
 
 
 def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):
@@ -145,9 +155,6 @@ def create_keys(cntx, keyfile):
         """)
 
 
-# TODO think of:
-#  - add new Action LuksAddKey and PostInstall actions
-#  - or add parameter to Encrypt(addKey={device: key|keyfile, all: key|keyfile})
 def luks_add_key(cntx, pt_url, key, passphrase):
     if util.test_luks_key(pt_url, '/'.join([cntx.root, key])):
         return
@@ -174,25 +181,3 @@ def setup_fstab(cntx, scheme):
 
 def setup_resume(cntx):
     pass
-
-
-def install_software(cntx):
-    cntx.do("""
-        apt -q install -y \
-        okular okular-extra-backends kate kwrite \
-        vim build-essential git-gui gitk kdiff3 kompare doxygen graphviz doxyqml python3-pip \
-        krusader \
-        pavucontrol dconf-editor apt-file ethtool nmap p7zip-full unrar-free xterm net-tools htop tilix \
-        > /dev/null
-
-        # apt -q install -y ttf-mscorefonts-installer  > /dev/null
-        # apt -q install -y chromium-browser  > /dev/null
-        # apt -q install -y pepperflashplugin-nonfree  > /dev/null
-        """)
-
-
-def setup_keyboard(cntx):
-    # TODO also check /etc/default/keyboard
-    if home := util.target_home(cntx.root):
-        util.deploy_resource("keyboard-layout.xml",
-                             f"{home}/.config/xfce4/xfconf/xfce-perchannel-xml/")
