@@ -28,7 +28,7 @@ from sys import exit as app_exit
 
 from spawned import SpawnedSU, Spawned, ask_user, SETENV
 
-from .partmancheater import PartmanCheater
+from .partmancheater import PartmanCheater, MountPreventer
 from .preinstaller import PreInstaller
 from .postinstaller import PostInstaller
 
@@ -117,6 +117,8 @@ def run():
 
     if not op.n:
         util.clear_installation_cache()
+
+        do_not_automount_new_partitions = MountPreventer()
 
         preinstaller = PreInstaller(scheme)
         preinstaller.prepare_partitions()

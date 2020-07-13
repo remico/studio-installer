@@ -23,7 +23,7 @@
 import re
 from pathlib import Path
 
-from spawned import SpawnedSU, create_py_script
+from spawned import Spawned, SpawnedSU, create_py_script, onExit
 
 from .scheme import Scheme
 
@@ -32,7 +32,7 @@ __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['PartmanCheater']
+__all__ = ['PartmanCheater', 'MountPreventer']
 
 
 class PathResolver:
@@ -190,3 +190,30 @@ class PartmanCheater:
             python3 "{self.visuals_updater}" "${{partman_volume}}/../partition_tree_cache" "{do_format}" "{mountpoint}"
             python3 "{self.visuals_updater}" "{PathResolver.PARTMAN_BASE}/snoop" "{do_format}" "{mountpoint}"
             """)
+
+
+class MountPreventer:
+    """Temporarily disables ``udisksd`` daemon in order to prevent auto-mounting newly created partitions"""
+
+    was_daemon_active = None
+
+    def __init__(self):
+        MountPreventer.was_daemon_active = self.is_daemon_active()
+        SpawnedSU.do("systemctl stop udisks2.service")
+        print("udisks2.service stopped")
+
+    def __del__(self):
+        self.on_exit()
+
+    @staticmethod
+    def is_daemon_active():
+        return Spawned.do("pgrep udisksd", with_status=True)[0] == 0
+
+    @staticmethod
+    def on_exit():
+        if MountPreventer.was_daemon_active and not MountPreventer.is_daemon_active():
+            SpawnedSU.do("systemctl start udisks2.service")
+            print("udisks2.service started")
+
+
+onExit(lambda: MountPreventer.on_exit())
