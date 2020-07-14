@@ -207,7 +207,8 @@ class MountPreventer:
 
     @staticmethod
     def is_daemon_active():
-        return Spawned.do("pgrep udisksd", with_status=True)[0] == 0
+        return Spawned.do("systemctl status udisks2.service | grep '(running)'",
+                          with_status=True)[0] == 0
 
     @staticmethod
     def on_exit():
