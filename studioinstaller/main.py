@@ -61,7 +61,7 @@ def select_target_disk():
     return ask_user("Select target disk:")
 
 
-def subcmd_default(op, scheme, postinstaller, **kwargs):
+def handle_subcmd_default(op, scheme, postinstaller, **kwargs):
     if not op.n:
         util.clear_installation_cache()
 
@@ -83,7 +83,7 @@ def subcmd_default(op, scheme, postinstaller, **kwargs):
         postinstaller.unmount_target_system()
 
 
-def subcmd_scheme(op, postinstaller, **kwargs):
+def handle_subcmd_scheme(op, postinstaller, **kwargs):
     if op.mount:
         postinstaller.chroot = op.mount  # op.mount value takes precedence over op.chroot for 'mount' command
         postinstaller.mount_target_system()
@@ -94,12 +94,12 @@ def subcmd_scheme(op, postinstaller, **kwargs):
         op.umount and app_exit()  # exit if this option specified
 
 
-def subcmd_extra(**kwargs):
+def handle_subcmd_extra(**kwargs):
     run_postextra()
     app_exit()
 
 
-def parse_cmd_options():
+def setup_commandline_parser():
     argparser = argparse.ArgumentParser(prog=__package__)
 
     # main command options
@@ -122,7 +122,7 @@ def parse_cmd_options():
     # default command
     default_argparser = subcmd_registrar.add_parser(SUBCMD_DEFAULT,
                         help="Default command, it is implied if no other commands specified")
-    default_argparser.set_defaults(func=subcmd_default)
+    default_argparser.set_defaults(func=handle_subcmd_default)
 
     default_argparser.add_argument("-n", action="store_true",
                         help="Skip disk partitioning and OS installation steps, run default post-install steps only")
@@ -131,7 +131,7 @@ def parse_cmd_options():
 
     # mount/umount
     scheme_argparser = subcmd_registrar.add_parser(SUBCMD_SCHEME, help="Actions on the partitioning scheme")
-    scheme_argparser.set_defaults(func=subcmd_scheme)
+    scheme_argparser.set_defaults(func=handle_subcmd_scheme)
 
     mount_opts = scheme_argparser.add_mutually_exclusive_group(required=True)
     mount_opts.add_argument("--mount", type=str, const=DEFAULT_CHROOT, metavar="ROOT", nargs='?',
@@ -140,10 +140,14 @@ def parse_cmd_options():
 
     # extra steps upon GUI login
     extra_argparser = subcmd_registrar.add_parser(SUBCMD_EXTRA, help="Run extra post-install steps only")
-    extra_argparser.set_defaults(func=subcmd_extra)
+    extra_argparser.set_defaults(func=handle_subcmd_extra)
 
-    # ==========================================================================================
-    # ### implement "default" sub-command (it can be omitted and will be passed implicitly) ###
+    return argparser
+
+
+def parse_commandline_options(argparser):
+    """Implement "default" sub-command (it can be omitted and will be passed implicitly)"""
+
     # first try to parse only known args
     parsing_result = argparser.parse_known_args()
     op = parsing_result[0]
@@ -156,7 +160,6 @@ def parse_cmd_options():
             op = argparser.parse_args(unknown_args)
         else:
             op = argparser.parse_args()  # fallback: check arg list for errors
-    # ==========================================================================================
 
     return op
 
@@ -164,7 +167,8 @@ def parse_cmd_options():
 def run():
     Spawned.enable_logging()
 
-    op = parse_cmd_options()
+    cmdparser = setup_commandline_parser()
+    op = parse_commandline_options(cmdparser)
 
     # set password before one needs it
     if op.p:
