@@ -76,7 +76,7 @@ def subcmd_default(op, scheme, postinstaller, **kwargs):
         run_os_installation()
 
     if util.ready_for_postinstall(op.chroot):
-        postinstaller.run(op.epost)
+        postinstaller.run(op.post)
     else:
         logger.warning("It looks like the target system is not ready for post-installation actions. "
                        "Trying to unmount the whole partitioning scheme and exit.")
@@ -115,33 +115,50 @@ def parse_cmd_options():
     argparser.add_argument("--chroot", type=str, default=DEFAULT_CHROOT,
                            help=f"Target system's mountpoint (Default: {DEFAULT_CHROOT})")
 
-    argparser.add_argument("-n", action="store_true",
-                           help="Skip disk partitioning and OS installation steps, run default post-install steps only")
-    argparser.add_argument("--epost", action="store_true",
-                           help="Schedule extra post-install steps which will be performed on user's first GUI login")
-
     # register sub-commands
-    subcmd_parser = argparser.add_subparsers(dest="sub_cmd",
-                                             description="Set of commands for extra functionality")
-    # set default values in order to SUBCMD_DEFAULT sub-command name could be omitted
-    argparser.set_defaults(sub_cmd=SUBCMD_DEFAULT, func=subcmd_default)
+    subcmd_registrar = argparser.add_subparsers(dest="sub_cmd",
+                                                description="Set of commands for extra functionality")
 
     # default command
-    subcmd_parser.add_parser(SUBCMD_DEFAULT, help="Default command, it is implied if no other commands specified")
+    default_argparser = subcmd_registrar.add_parser(SUBCMD_DEFAULT,
+                        help="Default command, it is implied if no other commands specified")
+    default_argparser.set_defaults(func=subcmd_default)
+
+    default_argparser.add_argument("-n", action="store_true",
+                        help="Skip disk partitioning and OS installation steps, run default post-install steps only")
+    default_argparser.add_argument("--post", action="store_true",
+                        help="Schedule extra post-install steps which will be performed on user's first GUI login")
 
     # mount/umount
-    scheme_argparser = subcmd_parser.add_parser(SUBCMD_SCHEME, help="Actions on the partitioning scheme")
+    scheme_argparser = subcmd_registrar.add_parser(SUBCMD_SCHEME, help="Actions on the partitioning scheme")
     scheme_argparser.set_defaults(func=subcmd_scheme)
+
     mount_opts = scheme_argparser.add_mutually_exclusive_group(required=True)
     mount_opts.add_argument("--mount", type=str, const=DEFAULT_CHROOT, metavar="ROOT", nargs='?',
                             help=f"Mount the whole partitioning scheme and exit (Default ROOT: {DEFAULT_CHROOT})")
     mount_opts.add_argument("--umount", action="store_true", help="Unmount the whole partitioning scheme and exit")
 
     # extra steps upon GUI login
-    extra_argparser = subcmd_parser.add_parser(SUBCMD_EXTRA, help="Run extra post-install steps only")
+    extra_argparser = subcmd_registrar.add_parser(SUBCMD_EXTRA, help="Run extra post-install steps only")
     extra_argparser.set_defaults(func=subcmd_extra)
 
-    return argparser.parse_args()
+    # ==========================================================================================
+    # ### implement "default" sub-command (it can be omitted and will be passed implicitly) ###
+    # first try to parse only known args
+    parsing_result = argparser.parse_known_args()
+    op = parsing_result[0]
+    unknown_args = parsing_result[1]
+
+    # there are unknown args, while no sub-command specified => they could belong to "default" sub-command parser
+    if unknown_args:
+        if op.sub_cmd is None:
+            unknown_args.insert(0, SUBCMD_DEFAULT)  # cheat the parser by supplying the default command keyword
+            op = argparser.parse_args(unknown_args)
+        else:
+            op = argparser.parse_args()  # fallback: check arg list for errors
+    # ==========================================================================================
+
+    return op
 
 
 def run():
