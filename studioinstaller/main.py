@@ -24,7 +24,7 @@
 
 import argparse
 from importlib.metadata import version as app_version
-from sys import exit as app_exit
+from sys import exit as app_exit, argv as sys_argv
 
 from spawned import SpawnedSU, Spawned, ask_user, SETENV, logger
 
@@ -148,18 +148,21 @@ def setup_commandline_parser():
 def parse_commandline_options(argparser):
     """Implement "default" sub-command (it can be omitted and will be passed implicitly)"""
 
-    # first try to parse only known args
+    # first try to parse only known args (to avoid parsing errors)
     parsing_result = argparser.parse_known_args()
     op = parsing_result[0]
     unknown_args = parsing_result[1]
 
-    # there are unknown args, while no sub-command specified => they could belong to "default" sub-command parser
-    if unknown_args:
-        if op.sub_cmd is None:
-            unknown_args.insert(0, SUBCMD_DEFAULT)  # cheat the parser by supplying the default command keyword
-            op = argparser.parse_args(unknown_args)
-        else:
-            op = argparser.parse_args()  # fallback: check arg list for errors
+    # if no sub-command specified => default one must be used
+    if op.sub_cmd is None:
+        all_args = sys_argv[1:]  # omit the script name itself
+        for arg in unknown_args:
+            all_args.remove(arg)
+        unknown_args.insert(0, SUBCMD_DEFAULT)  # cheat the parser by supplying the default command keyword
+        all_args.extend(unknown_args)
+        op = argparser.parse_args(all_args)
+    else:
+        op = argparser.parse_args()  # fallback: check arg list for errors
 
     return op
 
