@@ -132,7 +132,7 @@ def parse_cmd_options():
     # mount/umount
     scheme_argparser = subcmd_parser.add_parser(SUBCMD_SCHEME, help="Actions on the partitioning scheme")
     scheme_argparser.set_defaults(func=subcmd_scheme)
-    mount_opts = scheme_argparser.add_mutually_exclusive_group()
+    mount_opts = scheme_argparser.add_mutually_exclusive_group(required=True)
     mount_opts.add_argument("--mount", type=str, const=DEFAULT_CHROOT, metavar="ROOT", nargs='?',
                             help=f"Mount the whole partitioning scheme and exit (Default ROOT: {DEFAULT_CHROOT})")
     mount_opts.add_argument("--umount", action="store_true", help="Unmount the whole partitioning scheme and exit")
