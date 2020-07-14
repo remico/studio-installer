@@ -26,7 +26,7 @@ import argparse
 from importlib.metadata import version as app_version
 from sys import exit as app_exit
 
-from spawned import SpawnedSU, Spawned, ask_user, SETENV
+from spawned import SpawnedSU, Spawned, ask_user, SETENV, logger
 
 from .partmancheater import PartmanCheater, MountPreventer
 from .preinstaller import PreInstaller
@@ -132,8 +132,8 @@ def run():
     if util.ready_for_postinstall(op.chroot):
         postinstaller.run(op.extra)
     else:
-        print("It looks like the target system is not ready for post-installation actions. "
-              "Trying to unmount the whole partitioning scheme and exit.")
+        logger.warning("It looks like the target system is not ready for post-installation actions. "
+                       "Trying to unmount the whole partitioning scheme and exit.")
         postinstaller.unmount_target_system()
 
 

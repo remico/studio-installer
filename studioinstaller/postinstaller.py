@@ -75,33 +75,17 @@ class PostInstaller:
         setup_bootloader(cntx, self.bl_disk, grub_id="studio", cryptoboot=True)
 
         luks_volumes = self.scheme.partitions(LUKS, Container)
-
-        if luks_volumes:
-            keyfile = "/etc/luks/boot_os.keyfile"
-            cntx.do("apt -q install -y cryptsetup-initramfs > /dev/null")
-            create_keys(cntx, keyfile)
-
-        cntx.do(f"truncate -s 0 /etc/crypttab")  # fill /etc/crypttab from scratch
-        for pt in luks_volumes:
-            luks_add_key(cntx, pt.url, keyfile, pt.passphrase)
-
-            opts = "luks"
-            if util.is_trim_supported(pt):
-                opts += ",discard"
-            cntx.do(f'echo "{pt.mapperID} UUID={pt.uuid} {keyfile} {opts}" >> /etc/crypttab')
+        setup_luks_volumes(cntx, luks_volumes)
 
         setup_fstab(cntx, self.scheme)
         # setup_resume(cntx)
-
         cntx.do("update-initramfs -u -k all")
-
-        # adjust fstrim timer
-        tc = IniConfig("/lib/systemd/system/fstrim.timer", cntx)
-        tc.replace(r"OnCalendar=.*", "OnCalendar=daily")
+        setup_fstrim_timer(cntx)
 
     def _schedule_post_extra(self, cntx):
-        cntx.do("apt -q install -y python3-pip git")
+        cntx.do("apt install -yq python3-pip git > /dev/null")
 
+        # install the tool into the target system
         # FIXME: replace the section below with this commented line when the repo's master branch is ready
         #  cntx.do("pip3 install -U git+https://github.com/remico/studio-installer.git")
         repo_name = "studio-installer"
@@ -109,7 +93,9 @@ class PostInstaller:
         tmp = str(cntx.chroot_tmp).replace(cntx.root, "")
         cntx.do(f"pip3 install -U {Path(tmp, repo_name)}")
 
-        # run extra steps upon user login
+        # FIXME: ask target user password here, implement mechanism of using it for SU tasks, e.g. SW installation
+
+        # schedule extra steps running upon user login
         file = Path(util.target_home(cntx.root), ".profile")
         SpawnedSU.do(f"grep 'studioinstaller_extra' {file} || echo 'studioinstaller_extra' >> {file}")
 
@@ -133,6 +119,22 @@ def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):
         grub-install --recheck {opts} {grub_id_opt} {grub_disk}
         update-grub
         """)
+
+
+def setup_luks_volumes(cntx, volumes):
+    if volumes:
+        keyfile = "/etc/luks/boot_os.keyfile"
+        cntx.do("apt -q install -y cryptsetup-initramfs > /dev/null")
+        create_keys(cntx, keyfile)
+
+    cntx.do(f"truncate -s 0 /etc/crypttab")  # fill /etc/crypttab from scratch
+    for pt in volumes:
+        luks_add_key(cntx, pt.url, keyfile, pt.passphrase)
+
+        opts = "luks"
+        if util.is_trim_supported(pt):
+            opts += ",discard"
+        cntx.do(f'echo "{pt.mapperID} UUID={pt.uuid} {keyfile} {opts}" >> /etc/crypttab')
 
 
 def create_keys(cntx, keyfile):
@@ -181,3 +183,8 @@ def setup_fstab(cntx, scheme):
 
 def setup_resume(cntx):
     pass
+
+
+def setup_fstrim_timer(cntx):
+    tc = IniConfig("/lib/systemd/system/fstrim.timer", cntx)
+    tc.replace(r"OnCalendar=.*", "OnCalendar=daily")

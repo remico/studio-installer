@@ -69,7 +69,7 @@ setuptools.setup(
     # register executable <command>=<pkg><module>:<attr>
     entry_points={
         'console_scripts': ['studioinstaller=studioinstaller.main:run',
-                            'studioinstaller_extra=studioinstaller.postextra']
+                            'studioinstaller_extra=studioinstaller.postextra.__main__:run']
     },
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
