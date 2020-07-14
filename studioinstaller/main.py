@@ -43,6 +43,7 @@ __license__ = "MIT"
 
 SUBCMD_SCHEME = "scheme"
 SUBCMD_EXTRA = "extra"
+SUBCMD_DEFAULT = "default"
 
 
 def run_os_installation():
@@ -82,18 +83,22 @@ def parse_cmd_options():
                            help="Schedule extra post-install steps which will be performed on user's first GUI login")
 
     # register sub-commands
-    cmd_parser = argparser.add_subparsers(dest="sub_cmd",
-                                          description="Set of commands for extra functionality")
+    subcmd_parser = argparser.add_subparsers(dest="sub_cmd",
+                                             description="Set of commands for extra functionality")
+    argparser.set_defaults(sub_cmd=SUBCMD_DEFAULT)  # means SUBCMD_DEFAULT command name can be omitted
+
+    # default command
+    subcmd_parser.add_parser(SUBCMD_DEFAULT, help="Default command, it implies if no other commands specified")
 
     # mount/umount
-    mount_argparser = cmd_parser.add_parser(SUBCMD_SCHEME, help="Actions on the partitioning scheme")
+    mount_argparser = subcmd_parser.add_parser(SUBCMD_SCHEME, help="Actions on the partitioning scheme")
     mount_opts = mount_argparser.add_mutually_exclusive_group()
     mount_opts.add_argument("--mount", type=str, const=DEFAULT_CHROOT, metavar="ROOT", nargs='?',
                             help=f"Mount the whole partitioning scheme and exit (Default ROOT: {DEFAULT_CHROOT})")
     mount_opts.add_argument("--umount", action="store_true", help="Unmount the whole partitioning scheme and exit")
 
     # extra steps upon GUI login
-    extra_argparser = cmd_parser.add_parser(SUBCMD_EXTRA, help="Run extra post-install steps only")
+    extra_argparser = subcmd_parser.add_parser(SUBCMD_EXTRA, help="Run extra post-install steps only")
 
     return argparser.parse_args()
 
@@ -136,7 +141,7 @@ def run():
         run_postextra()
         app_exit()
 
-    else:
+    elif op.sub_cmd == SUBCMD_DEFAULT:
         if not op.n:
             util.clear_installation_cache()
 
