@@ -123,11 +123,11 @@ def parse_cmd_options():
     # register sub-commands
     subcmd_parser = argparser.add_subparsers(dest="sub_cmd",
                                              description="Set of commands for extra functionality")
-    # default sub-command values, in order SUBCMD_DEFAULT sub-command name can be omitted
+    # set default values in order to SUBCMD_DEFAULT sub-command name could be omitted
     argparser.set_defaults(sub_cmd=SUBCMD_DEFAULT, func=subcmd_default)
 
     # default command
-    subcmd_parser.add_parser(SUBCMD_DEFAULT, help="Default command, it implies if no other commands specified")
+    subcmd_parser.add_parser(SUBCMD_DEFAULT, help="Default command, it is implied if no other commands specified")
 
     # mount/umount
     scheme_argparser = subcmd_parser.add_parser(SUBCMD_SCHEME, help="Actions on the partitioning scheme")
@@ -168,6 +168,7 @@ def run():
     scheme = partitioning.scheme(target_disk)
     postinstaller = PostInstaller(scheme, target_disk, chroot=op.chroot)
 
+    # call a bound function (defined by argparser)
     op.func(op=op, postinstaller=postinstaller, scheme=scheme)
 
 
