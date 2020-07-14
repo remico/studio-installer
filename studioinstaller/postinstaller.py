@@ -97,7 +97,7 @@ class PostInstaller:
 
         # schedule extra steps running upon user login
         file = Path(util.target_home(cntx.root), ".profile")
-        SpawnedSU.do(f"grep 'studioinstaller_extra' {file} || echo 'studioinstaller_extra' >> {file}")
+        SpawnedSU.do(f"grep 'studioinstaller extra' {file} || echo 'studioinstaller extra' >> {file}")
 
 
 def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):

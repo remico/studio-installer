@@ -13,6 +13,9 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
+from .__main__ import run as run_postextra
+from .postinstallerextra import *
+
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"

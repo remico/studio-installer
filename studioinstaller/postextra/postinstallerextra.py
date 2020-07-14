@@ -35,7 +35,7 @@ class PostInstallerExtra:
 
         # unschedule studioinstaller_extra
         config = IniConfig(f"{ENV('HOME')}/.profile")
-        config.replace("studioinstaller_extra", "")
+        config.replace("studioinstaller extra", "")
 
 
 def install_software():

@@ -31,6 +31,7 @@ from spawned import SpawnedSU, Spawned, ask_user, SETENV, logger
 from .partmancheater import PartmanCheater, MountPreventer
 from .preinstaller import PreInstaller
 from .postinstaller import PostInstaller
+from .postextra import run_postextra
 
 from . import partitioning
 from . import util
@@ -39,6 +40,9 @@ __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
+
+SUBCMD_SCHEME = "scheme"
+SUBCMD_EXTRA = "extra"
 
 
 def run_os_installation():
@@ -58,6 +62,8 @@ def select_target_disk():
 
 def parse_cmd_options():
     argparser = argparse.ArgumentParser(prog=__package__)
+
+    # main command options
     argparser.add_argument("--hard", action="store_true",
                            help="Deactivates LVM volumes and target swap, unmounts target filesystems"
                                 " and closes encrypted LUKS devices before the script starts")
@@ -67,19 +73,27 @@ def parse_cmd_options():
     argparser.add_argument("--selftest", action="store_true", help="Check environment and own resources and exit")
 
     DEFAULT_CHROOT = "/target"
-
-    mount_opts = argparser.add_mutually_exclusive_group()
-    mount_opts.add_argument("--mount", type=str, const=DEFAULT_CHROOT, metavar="ROOT", nargs='?',
-                            help=f"Mount the whole scheme and exit (Default ROOT: {DEFAULT_CHROOT})")
-    mount_opts.add_argument("--umount", action="store_true", help="Unmount the whole scheme and exit")
-
     argparser.add_argument("--chroot", type=str, default=DEFAULT_CHROOT,
                            help=f"Target system's mountpoint (Default: {DEFAULT_CHROOT})")
 
-    argparser.add_argument("-n", action="store_true", help="Skip disk partitioning and OS installation steps,"
-                                                           " keep standard post-install steps")
-    argparser.add_argument("--extra", action="store_true",
-                           help="Schedule extra post-install steps which will be performed on user's GUI login")
+    argparser.add_argument("-n", action="store_true",
+                           help="Skip disk partitioning and OS installation steps, run default post-install steps only")
+    argparser.add_argument("--epost", action="store_true",
+                           help="Schedule extra post-install steps which will be performed on user's first GUI login")
+
+    # register sub-commands
+    cmd_parser = argparser.add_subparsers(dest="sub_cmd",
+                                          description="Set of commands for extra functionality")
+
+    # mount/umount
+    mount_argparser = cmd_parser.add_parser(SUBCMD_SCHEME, help="Actions on the partitioning scheme")
+    mount_opts = mount_argparser.add_mutually_exclusive_group()
+    mount_opts.add_argument("--mount", type=str, const=DEFAULT_CHROOT, metavar="ROOT", nargs='?',
+                            help=f"Mount the whole partitioning scheme and exit (Default ROOT: {DEFAULT_CHROOT})")
+    mount_opts.add_argument("--umount", action="store_true", help="Unmount the whole partitioning scheme and exit")
+
+    # extra steps upon GUI login
+    extra_argparser = cmd_parser.add_parser(SUBCMD_EXTRA, help="Run extra post-install steps only")
 
     return argparser.parse_args()
 
@@ -106,35 +120,42 @@ def run():
 
     target_disk = select_target_disk()
     scheme = partitioning.scheme(target_disk)
-    postinstaller = PostInstaller(scheme, target_disk, chroot=(op.mount or op.chroot))
+    postinstaller = PostInstaller(scheme, target_disk, chroot=op.chroot)
 
-    if op.mount:
-        postinstaller.mount_target_system()
+    if op.sub_cmd == SUBCMD_SCHEME:
+        if op.mount:
+            postinstaller.chroot = op.mount  # op.mount value takes precedence over op.chroot for 'mount' command
+            postinstaller.mount_target_system()
+            app_exit()
+
+        if op.umount or op.hard:
+            postinstaller.unmount_target_system()
+            op.umount and app_exit()  # exit if this option specified
+
+    elif op.sub_cmd == SUBCMD_EXTRA:
+        run_postextra()
         app_exit()
 
-    if op.umount or op.hard:
-        postinstaller.unmount_target_system()
-        op.umount and app_exit()  # exit if this option specified
-
-    if not op.n:
-        util.clear_installation_cache()
-
-        do_not_automount_new_partitions = MountPreventer()
-
-        preinstaller = PreInstaller(scheme)
-        preinstaller.prepare_partitions()
-
-        # wait for Partman and modify values in background
-        PartmanCheater(scheme).run()
-
-        run_os_installation()
-
-    if util.ready_for_postinstall(op.chroot):
-        postinstaller.run(op.extra)
     else:
-        logger.warning("It looks like the target system is not ready for post-installation actions. "
-                       "Trying to unmount the whole partitioning scheme and exit.")
-        postinstaller.unmount_target_system()
+        if not op.n:
+            util.clear_installation_cache()
+
+            do_not_automount_new_partitions = MountPreventer()
+
+            preinstaller = PreInstaller(scheme)
+            preinstaller.prepare_partitions()
+
+            # wait for Partman and modify values in background
+            PartmanCheater(scheme).run()
+
+            run_os_installation()
+
+        if util.ready_for_postinstall(op.chroot):
+            postinstaller.run(op.epost)
+        else:
+            logger.warning("It looks like the target system is not ready for post-installation actions. "
+                           "Trying to unmount the whole partitioning scheme and exit.")
+            postinstaller.unmount_target_system()
 
 
 if __name__ == '__main__':
