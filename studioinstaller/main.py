@@ -49,6 +49,15 @@ SUBCMD_DEFAULT = "default"
 def run_os_installation():
     SpawnedSU.do(f"debconf-set-selections {util.preseeding_file()}")
 
+    # set target user password (encrypted form)
+    tupass_crypt = util.read_upass_from_preseeding_file("user-password-crypted")
+    tupass_env = util.get_target_upass(False)
+    if tupass_crypt != tupass_env:
+        # debconf-set is part of ubiquity
+        SpawnedSU.do(f"openssl passwd -crypt {tupass_env} | xargs -0 debconf-set passwd/user-password-crypted")
+    # clear unencrypted user password if defined
+    SpawnedSU.do("debconf-set passwd/user-password")
+
     # parse the .desktop file to get the installation command
     # warning: in case of multiple .desktop files are in ~/Desktop dir, returns the last found 'Exec=...' value
     data = Spawned.do("grep '^Exec' ~/Desktop/*.desktop | tail -1 | sed 's/^Exec=//'")
@@ -189,8 +198,9 @@ def run():
         app_exit()
 
     target_disk = select_target_disk()
+    target_upass = util.get_target_upass(op.post)  # FIXME: when 'extra' => exception - no attribute op.post
     scheme = partitioning.scheme(target_disk)
-    postinstaller = PostInstaller(scheme, target_disk, chroot=op.chroot)
+    postinstaller = PostInstaller(scheme, target_disk, op.chroot, target_upass)
 
     # call a bound function (defined by argparser)
     op.func(op=op, postinstaller=postinstaller, scheme=scheme)

@@ -34,10 +34,11 @@ __all__ = ['PostInstaller']
 
 
 class PostInstaller:
-    def __init__(self, scheme: Scheme, bl_disk: str, chroot: str):
+    def __init__(self, scheme: Scheme, bl_disk: str, chroot: str, tupass: str):
         self.scheme = scheme
         self.chroot = chroot
         self.bl_disk = bl_disk
+        self.tupass = tupass
 
     def mount_target_system(self):
         SpawnedSU.do(f"mkdir -p {self.chroot}")
@@ -93,11 +94,9 @@ class PostInstaller:
         tmp = str(cntx.chroot_tmp).replace(cntx.root, "")
         cntx.do(f"pip3 install -U {Path(tmp, repo_name)}")
 
-        # FIXME: ask target user password here, implement mechanism of using it for SU tasks, e.g. SW installation
-
         # schedule extra steps running upon user login
         file = Path(util.target_home(cntx.root), ".profile")
-        SpawnedSU.do(f"grep 'studioinstaller extra' {file} || echo 'studioinstaller extra' >> {file}")
+        SpawnedSU.do(f"grep 'studioinstaller' {file} || echo 'studioinstaller -p {self.tupass} extra' >> {file}")
 
 
 def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):

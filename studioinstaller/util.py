@@ -19,7 +19,7 @@ import os
 import stat
 from pathlib import Path
 
-from spawned import SpawnedSU, Spawned, logger, create_py_script
+from spawned import SpawnedSU, Spawned, logger, create_py_script, ask_user, ENV, SETENV
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -45,6 +45,8 @@ __all__ = ['is_efi_boot',
            'is_editable',
            'owner_uid',
            'ready_for_postinstall',
+           'get_target_upass',
+           'read_upass_from_preseeding_file',
            ]
 
 
@@ -188,3 +190,28 @@ def ready_for_postinstall(chroot):
     """True if the chroot path exists and nothing mounted inside, False otherwise"""
     path = Path(chroot)
     return path.exists() and not any(path.iterdir())
+
+
+def get_target_upass(extra_scheduled):
+    if tupass := ENV('TUPASS'):
+        return tupass
+
+    tupass = read_upass_from_preseeding_file("user-password")
+
+    if not tupass and not extra_scheduled:
+        tupass = read_upass_from_preseeding_file("user-password-crypted")
+
+    if not tupass:
+        tupass = ask_user("Enter user password for target system:")
+
+    SETENV('TUPASS', tupass)
+    return tupass
+
+
+def read_upass_from_preseeding_file(pass_key):
+    prefile = preseeding_file()
+    if not prefile:
+        return ""
+
+    template = f"grep 'passwd/%s' {prefile} | grep -vP '#' | cut -d' ' -f4"
+    return Spawned.do(template % pass_key)
