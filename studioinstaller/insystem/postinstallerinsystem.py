@@ -25,10 +25,10 @@ __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['PostInstallerExtra']
+__all__ = ['PostInstallerInsystem']
 
 
-class PostInstallerExtra:
+class PostInstallerInsystem:
     def run(self):
         install_software()
         setup_keyboard()

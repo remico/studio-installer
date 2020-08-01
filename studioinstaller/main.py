@@ -22,17 +22,17 @@
     - configure the newly installed OS
 """
 
-import argparse
 from importlib.metadata import version as app_version
-from sys import exit as app_exit, argv as sys_argv
+from sys import exit as app_exit
 
 from spawned import SpawnedSU, Spawned, ask_user, SETENV, logger
 
+from .argparser import *
 from .partmancheater import PartmanCheater, MountPreventer
 from .preinstaller import PreInstaller
 from .postinstaller import PostInstaller
-from .postextra import run_postextra
 
+from . import insystem
 from . import partitioning
 from . import util
 
@@ -40,10 +40,6 @@ __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
-
-SUBCMD_SCHEME = "scheme"
-SUBCMD_EXTRA = "extra"
-SUBCMD_DEFAULT = "default"
 
 
 def run_os_installation():
@@ -103,84 +99,19 @@ def handle_subcmd_scheme(op, postinstaller, **kwargs):
         op.umount and app_exit()  # exit if this option specified
 
 
-def handle_subcmd_extra(**kwargs):
-    run_postextra()
+def handle_subcmd_insystem(**kwargs):
+    insystem.run()
     app_exit()
-
-
-def setup_commandline_parser():
-    argparser = argparse.ArgumentParser(prog=__package__)
-
-    # main command options
-    argparser.add_argument("--hard", action="store_true",
-                           help="Deactivates LVM volumes and target swap, unmounts target filesystems"
-                                " and closes encrypted LUKS devices before the script starts")
-    argparser.add_argument("-p", type=str, metavar="PASSWORD", help="User password")
-    argparser.add_argument("-d", action="store_true", help="Enable commands debug output")
-    argparser.add_argument("--version", action="store_true", help="Show version and exit")
-    argparser.add_argument("--selftest", action="store_true", help="Check environment and own resources and exit")
-
-    DEFAULT_CHROOT = "/target"
-    argparser.add_argument("--chroot", type=str, default=DEFAULT_CHROOT,
-                           help=f"Target system's mountpoint (Default: {DEFAULT_CHROOT})")
-
-    # register sub-commands
-    subcmd_registrar = argparser.add_subparsers(dest="sub_cmd",
-                                                description="Set of commands for extra functionality")
-
-    # default command
-    default_argparser = subcmd_registrar.add_parser(SUBCMD_DEFAULT,
-                        help="Default command, it is implied if no other commands specified")
-    default_argparser.set_defaults(func=handle_subcmd_default)
-
-    default_argparser.add_argument("-n", action="store_true",
-                        help="Skip disk partitioning and OS installation steps, run default post-install steps only")
-    default_argparser.add_argument("--post", action="store_true",
-                        help="Schedule extra post-install steps which will be performed on user's first GUI login")
-
-    # mount/umount
-    scheme_argparser = subcmd_registrar.add_parser(SUBCMD_SCHEME, help="Actions on the partitioning scheme")
-    scheme_argparser.set_defaults(func=handle_subcmd_scheme)
-
-    mount_opts = scheme_argparser.add_mutually_exclusive_group(required=True)
-    mount_opts.add_argument("--mount", type=str, const=DEFAULT_CHROOT, metavar="ROOT", nargs='?',
-                            help=f"Mount the whole partitioning scheme and exit (Default ROOT: {DEFAULT_CHROOT})")
-    mount_opts.add_argument("--umount", action="store_true", help="Unmount the whole partitioning scheme and exit")
-
-    # extra steps upon GUI login
-    extra_argparser = subcmd_registrar.add_parser(SUBCMD_EXTRA, help="Run extra post-install steps only")
-    extra_argparser.set_defaults(func=handle_subcmd_extra)
-
-    return argparser
-
-
-def parse_commandline_options(argparser):
-    """Implement "default" sub-command (it can be omitted and will be passed implicitly)"""
-
-    # first try to parse only known args (to avoid parsing errors)
-    parsing_result = argparser.parse_known_args()
-    op = parsing_result[0]
-    unknown_args = parsing_result[1]
-
-    # if no sub-command specified => default one must be used
-    if op.sub_cmd is None:
-        all_args = sys_argv[1:]  # omit the script name itself
-        for arg in unknown_args:
-            all_args.remove(arg)
-        unknown_args.insert(0, SUBCMD_DEFAULT)  # cheat the parser by supplying the default command keyword
-        all_args.extend(unknown_args)
-        op = argparser.parse_args(all_args)
-    else:
-        op = argparser.parse_args()  # fallback: check arg list for errors
-
-    return op
 
 
 def run():
     Spawned.enable_logging()
 
-    cmdparser = setup_commandline_parser()
-    op = parse_commandline_options(cmdparser)
+    argparser = ArgParser(__package__)
+    argparser.set_subcommand_handler(SUBCMD_DEFAULT, handle_subcmd_default)
+    argparser.set_subcommand_handler(SUBCMD_SCHEME, handle_subcmd_scheme)
+    argparser.set_subcommand_handler(SUBCMD_INSYSTEM, handle_subcmd_insystem)
+    op = argparser.parse()
 
     # set password before one needs it
     if op.p:

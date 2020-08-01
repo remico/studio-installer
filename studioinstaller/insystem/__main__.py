@@ -13,7 +13,7 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-from .postinstallerextra import *
+from .postinstallerinsystem import *
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -22,8 +22,8 @@ __license__ = "MIT"
 
 
 def run():
-    postinstaller_extra = PostInstallerExtra()
-    postinstaller_extra.run()
+    pii = PostInstallerInsystem()
+    pii.run()
 
 
 if __name__ == '__main__':
