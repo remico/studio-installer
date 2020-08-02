@@ -60,6 +60,7 @@ def handle_subcmd_default(op, scheme, postinstaller, **kwargs):
     if not op.n:
         util.clear_installation_cache()
 
+        # unused; just prevents partitions automounting during the OS installation
         do_not_automount_new_partitions = MountPreventer()
 
         preinstaller = PreInstaller(scheme)

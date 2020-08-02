@@ -78,6 +78,8 @@ class PostInstaller:
         self.unmount_target_system()
 
     def schedule_insystem_steps(self):
+        self.mount_target_system()
+
         with ChrootContext(self.chroot) as cntx:
             cntx.do("apt -q install -y python3-pip git > /dev/null")
 
@@ -88,6 +90,8 @@ class PostInstaller:
             Spawned.do(f"cp -r {Path(ENV('HOME'), repo_name)} {cntx.chroot_tmp}")
             tmp = str(cntx.chroot_tmp).replace(cntx.root, "")
             cntx.do(f"pip3 install -U {Path(tmp, repo_name)}")
+
+        self.unmount_target_system()
 
 
 def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):
