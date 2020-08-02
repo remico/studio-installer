@@ -192,13 +192,13 @@ def ready_for_postinstall(chroot):
     return path.exists() and not any(path.iterdir())
 
 
-def get_target_upass(extra_scheduled):
+def get_target_upass(insystem_scheduled):
     if tupass := ENV('TUPASS'):
         return tupass
 
     tupass = read_upass_from_preseeding_file("user-password")
 
-    if not tupass and not extra_scheduled:
+    if not tupass and not insystem_scheduled:
         tupass = read_upass_from_preseeding_file("user-password-crypted")
 
     if not tupass:

@@ -13,7 +13,7 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-"""Performs extra post-installation action if scheduled"""
+"""Performs in-system post-installation action if scheduled"""
 
 from spawned import SpawnedSU, ENV
 

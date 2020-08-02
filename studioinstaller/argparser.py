@@ -27,14 +27,14 @@ __all__ = ['ArgParser', 'SUBCMD_DEFAULT', 'SUBCMD_SCHEME', 'SUBCMD_INSYSTEM']
 
 SUBCMD_DEFAULT = "default"
 SUBCMD_SCHEME = "scheme"
-SUBCMD_INSYSTEM = "inplace"
+SUBCMD_INSYSTEM = "insystem"
 
 
 class ArgParser:
     def __init__(self, prog_name):
         self.argparser = argparse.ArgumentParser(prog=prog_name)
         self.subcmd_registrar = self.argparser.add_subparsers(dest="sub_cmd",
-                                                              description="Set of commands for extra functionality")
+                                                              description="A set of commands for extra functionality")
         self.subcmd_parsers = {}
 
         argparser = self.argparser
@@ -59,7 +59,7 @@ class ArgParser:
 
         default_argparser.add_argument("-n", action="store_true",
             help="Skip disk partitioning and OS installation steps, run default post-install steps only")
-        default_argparser.add_argument("--post", action="store_true",
+        default_argparser.add_argument("--insys", action="store_true",
             help="Schedule extra post-install steps which will be performed on user's first GUI login")
 
         # scheme-related steps (mount/umount, etc)
@@ -73,7 +73,7 @@ class ArgParser:
 
         # extra in-system steps (upon GUI login)
         inplace_argparser = self.add_subcommand_parser(SUBCMD_INSYSTEM,
-                                                       help_msg="Run extra post-install steps only")
+                                help_msg="Run actions inside target system (after target OS boot-in)")
 
     def add_subcommand_parser(self, cmd_name, handler=None, help_msg=""):
         subcmd_parser = self.subcmd_registrar.add_parser(cmd_name, help=help_msg)

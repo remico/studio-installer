@@ -81,7 +81,12 @@ def handle_subcmd_default(op, scheme, postinstaller, **kwargs):
         run_os_installation()
 
     if util.ready_for_postinstall(op.chroot):
-        postinstaller.run(op.post)
+        # do mandatory post-installation actions
+        postinstaller.run()
+        # schedule extra steps (the tool will be available inside target system after reboot)
+        if op.insys:
+            tupass = util.get_target_upass(op.insys)
+            postinstaller.schedule_insystem_steps(tupass)
     else:
         logger.warning("It looks like the target system is not ready for post-installation actions. "
                        "Trying to unmount the whole partitioning scheme and exit.")
@@ -129,9 +134,8 @@ def run():
         app_exit()
 
     target_disk = select_target_disk()
-    target_upass = util.get_target_upass(op.post)  # FIXME: when 'extra' => exception - no attribute op.post
     scheme = partitioning.scheme(target_disk)
-    postinstaller = PostInstaller(scheme, target_disk, op.chroot, target_upass)
+    postinstaller = PostInstaller(scheme, target_disk, op.chroot)
 
     # call a bound function (defined by argparser)
     op.func(op=op, postinstaller=postinstaller, scheme=scheme)

@@ -34,11 +34,10 @@ __all__ = ['PostInstaller']
 
 
 class PostInstaller:
-    def __init__(self, scheme: Scheme, bl_disk: str, chroot: str, tupass: str):
+    def __init__(self, scheme: Scheme, bl_disk: str, chroot: str):
         self.scheme = scheme
         self.chroot = chroot
         self.bl_disk = bl_disk
-        self.tupass = tupass
 
     def mount_target_system(self):
         SpawnedSU.do(f"mkdir -p {self.chroot}")
@@ -61,42 +60,38 @@ class PostInstaller:
 
         self.scheme.execute(Release())
 
-    def run(self, extra=False):
+    def run(self):
         self.mount_target_system()
 
         with ChrootContext(self.chroot) as cntx:
-            self._run_mandatory(cntx)
-            if extra:
-                self._schedule_post_extra(cntx)
+            # TODO check if /boot is encrypted and pass cryptoboot accordingly
+            setup_bootloader(cntx, self.bl_disk, grub_id="studio", cryptoboot=True)
+
+            luks_volumes = self.scheme.partitions(LUKS, Container)
+            setup_luks_volumes(cntx, luks_volumes)
+
+            setup_fstab(cntx, self.scheme)
+            # setup_resume(cntx)
+            cntx.do("update-initramfs -u -k all")
+            setup_fstrim_timer(cntx)
 
         self.unmount_target_system()
 
-    def _run_mandatory(self, cntx):
-        # TODO check if /boot is encrypted and pass cryptoboot accordingly
-        setup_bootloader(cntx, self.bl_disk, grub_id="studio", cryptoboot=True)
+    def schedule_insystem_steps(self, tgt_os_upass):
+        with ChrootContext(self.chroot) as cntx:
+            cntx.do("apt -q install -y python3-pip git > /dev/null")
 
-        luks_volumes = self.scheme.partitions(LUKS, Container)
-        setup_luks_volumes(cntx, luks_volumes)
+            # install the tool into the target system
+            # FIXME: replace the section below with this commented line when the repo's master branch is ready
+            #  cntx.do("pip3 install -U git+https://github.com/remico/studio-installer.git")
+            repo_name = "studio-installer"
+            Spawned.do(f"cp -r {Path(ENV('HOME'), repo_name)} {cntx.chroot_tmp}")
+            tmp = str(cntx.chroot_tmp).replace(cntx.root, "")
+            cntx.do(f"pip3 install -U {Path(tmp, repo_name)}")
 
-        setup_fstab(cntx, self.scheme)
-        # setup_resume(cntx)
-        cntx.do("update-initramfs -u -k all")
-        setup_fstrim_timer(cntx)
-
-    def _schedule_post_extra(self, cntx):
-        cntx.do("apt install -yq python3-pip git > /dev/null")
-
-        # install the tool into the target system
-        # FIXME: replace the section below with this commented line when the repo's master branch is ready
-        #  cntx.do("pip3 install -U git+https://github.com/remico/studio-installer.git")
-        repo_name = "studio-installer"
-        Spawned.do(f"cp -r {Path(ENV('HOME'), repo_name)} {cntx.chroot_tmp}")
-        tmp = str(cntx.chroot_tmp).replace(cntx.root, "")
-        cntx.do(f"pip3 install -U {Path(tmp, repo_name)}")
-
-        # schedule extra steps running upon user login
-        file = Path(util.target_home(cntx.root), ".profile")
-        SpawnedSU.do(f"grep 'studioinstaller' {file} || echo 'studioinstaller -p {self.tupass} extra' >> {file}")
+            # schedule in-system steps running upon user login
+            file = Path(util.target_home(cntx.root), ".profile")
+            SpawnedSU.do(f"grep 'studioinstaller' {file} || echo 'studioinstaller -p {tgt_os_upass} insystem' >> {file}")
 
 
 def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):
