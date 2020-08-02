@@ -54,9 +54,8 @@ def run_os_installation():
     # clear unencrypted user password if defined
     SpawnedSU.do("debconf-set passwd/user-password")
 
-    # parse the .desktop file to get the installation command
-    # warning: in case of multiple .desktop files are in ~/Desktop dir, returns the last found 'Exec=...' value
-    data = Spawned.do("grep '^Exec' ~/Desktop/*.desktop | tail -1 | sed 's/^Exec=//'")
+    # parse the .desktop file to get the installation command; grep for 'ubiquity' to filter other .desktop files if any
+    data = Spawned.do("grep '^Exec' ~/Desktop/*.desktop | grep 'ubiquity' | tail -1 | sed 's/^Exec=//'")
     cmd = data.replace("ubiquity", "ubiquity -b --automatic")
     Spawned(cmd).waitfor(Spawned.TASK_END, timeout=Spawned.TO_INFINITE)
 
