@@ -33,10 +33,6 @@ class PostInstallerInsystem:
         install_software()
         setup_keyboard()
 
-        # unschedule studioinstaller_extra
-        config = IniConfig(f"{ENV('HOME')}/.profile")
-        config.replace(r"studioinstaller .*", "")
-
 
 def install_software():
     SpawnedSU.do("""

@@ -45,15 +45,6 @@ __license__ = "MIT"
 def run_os_installation():
     SpawnedSU.do(f"debconf-set-selections {util.preseeding_file()}")
 
-    # set target user password (encrypted form)
-    tupass_crypt = util.read_upass_from_preseeding_file("user-password-crypted")
-    tupass_env = util.get_target_upass(False)
-    if tupass_crypt != tupass_env:
-        # debconf-set is part of ubiquity
-        SpawnedSU.do(f"openssl passwd -crypt {tupass_env} | xargs -0 debconf-set passwd/user-password-crypted")
-    # clear unencrypted user password if defined
-    SpawnedSU.do("debconf-set passwd/user-password")
-
     # parse the .desktop file to get the installation command; grep for 'ubiquity' to filter other .desktop files if any
     data = Spawned.do("grep '^Exec' ~/Desktop/*.desktop | grep 'ubiquity' | tail -1 | sed 's/^Exec=//'")
     cmd = data.replace("ubiquity", "ubiquity -b --automatic")
@@ -84,8 +75,7 @@ def handle_subcmd_default(op, scheme, postinstaller, **kwargs):
         postinstaller.run()
         # schedule extra steps (the tool will be available inside target system after reboot)
         if op.insys:
-            tupass = util.get_target_upass(op.insys)
-            postinstaller.schedule_insystem_steps(tupass)
+            postinstaller.schedule_insystem_steps()
     else:
         logger.warning("It looks like the target system is not ready for post-installation actions. "
                        "Trying to unmount the whole partitioning scheme and exit.")

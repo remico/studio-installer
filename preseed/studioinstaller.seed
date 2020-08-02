@@ -54,7 +54,7 @@ unattended-upgrades	unattended-upgrades/enable_auto_updates	boolean	true
 # Users
 d-i passwd/user-fullname string user
 d-i passwd/username string user
-#d-i passwd/user-password-crypted password UUMOdQGdgMwxw
+d-i passwd/user-password-crypted password UUMOdQGdgMwxw
 d-i passwd/root-login boolean false
 #d-i passwd/root-password-crypted password rootEncryptedPasswd
 d-i user-setup/allow-password-weak boolean true

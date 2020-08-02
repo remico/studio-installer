@@ -77,7 +77,7 @@ class PostInstaller:
 
         self.unmount_target_system()
 
-    def schedule_insystem_steps(self, tgt_os_upass):
+    def schedule_insystem_steps(self):
         with ChrootContext(self.chroot) as cntx:
             cntx.do("apt -q install -y python3-pip git > /dev/null")
 
@@ -88,10 +88,6 @@ class PostInstaller:
             Spawned.do(f"cp -r {Path(ENV('HOME'), repo_name)} {cntx.chroot_tmp}")
             tmp = str(cntx.chroot_tmp).replace(cntx.root, "")
             cntx.do(f"pip3 install -U {Path(tmp, repo_name)}")
-
-            # schedule in-system steps running upon user login
-            file = Path(util.target_home(cntx.root), ".profile")
-            SpawnedSU.do(f"grep 'studioinstaller' {file} || echo 'studioinstaller -p {tgt_os_upass} insystem' >> {file}")
 
 
 def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):
