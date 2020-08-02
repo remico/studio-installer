@@ -35,7 +35,7 @@ class PostInstallerInsystem:
 
 
 def install_software():
-    SpawnedSU.do("""
+    SpawnedSU.do_script("""
         apt -q install -y \
         okular okular-extra-backends kate kwrite \
         vim build-essential git-gui gitk kdiff3 kompare doxygen graphviz doxyqml python3-pip \
@@ -46,7 +46,7 @@ def install_software():
         # apt -q install -y ttf-mscorefonts-installer  > /dev/null
         # apt -q install -y chromium-browser  > /dev/null
         # apt -q install -y pepperflashplugin-nonfree  > /dev/null
-        """)
+        """, bg=False)
 
 
 def setup_keyboard():

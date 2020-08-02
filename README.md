@@ -36,7 +36,8 @@ with other Ubuntu-like distros as long as they use `ubiquity` and `partman`.
 **Limitations:**
 - the partitioning algorithm does NOT support pre-existing partitions yet
 - the whole disk drive (user selected) gets cleared even if the new partitions require less space
-- Note: entered passwords are visible in the log and in process's environment
+- entered passwords are visible in the log if logging is enabled (default)
+- only fully encrypted installation (including /boot partition) is tested so far
 
 :pushpin: **See [Wiki](../../wiki) for details of:**
 - how to configure partitions and edit the preseeding file
