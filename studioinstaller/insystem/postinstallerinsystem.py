@@ -15,9 +15,12 @@
 
 """Performs in-system post-installation action if scheduled"""
 
+from pathlib import Path
+
 from spawned import SpawnedSU, ENV
 
-from studioinstaller import util
+from ..configfile import XmlConfig
+from .. import util
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -50,6 +53,22 @@ def install_software():
 
 def setup_keyboard():
     # TODO also check /etc/default/keyboard
-    if home := ENV('HOME'):
-        util.deploy_resource("keyboard-layout.xml",
-                             f"{home}/.config/xfce4/xfconf/xfce-perchannel-xml/")
+
+    tgt_path = f"{ENV('HOME')}/.config/xfce4/xfconf/xfce-perchannel-xml"
+
+    if Path(tgt_path).exists():
+        # deploy keyboard config
+        util.deploy_resource("keyboard-layout.xml", tgt_path)
+
+        # setup keyboard layouts panel
+        file = XmlConfig(f"{tgt_path}/xfce4-panel.xml")
+        parent = file.get_element("property", "plugin-ids")
+        file.insert(parent, "value", type="int", value="14")
+        parent = file.get_element("property", "plugins")
+        parent = file.insert(parent, "property", name="plugin-14", type="string", value="xkb")
+        file.insert(parent, "property", name="display-type", type="uint", value="1")
+        file.insert(parent, "property", name="display-name", type="uint", value="1")
+        file.insert(parent, "property", name="group-policy", type="uint", value="1")
+        file.insert(parent, "property", name="display-scale", type="uint", value="82")
+        file.insert(parent, "property", name="display-tooltip-icon", type="bool", value="false")
+        file.save()
