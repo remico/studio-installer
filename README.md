@@ -2,14 +2,14 @@
 Let's automate boring Ubuntu Studio Linux installation process.
 
 ###### DISCLAIMER
-> :pushpin: **The tool is under development and can't be used by enduser at the moment**
+> :pushpin: **The tool has limitations and doesn't handle many corner cases**
 
 > :warning: Current implementation will remove EVERYTHING on the disk drive you select!
 >
 > This is intentional behavior: the tool will use the whole drive space for the new OS.
 
 > :warning: Under a live CD session the tool will get superuser privileges without any password confirmation.
-> If something goes wrong, it can damage all data on your HDD, SSD, etc. Use the tool at your own risk.  
+> If something goes wrong, it can damage all data on your HDD/SSD. Use the tool at your own risk.
 ```
 When you run the tool, it will ask you for the target device (e.g. /dev/sda). 
 After you specify any valid device and press Enter, the whole device will be cleared, the partition table

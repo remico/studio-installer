@@ -18,7 +18,6 @@
 from spawned import SpawnedSU, ENV
 
 from studioinstaller import util
-from ..configfile import IniConfig
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
