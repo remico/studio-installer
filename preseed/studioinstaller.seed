@@ -29,12 +29,12 @@ keyboard-configuration keyboard-configuration/toggle select Super+Space
 #keyboard-configuration keyboard-configuration/switch select No temporary switch
 
 # Network
-d-i netcfg/get_hostname string asterisk-studio
-d-i netcfg/get_domain string unassigned-domain
+d-i netcfg/get_hostname string studio
+d-i netcfg/get_domain string home
 d-i netcfg/choose_interface select auto
 
 d-i netcfg/link_wait_timeout string 10
-d-i netcfg/hostname string asterisk
+d-i netcfg/hostname string studio
 
 # Clock
 d-i clock-setup/utc-auto boolean true

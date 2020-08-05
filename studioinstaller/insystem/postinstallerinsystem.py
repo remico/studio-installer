@@ -17,7 +17,7 @@
 
 from pathlib import Path
 
-from spawned import SpawnedSU, ENV
+from spawned import SpawnedSU, Spawned, ENV
 
 from ..configfile import XmlConfig
 from .. import util
@@ -29,11 +29,14 @@ __license__ = "MIT"
 
 __all__ = ['PostInstallerInsystem']
 
+TPL_CMD_APT_INSTALL = "apt -q install -y %s > /dev/null"
+
 
 class PostInstallerInsystem:
     def run(self):
         install_software()
         setup_keyboard()
+        setup_mouse()
 
 
 def install_software():
@@ -72,3 +75,9 @@ def setup_keyboard():
         file.insert(parent, "property", name="display-scale", type="uint", value="82")
         file.insert(parent, "property", name="display-tooltip-icon", type="bool", value="false")
         file.save()
+
+
+def setup_mouse():
+    # find settings in ~/.config/xfce4/xfconf/xfce-perchannel-xml/pointers.xml
+    if Path(f"{ENV('HOME')}/.config/xfce4").exists():
+        Spawned.do("xfce4-mouse-settings")
