@@ -80,6 +80,7 @@ setuptools.setup(
     python_requires='>=3.8',
     install_requires=[
         'pexpect',
+        'pyyaml',
         # 'spawned @ git+https://github.com/remico/spawned.git@master'  # integrated as a submodule
     ],
     license='MIT',

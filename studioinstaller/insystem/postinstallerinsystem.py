@@ -15,6 +15,7 @@
 
 """Performs in-system post-installation action if scheduled"""
 
+import yaml
 from pathlib import Path
 
 from spawned import SpawnedSU, Spawned, ENV
@@ -29,7 +30,11 @@ __license__ = "MIT"
 
 __all__ = ['PostInstallerInsystem']
 
+_tp = util.tagged_printer("InSystem")
+
 TPL_CMD_APT_INSTALL = "apt -q install -y %s > /dev/null"
+HOME = ENV('HOME')
+USER = ENV('USER')
 
 
 class PostInstallerInsystem:
@@ -37,10 +42,13 @@ class PostInstallerInsystem:
         install_software()
         setup_keyboard()
         setup_mouse()
+        deploy_git_repo_bin()
 
 
 def install_software():
     SpawnedSU.do_script("""
+        apt -q update > /dev/null
+
         apt -q install -y \
         okular okular-extra-backends kate kwrite \
         vim build-essential git-gui gitk kdiff3 kompare doxygen graphviz doxyqml python3-pip \
@@ -57,7 +65,7 @@ def install_software():
 def setup_keyboard():
     # TODO also check /etc/default/keyboard
 
-    tgt_path = f"{ENV('HOME')}/.config/xfce4/xfconf/xfce-perchannel-xml"
+    tgt_path = f"{HOME}/.config/xfce4/xfconf/xfce-perchannel-xml"
 
     if Path(tgt_path).exists():
         # deploy keyboard config
@@ -79,5 +87,40 @@ def setup_keyboard():
 
 def setup_mouse():
     # find settings in ~/.config/xfce4/xfconf/xfce-perchannel-xml/pointers.xml
-    if Path(f"{ENV('HOME')}/.config/xfce4").exists():
-        Spawned.do("xfce4-mouse-settings")
+    if Path(f"{HOME}/.config/xfce4").exists():
+        Spawned.do_script("xfce4-mouse-settings", bg=False)
+
+
+def deploy_git_repo_bin():
+    yapath = util.resource_file("config.yaml")
+    if not yapath:
+        return
+
+    with open(yapath) as yafile:
+        try:
+            yaopts = yaml.safe_load(yafile)
+        except yaml.YAMLError as e:
+            _tp(str(e))
+            return
+
+    # setup ssh key
+    url_ssh = yaopts['url_ssh_dir']
+    repo_bin = yaopts['git_repo_bin']
+    Spawned.do(f"wget -P {HOME}/.ssh --user={repo_bin['user']} --password={repo_bin['pass']} \
+        {url_ssh}/id_rsa \
+        {url_ssh}/known_hosts")
+    Spawned.do(f"""
+        chmod 600 {HOME}/.ssh/id_rsa
+        chmod 644 {HOME}/.ssh/known_hosts
+        """)
+
+    # clone repo, deploy stuff
+    Spawned.do_script(f"""
+        cd {HOME} &&
+        rm -rf {HOME}/bin &&
+        echo "Cloning 'bin' repo..." &&
+        git clone --recurse-submodules {repo_bin['path']} &&
+        rm -rf {HOME}/.ssh &&
+        echo "Deploing 'bin' repo..." &&
+        {HOME}/bin/setup/setup_homedir.sh
+        """, bg=False)
