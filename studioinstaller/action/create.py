@@ -85,15 +85,9 @@ class Create(ActionBase):
         if partition_id and partition.label:
             t.interact("Command (? for help)", "c")
 
-            q_0 = "Partition number"
-            a_0 = partition_id
-            q_1 = "Enter name"
-            a_1 = "studio-" + partition.label
-
-            idx = t.interact([q_0, q_1],
-                             [a_0, a_1])
-            if idx == 0:
-                t.interact(q_1, a_1)
+            while 0 != t.interact(("Enter name", "studio-" + partition.label),
+                                  ("Partition number", partition_id)):
+                continue
 
         if locally:
             t.interact("Command (? for help)", "w")

@@ -28,21 +28,21 @@ __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['PostInstallerInsystem']
+__all__ = ['InsystemInstaller']
 
-_tp = util.tagged_printer("InSystem")
+_tp = util.tagged_printer("Insystem")
 
 TPL_CMD_APT_INSTALL = "apt -q install -y %s > /dev/null"
 HOME = ENV('HOME')
 USER = ENV('USER')
 
 
-class PostInstallerInsystem:
+class InsystemInstaller:
     def run(self):
         install_software()
         setup_keyboard()
         setup_mouse()
-        deploy_git_repo_bin()
+        deploy_repo_bin()
 
 
 def install_software():
@@ -86,12 +86,12 @@ def setup_keyboard():
 
 
 def setup_mouse():
-    # find settings in ~/.config/xfce4/xfconf/xfce-perchannel-xml/pointers.xml
+    # find the settings in ~/.config/xfce4/xfconf/xfce-perchannel-xml/pointers.xml
     if Path(f"{HOME}/.config/xfce4").exists():
         Spawned.do_script("xfce4-mouse-settings", bg=False)
 
 
-def deploy_git_repo_bin():
+def deploy_repo_bin():
     yapath = util.resource_file("config.yaml")
     if not yapath:
         return
@@ -103,16 +103,17 @@ def deploy_git_repo_bin():
             _tp(str(e))
             return
 
-    # setup ssh key
     url_ssh = yaopts['url_ssh_dir']
     repo_bin = yaopts['git_repo_bin']
-    Spawned.do(f"wget -P {HOME}/.ssh --user={repo_bin['user']} --password={repo_bin['pass']} \
-        {url_ssh}/id_rsa \
-        {url_ssh}/known_hosts")
-    Spawned.do(f"""
+
+    # setup ssh key
+    Spawned.do_script(f"""
+        wget -P {HOME}/.ssh --user={repo_bin['user']} --password={repo_bin['pass']} \
+            {url_ssh}/id_rsa \
+            {url_ssh}/known_hosts
         chmod 600 {HOME}/.ssh/id_rsa
         chmod 644 {HOME}/.ssh/known_hosts
-        """)
+        """, bg=False)
 
     # clone repo, deploy stuff
     Spawned.do_script(f"""

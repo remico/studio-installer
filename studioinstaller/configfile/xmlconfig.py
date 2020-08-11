@@ -15,7 +15,7 @@
 
 from xml.etree import ElementTree
 
-from spawned.spawned.spawned import _TMP as TMP_DIR
+from spawned.spawned.spawned import Spawned
 
 from .configfilebase import ConfigFileBase
 
@@ -33,10 +33,10 @@ class XmlConfig(ConfigFileBase):
         self.tree = ElementTree.parse(self.abs_filepath)
 
     def replace(self, re_old: str, str_new: str):
-        raise NotImplementedError("XmlConfig.replace() method is not implemented")
+        raise NotImplementedError(f"{__class__.__name__}.replace() method is not implemented")
 
     def append(self, str_new: str):
-        raise NotImplementedError("XmlConfig.append() method is not implemented")
+        raise NotImplementedError(f"{__class__.__name__}.append() method is not implemented")
 
     def get_element(self, tag, name):
         for t in self.tree.iter(tag):
@@ -52,6 +52,6 @@ class XmlConfig(ConfigFileBase):
         return child
 
     def save(self):
-        tmp_filepath = TMP_DIR.joinpath("xml_tree")
-        self.tree.write(tmp_filepath)
-        self._execute(f"mv {tmp_filepath} {self.abs_filepath}")
+        tmpfile = Spawned.tmp_file_path()
+        self.tree.write(tmpfile)
+        self._execute(f"mv {tmpfile} {self.abs_filepath}")

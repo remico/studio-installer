@@ -14,7 +14,7 @@
 #  software.
 
 from .__main__ import run
-from .postinstallerinsystem import *
+from .insysteminstaller import *
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
