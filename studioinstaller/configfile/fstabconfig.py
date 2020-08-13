@@ -19,6 +19,8 @@ from copy import copy
 from functools import singledispatchmethod
 from pathlib import Path
 
+from spawned import Spawned
+
 from .configfilebase import ConfigFileBase
 from .. import util
 
@@ -89,6 +91,10 @@ class FstabConfig(ConfigFileBase):
     def save(self, item: FstabItem):
         if item.origin:
             self.replace(item.origin, item)
+
+    def contains(self, partition):
+        lvm_lv_vid = f"/dev/mapper/{partition.lvm_vg.replace('-', '--')}-{partition.lvm_lv}"
+        return bool(Spawned.do(f"egrep '{partition.url}|{partition.uuid}|{lvm_lv_vid}' {self.abs_filepath}"))
 
     @singledispatchmethod
     def append(self, item: FstabItem):

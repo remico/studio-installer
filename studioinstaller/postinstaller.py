@@ -164,7 +164,7 @@ def setup_fstab(cntx, scheme):
 
     for pt in scheme.partitions(FS):
         can_auto_mount = bool(pt.mountpoint and pt.fs)
-        if can_auto_mount and not util.is_in_fstab(pt, fstab.abs_filepath):
+        if can_auto_mount and not fstab.contains(pt):
             volume = f"UUID={pt.uuid}" if pt.isphysical else pt.url
             opts = "defaults,relatime"
             fstab.append(volume, pt.mountpoint, pt.fs, opts)
