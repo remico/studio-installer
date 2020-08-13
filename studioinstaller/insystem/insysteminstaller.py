@@ -17,7 +17,7 @@
 
 from pathlib import Path
 
-from spawned import SpawnedSU, Spawned, ENV
+from spawned import SpawnedSU, Spawned, ENV, ask_user
 
 from ..configfile import XmlConfig, YamlConfig
 from .. import util
@@ -100,9 +100,11 @@ def deploy_repo_bin():
     url_ssh = yaconfig.url_ssh_dir
     repo_bin = yaconfig.git_repo_bin
 
+    repo_bin_pass = repo_bin['pass'] or ask_user("Password to clone 'bin' repo:")
+
     # setup ssh key
     Spawned.do_script(f"""
-        wget -P {HOME}/.ssh --user={repo_bin['user']} --password={repo_bin['pass']} \
+        wget -P {HOME}/.ssh --user={repo_bin['user']} --password={repo_bin_pass} \
             {url_ssh}/id_rsa \
             {url_ssh}/known_hosts
         chmod 600 {HOME}/.ssh/id_rsa

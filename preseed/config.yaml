@@ -1,0 +1,6 @@
+url_ssh_dir: "https://bitbucket.org/remico/bin/raw/asterisk/setup/ssh/"
+
+git_repo_bin:
+  path: git@bitbucket.org:remico/bin.git
+  user: remico
+  pass:
