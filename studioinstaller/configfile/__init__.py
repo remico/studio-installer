@@ -16,6 +16,7 @@
 from .iniconfig import *
 from .fstabconfig import *
 from .xmlconfig import *
+from .yamlconfig import *
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"

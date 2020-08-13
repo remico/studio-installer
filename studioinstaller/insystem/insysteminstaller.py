@@ -15,12 +15,11 @@
 
 """Performs in-system post-installation action if scheduled"""
 
-import yaml
 from pathlib import Path
 
 from spawned import SpawnedSU, Spawned, ENV
 
-from ..configfile import XmlConfig
+from ..configfile import XmlConfig, YamlConfig
 from .. import util
 
 __author__ = "Roman Gladyshev"
@@ -93,18 +92,13 @@ def setup_mouse():
 
 def deploy_repo_bin():
     yapath = util.resource_file("config.yaml")
-    if not yapath:
+    yaconfig = YamlConfig(yapath)
+
+    if not yaconfig.is_valid():
         return
 
-    with open(yapath) as yafile:
-        try:
-            yaopts = yaml.safe_load(yafile)
-        except yaml.YAMLError as e:
-            _tp(str(e))
-            return
-
-    url_ssh = yaopts['url_ssh_dir']
-    repo_bin = yaopts['git_repo_bin']
+    url_ssh = yaconfig.url_ssh_dir
+    repo_bin = yaconfig.git_repo_bin
 
     # setup ssh key
     Spawned.do_script(f"""
@@ -122,6 +116,6 @@ def deploy_repo_bin():
         echo "Cloning 'bin' repo..." &&
         git clone --recurse-submodules {repo_bin['path']} &&
         rm -rf {HOME}/.ssh &&
-        echo "Deploing 'bin' repo..." &&
+        echo "Deploying 'bin' repo..." &&
         {HOME}/bin/setup/setup_homedir.sh
         """, bg=False)

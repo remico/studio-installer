@@ -103,7 +103,8 @@ def resource_file(filename):
     """Returns the first available file with matching name"""
     from importlib.metadata import files as app_files
     if l := [f for f in app_files(__package__) if str(f).endswith(filename)]:
-        return l[0].locate()
+        return str(l[0].locate())
+    return ""
 
 
 def preseeding_file():
@@ -111,7 +112,8 @@ def preseeding_file():
     # TODO move .seed file inside the package and use resource API
     from importlib.metadata import files as app_files
     if l := [f for f in app_files(__package__) if str(f).endswith('.seed')]:
-        return l[0].locate()
+        return str(l[0].locate())
+    return ""
 
 
 _edit_inplace_script = create_py_script(r"""
