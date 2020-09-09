@@ -68,7 +68,7 @@ setuptools.setup(
     # py_modules=[],
     # register executable <command>=<pkg><module>:<attr>
     entry_points={
-        'console_scripts': ['studioinstaller=studioinstaller.main:run']
+        'console_scripts': ['studioinstaller=studioinstaller.main:run'],
     },
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
@@ -80,9 +80,12 @@ setuptools.setup(
     python_requires='>=3.8',
     install_requires=[
         'pexpect',
-        'pyyaml',
         # 'spawned @ git+https://github.com/remico/spawned.git@master'  # integrated as a submodule
     ],
+    extras_require={
+        # 'all': ['studioinstaller_extra @ git+https://github.com/remico/studio-installer-extra.git@master']
+        'all': ['studioinstaller_extra']
+    },
     license='MIT',
     platforms=['POSIX'],
     cmdclass={'bdist_wheel': bdist_wheel},
