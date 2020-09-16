@@ -15,7 +15,7 @@
 
 from xml.etree import ElementTree
 
-from spawned.spawned.spawned import Spawned
+from spawned import Spawned
 
 from .configfilebase import ConfigFileBase
 
