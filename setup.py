@@ -83,7 +83,6 @@ setuptools.setup(
         # 'spawned @ git+https://github.com/remico/spawned.git@master'  # integrated as a submodule
     ],
     extras_require={
-        # 'all': ['studioinstaller_extra @ git+https://github.com/remico/studio-installer-extra.git@master']
         'all': ['studioinstaller_extra']
     },
     license='MIT',

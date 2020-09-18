@@ -23,11 +23,10 @@ __email__ = "remicollab@gmail.com"
 __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
-__all__ = ['ArgParser', 'SUBCMD_DEFAULT', 'SUBCMD_SCHEME', 'SUBCMD_INSYSTEM']
+__all__ = ['ArgParser', 'SUBCMD_DEFAULT', 'SUBCMD_SCHEME']
 
 SUBCMD_DEFAULT = "default"
 SUBCMD_SCHEME = "scheme"
-SUBCMD_INSYSTEM = "insystem"
 
 
 class ArgParser:
@@ -59,8 +58,8 @@ class ArgParser:
 
         default_argparser.add_argument("-n", action="store_true",
             help="Skip disk partitioning and OS installation steps, run default post-install steps only")
-        default_argparser.add_argument("--insys", action="store_true",
-            help="Schedule extra post-install steps which will be performed on user's first GUI login")
+        default_argparser.add_argument("--inject", choices=['extra', 'devel'],
+            help="Install the tool into the target OS, so that it will be available on the user's first GUI login")
 
         # scheme-related steps (mount/umount, etc)
         scheme_argparser = self.add_subcommand_parser(SUBCMD_SCHEME,
@@ -70,10 +69,6 @@ class ArgParser:
         mount_opts.add_argument("--mount", type=str, const=DEFAULT_CHROOT, metavar="ROOT", nargs='?',
                                 help=f"Mount the whole partitioning scheme and exit (Default ROOT: {DEFAULT_CHROOT})")
         mount_opts.add_argument("--umount", action="store_true", help="Unmount the whole partitioning scheme and exit")
-
-        # extra in-system steps (upon GUI login)
-        inplace_argparser = self.add_subcommand_parser(SUBCMD_INSYSTEM,
-                                help_msg="Run actions inside target system (after target OS boot-in)")
 
     def add_subcommand_parser(self, cmd_name, handler=None, help_msg=""):
         subcmd_parser = self.subcmd_registrar.add_parser(cmd_name, help=help_msg)

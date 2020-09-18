@@ -29,10 +29,10 @@ from spawned import SpawnedSU, Spawned, ask_user, SETENV, logger
 
 from .argparser import *
 from .partmancheater import PartmanCheater, MountPreventer
+from .pluginsloader import PluginsLoader
 from .preinstaller import PreInstaller
 from .postinstaller import PostInstaller
 
-from . import insystem
 from . import partitioning
 from . import util
 
@@ -74,9 +74,12 @@ def handle_subcmd_default(op, scheme, postinstaller, **kwargs):
     if util.ready_for_postinstall(op.chroot):
         # do mandatory post-installation actions
         postinstaller.run()
-        # schedule extra steps (the tool will be available inside target system after reboot)
-        if op.insys:
-            postinstaller.schedule_insystem_steps()
+
+        # install the tool into target OS (will be available after reboot)
+        if op.inject is not None:
+            # NOTE: magic values, defined by argparser setup
+            postinstaller.inject_tool(extras='extra' in op.inject,
+                                      develop='devel' in op.inject)
     else:
         logger.warning("It looks like the target system is not ready for post-installation actions. "
                        "Trying to unmount the whole partitioning scheme and exit.")
@@ -94,18 +97,16 @@ def handle_subcmd_scheme(op, postinstaller, **kwargs):
         op.umount and app_exit()  # exit if this option specified
 
 
-def handle_subcmd_insystem(**kwargs):
-    insystem.run()
-    app_exit()
-
-
 def run():
     Spawned.enable_logging()
 
     argparser = ArgParser(__package__)
     argparser.set_subcommand_handler(SUBCMD_DEFAULT, handle_subcmd_default)
     argparser.set_subcommand_handler(SUBCMD_SCHEME, handle_subcmd_scheme)
-    argparser.set_subcommand_handler(SUBCMD_INSYSTEM, handle_subcmd_insystem)
+
+    plugins_loader = PluginsLoader()
+    plugins_loader.extend_argparser(argparser)
+
     op = argparser.parse()
 
     # set password before one needs it
@@ -128,7 +129,7 @@ def run():
     postinstaller = PostInstaller(scheme, target_disk, op.chroot)
 
     # call a bound function (defined by argparser)
-    op.func(op=op, postinstaller=postinstaller, scheme=scheme)
+    op.func(op, postinstaller=postinstaller, scheme=scheme)
 
 
 if __name__ == '__main__':
