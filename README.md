@@ -52,7 +52,7 @@ with other Ubuntu-like distros as long as they use `ubiquity` and `partman`.
 ## Getting the tool
 ```
 $ sudo apt install git python3-pip  # install git and pip3
-$ pip3 install --extra-index-url=https://remico.github.com/pypi studioinstaller  # install the tool
+$ pip3 install --extra-index-url=https://remico.github.io/pypi studioinstaller  # install the tool
 $ . ~/.profile  # update $PATH for current shell
 ```
 
