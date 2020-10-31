@@ -13,9 +13,10 @@
 #  out of or in connection with the software or the use or other dealings in the
 #  software.
 
-import setuptools
-from importlib import resources
+import platform
 from pathlib import Path
+
+import setuptools
 
 __author__ = "Roman Gladyshev"
 __email__ = "remicollab@gmail.com"
@@ -23,12 +24,16 @@ __copyright__ = "Copyright (c) 2020, REMICO"
 __license__ = "MIT"
 
 
-with open("README.md") as f:
-    long_description = f.read()
+if 'linux' not in platform.system().lower():
+    raise OSError('The package requires GNU Linux. Aborting installation...')
+
+
+def long_description():
+    return Path("README.md").read_text()
 
 
 def version():
-    return resources.read_text('studioinstaller', 'VERSION')
+    return Path("studioinstaller/VERSION").read_text()
 
 
 def data_files():
@@ -55,7 +60,7 @@ setuptools.setup(
     author="remico",
     author_email="remicollab@gmail.com",
     description="A console tool for Ubuntu Studio OS installation",
-    long_description=long_description,
+    long_description=long_description(),
     long_description_content_type="text/markdown",
     url="https://github.com/remico/studio-installer",
     project_urls={
