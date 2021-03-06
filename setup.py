@@ -1,39 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-#  This file is part of "Ubuntu Studio Installer" project
+#  This file is part of "Linux Studio Installer" project
 #
-#  Copyright (c) 2020, REMICO
+#  Author: Roman Gladyshev <remicollab@gmail.com>
+#  License: MIT License
 #
-#  The software is provided "as is", without warranty of any kind, express or
-#  implied, including but not limited to the warranties of merchantability,
-#  fitness for a particular purpose and non-infringement. In no event shall the
-#  authors or copyright holders be liable for any claim, damages or other
-#  liability, whether in an action of contract, tort or otherwise, arising from,
-#  out of or in connection with the software or the use or other dealings in the
-#  software.
+#  SPDX-License-Identifier: MIT
+#  License text is available in the LICENSE file and online:
+#  http://www.opensource.org/licenses/MIT
+#
+#  Copyright (c) 2020 remico
 
 import platform
-from pathlib import Path
-
 import setuptools
-
-__author__ = "Roman Gladyshev"
-__email__ = "remicollab@gmail.com"
-__copyright__ = "Copyright (c) 2020, REMICO"
-__license__ = "MIT"
+from pathlib import Path
 
 
 if 'linux' not in platform.system().lower():
     raise OSError('The package requires GNU Linux. Aborting installation...')
-
-
-def long_description():
-    return Path("README.md").read_text()
-
-
-def version():
-    return Path("studioinstaller/VERSION").read_text()
 
 
 def data_files():
@@ -55,42 +40,8 @@ except ImportError:
 
 
 setuptools.setup(
-    name="studioinstaller",
-    version=version(),
-    author="remico",
-    author_email="remicollab@gmail.com",
-    description="A console tool for Ubuntu Studio OS installation",
-    long_description=long_description(),
-    long_description_content_type="text/markdown",
-    url="https://github.com/remico/studio-installer",
-    project_urls={
-        "Source Code": "https://github.com/remico/studio-installer",
-        "Documentation": "https://github.com/remico/studio-installer/wiki"
-    },
-    packages=setuptools.find_packages(exclude=['sndbx', 'test', 'tests']),
-    package_data={'': ['VERSION']},
-    data_files=data_files(),
-    # py_modules=[],
-    # register executable <command>=<pkg><module>:<attr>
-    entry_points={
-        'console_scripts': ['studioinstaller=studioinstaller.main:run'],
-    },
-    classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: POSIX :: Linux",
-    ],
-    python_requires='>=3.8',
-    install_requires=[
-        'pexpect',
-        # 'spawned @ git+https://github.com/remico/spawned.git@master'  # integrated as a submodule
-    ],
-    extras_require={
-        'all': ['studioinstaller_extra']
-    },
-    license='MIT',
-    platforms=['POSIX'],
-    cmdclass={'bdist_wheel': bdist_wheel},
+    # data_files=data_files(),
+    cmdclass={
+        'bdist_wheel': bdist_wheel
+    }
 )

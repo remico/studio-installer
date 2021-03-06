@@ -20,11 +20,6 @@ from pathlib import Path
 from .configfilebase import ConfigFileBase
 from .. import util
 
-__author__ = "Roman Gladyshev"
-__email__ = "remicollab@gmail.com"
-__copyright__ = "Copyright (c) 2020, REMICO"
-__license__ = "MIT"
-
 __all__ = ['IniConfig']
 
 

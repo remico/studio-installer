@@ -1,5 +1,5 @@
-# Ubuntu Studio Installer
-Let's automate boring Ubuntu Studio Linux installation process.
+# Linux Studio Installer
+Let's automate boring Linux installation process.
 
 ###### DISCLAIMER
 > :pushpin: **The tool has limitations and doesn't handle many corner cases**
@@ -8,26 +8,20 @@ Let's automate boring Ubuntu Studio Linux installation process.
 >
 > This is intentional behavior: the tool will use the whole drive space for the new OS.
 
-> :warning: Under a live CD session the tool will get superuser privileges without any password confirmation.
+> :warning: Under a live CD/USB session the tool will run with superuser privileges without any password confirmation.
 > If something goes wrong, it can damage all data on your HDD/SSD. Use the tool at your own risk.
 ```
-When you run the tool, it will ask you for the target device (e.g. /dev/sda). 
+When you run the tool, it will ask you for the target device (e.g. /dev/sda).
 After you specify any valid device and press Enter, the whole device will be cleared, the partition table
 will be rewritten, new partitions will be created and formatted according to the defined configuration.
-```  
+```
 
 ## About
 - This is a console tool
 - All partitioning requirements can be defined in the partitioning scheme
 - Automatic answers for most of the questions during the installation process can be defined in the preseeding file
 
-:information_source: Initially the tool is intended for Ubuntu Studio distro, but in fact, it can also be used
-with other Ubuntu-like distros as long as they use `ubiquity` and `partman`.
-
-:information_source: Tested distros:
-- Ubuntu Studio 20.04
-
-**The tool can help to automate some routine work one usually does during Ubuntu OS installation:**
+**The tool can help to automate some routine work one usually does during Linux OS installation:**
 - create new partitions (it supports LVM)
 - encrypt, mount, unmount, format them
 - install OS according to the preconfigured partitioning scheme
@@ -44,10 +38,8 @@ with other Ubuntu-like distros as long as they use `ubiquity` and `partman`.
 - the tool internals
 
 ## Requirements
-- Ubuntu-like OS (usually, a running Live CD session of the distro you're going to install)
+- Ubuntu/Manjaro Linux
 - python >= 3.8
-- latest version of `pexpect`
-- [`spawned`](https://github.com/remico/spawned) (actually integrated as a submodule)
 
 ## Getting the tool
 ```
@@ -61,9 +53,9 @@ $ . ~/.profile  # update $PATH for current shell
 - or just `studioinstaller`
 
 ### How to use
-- boot an Ubuntu Live CD
+- boot a Live CD/USB session
 - get the tool
-- edit the partitioning scheme and the `.seed` file according to your needs
+- edit the partitioning scheme and the `.seed` file (for Ubuntu) according to your needs
 - run the tool (use `--help` to see available options)
 - specify the target disk device (_last chance to think of backing up your data_) and press Enter
 - answer some questions depending on your configuration and OS distribution

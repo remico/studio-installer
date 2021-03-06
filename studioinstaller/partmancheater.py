@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-#  This file is part of "Ubuntu Studio Installer" project
+#  This file is part of "Linux Studio Installer" project
 #
-#  Copyright (c) 2020, REMICO
+#  Author: Roman Gladyshev <remicollab@gmail.com>
+#  License: MIT License
 #
-#  The software is provided "as is", without warranty of any kind, express or
-#  implied, including but not limited to the warranties of merchantability,
-#  fitness for a particular purpose and non-infringement. In no event shall the
-#  authors or copyright holders be liable for any claim, damages or other
-#  liability, whether in an action of contract, tort or otherwise, arising from,
-#  out of or in connection with the software or the use or other dealings in the
-#  software.
+#  SPDX-License-Identifier: MIT
+#  License text is available in the LICENSE file and online:
+#  http://www.opensource.org/licenses/MIT
+#
+#  Copyright (c) 2020 remico
 
 """Manipulates partman's file markers according to the partman rules
 
@@ -26,11 +25,6 @@ from pathlib import Path
 from spawned import Spawned, SpawnedSU, create_py_script, onExit
 
 from .scheme import Scheme
-
-__author__ = "Roman Gladyshev"
-__email__ = "remicollab@gmail.com"
-__copyright__ = "Copyright (c) 2020, REMICO"
-__license__ = "MIT"
 
 __all__ = ['PartmanCheater', 'MountPreventer']
 
@@ -173,7 +167,7 @@ class PartmanCheater:
                 echo "{fs}" > ${{partman_volume}}/acting_filesystem
             else
                 echo "keep" > ${{partman_volume}}/method
-                
+
                 while [ ! -f ${{partman_volume}}/detected_filesystem ]
                 do
                     sleep 1
