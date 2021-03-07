@@ -46,7 +46,7 @@ class PathResolver:
     @property
     def system_volumes(self):
         if not self._system_volumes:
-            t = SpawnedSU("parted /dev/sda 'unit B print all'")  # hardcoded /dev/sda does not affect result
+            t = SpawnedSU("parted -s /dev/sda 'unit B print all'")  # hardcoded /dev/sda does not affect result
 
             current_key = ""
 

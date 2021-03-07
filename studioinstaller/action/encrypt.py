@@ -33,7 +33,7 @@ class Encrypt(ActionBase):
         if passphrase:
             partition._passphrase = passphrase
         with SpawnedSU(f"cryptsetup luksFormat --type={partition.luks_type} {partition.url}") as t:
-            t.interact("^Type .*yes.*$", "YES", exact=False)
+            t.interact("Type .*yes.*$", "YES", exact=False)
             t.interact("Enter passphrase for", partition.passphrase)
             t.interact("Verify passphrase", partition.passphrase)
 
