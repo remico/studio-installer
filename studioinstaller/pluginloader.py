@@ -21,7 +21,7 @@ from spawned import logger
 from .argparser import *
 from . import util
 
-__all__ = ['PluginsLoader']
+__all__ = ['PluginLoader']
 
 ENTRY_POINT_GROUP_PLUGINS = "studioinstaller.plugins"
 
@@ -38,7 +38,7 @@ def _attr(plugin_descriptor, attr_name, default=None):
     return getattr(plugin_descriptor, attr_name, default)
 
 
-class PluginsLoader:
+class PluginLoader:
     def __init__(self):
         all_ep_groups = entry_points()
 

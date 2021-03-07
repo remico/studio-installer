@@ -27,8 +27,8 @@ from sys import exit as app_exit
 from spawned import SpawnedSU, Spawned, ask_user, SETENV, logger
 
 from .argparser import *
-from .partmancheater import PartmanCheater, MountPreventer
-from .pluginsloader import PluginsLoader
+from .partmanhelper import PartmanHelper, DisksMountHelper
+from .pluginloader import PluginLoader
 from .preinstaller import PreInstaller
 from .postinstaller import PostInstaller
 
@@ -57,13 +57,13 @@ def handle_subcmd_default(op, scheme, postinstaller, **kwargs):
         util.clear_installation_cache()
 
         # unused; just prevents partitions automounting during the OS installation
-        do_not_automount_new_partitions = MountPreventer()
+        do_not_automount_new_partitions = DisksMountHelper()
 
         preinstaller = PreInstaller(scheme)
         preinstaller.prepare_partitions()
 
         # wait for Partman and modify values in background
-        PartmanCheater(scheme).run()
+        PartmanHelper(scheme).run()
 
         run_os_installation()
 
@@ -100,7 +100,7 @@ def main():
     argparser.set_subcommand_handler(SUBCMD_DEFAULT, handle_subcmd_default)
     argparser.set_subcommand_handler(SUBCMD_SCHEME, handle_subcmd_scheme)
 
-    plugins_loader = PluginsLoader()
+    plugins_loader = PluginLoader()
     plugins_loader.extend_argparser(argparser)
 
     op = argparser.parse()

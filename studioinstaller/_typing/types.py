@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
     # top-level module
     from preinstaller import *
-    from partmancheater import *
+    from partmanhelper import *
     from scheme import *
     from postinstaller import *
 

@@ -26,7 +26,7 @@ from spawned import Spawned, SpawnedSU, create_py_script, onExit
 
 from .scheme import Scheme
 
-__all__ = ['PartmanCheater', 'MountPreventer']
+__all__ = ['PartmanHelper', 'DisksMountHelper']
 
 
 class PathResolver:
@@ -120,7 +120,7 @@ except FileNotFoundError:
     return script
 
 
-class PartmanCheater:
+class PartmanHelper:
     visuals_updater = create_py_script(_text_replacer())
 
     def __init__(self, scheme: Scheme):
@@ -128,6 +128,10 @@ class PartmanCheater:
         self.resolver = PathResolver()
 
     def run(self):
+        # check partman availability
+        if Spawned.do("which partman", with_status=True)[0] != 0:
+            return
+
         SpawnedSU.do_script(f"""
             echo "Waiting for PARTMAN files in '{PathResolver.PARTMAN_BASE}' ..."
             while [ ! -d {PathResolver.PARTMAN_BASE} ]; do
@@ -186,13 +190,13 @@ class PartmanCheater:
             """)
 
 
-class MountPreventer:
-    """Temporarily disables ``udisksd`` daemon in order to prevent auto-mounting newly created partitions"""
+class DisksMountHelper:
+    """Temporarily disables ``udisksd`` service in order to prevent auto-mounting of newly created partitions"""
 
     was_daemon_active = None
 
     def __init__(self):
-        MountPreventer.was_daemon_active = self.is_daemon_active()
+        DisksMountHelper.was_daemon_active = self.is_daemon_active()
         SpawnedSU.do("systemctl stop udisks2.service")
         print("udisks2.service stopped")
 
@@ -201,14 +205,15 @@ class MountPreventer:
 
     @staticmethod
     def is_daemon_active():
-        return Spawned.do("systemctl status udisks2.service | grep '(running)'",
-                          with_status=True)[0] == 0
+        return Spawned.do(
+                "systemctl status udisks2.service | grep '(running)'", with_status=True
+            )[0] == 0
 
     @staticmethod
     def on_exit():
-        if MountPreventer.was_daemon_active and not MountPreventer.is_daemon_active():
+        if DisksMountHelper.was_daemon_active and not DisksMountHelper.is_daemon_active():
             SpawnedSU.do("systemctl start udisks2.service")
             print("udisks2.service started")
 
 
-onExit(lambda: MountPreventer.on_exit())
+onExit(lambda: DisksMountHelper.on_exit())
