@@ -41,7 +41,7 @@ class ConfigFileBase(ABC):
         else:
             condition = util.is_editable(self.stat) if edit else util.is_readable(self.stat)
             S_ = Spawned if condition else SpawnedSU
-            S_.do_script(cmd, timeout=Spawned.TO_DEFAULT, bg=False)
+            S_.do_script(cmd, timeout=Spawned.TIMEOUT_DEFAULT, bg=False)
 
     @abstractmethod
     def replace(self, re_old: str, str_new: str):

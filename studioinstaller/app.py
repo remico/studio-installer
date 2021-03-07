@@ -37,12 +37,14 @@ from . import util
 
 
 def run_os_installation():
-    SpawnedSU.do(f"debconf-set-selections {util.preseeding_file()}")
+    if "ubuntu" in util.distro_name().lower():
+        if seed_file := util.preseeding_file():
+            SpawnedSU.do(f"debconf-set-selections {seed_file}")
 
     # parse the .desktop file to get the installation command; grep for 'ubiquity' to filter other .desktop files if any
     data = Spawned.do("grep '^Exec' ~/Desktop/*.desktop | grep 'ubiquity' | tail -1 | sed 's/^Exec=//'")
     cmd = data.replace("ubiquity", "ubiquity -b --automatic")
-    Spawned(cmd).waitfor(Spawned.TASK_END, timeout=Spawned.TO_INFINITE)
+    Spawned(cmd).waitfor(Spawned.TASK_END, timeout=Spawned.TIMEOUT_INFINITE)
 
 
 def select_target_disk():

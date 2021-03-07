@@ -40,6 +40,7 @@ __all__ = ['is_efi_boot',
            'ready_for_postinstall',
            'get_target_upass',
            'read_upass_from_preseeding_file',
+           'distro_name'
            ]
 
 
@@ -205,3 +206,7 @@ def read_upass_from_preseeding_file(pass_key):
 
     template = f"grep 'passwd/%s' {prefile} | grep -vP '#' | cut -d' ' -f4"
     return Spawned.do(template % pass_key)
+
+
+def distro_name():
+    return Spawned.do("less /etc/lsb-release | grep -oP '(?<=DISTRIB_ID=).*'")
