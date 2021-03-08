@@ -32,7 +32,7 @@ class Encrypt(ActionBase):
         assert isinstance(partition, LUKS), f"Partition {partition.id} doesn't look like a LUKS volume"
         if passphrase:
             partition._passphrase = passphrase
-        with SpawnedSU(f"cryptsetup luksFormat --type={partition.luks_type} {partition.url}") as t:
+        with SpawnedSU(f"cryptsetup luksFormat --type={partition.luks_type} {partition.url}", timeout=600) as t:
             t.interact("Type .*yes.*$", "YES", exact=False)
             t.interact("Enter passphrase for", partition.passphrase)
             t.interact("Verify passphrase", partition.passphrase)

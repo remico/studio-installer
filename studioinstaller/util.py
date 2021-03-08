@@ -24,7 +24,6 @@ __all__ = ['is_efi_boot',
            'is_volume_on_ssd',
            'volume_uuid',
            'test_luks_key',
-           'clear_installation_cache',
            'resource_file',
            'preseeding_file',
            'is_trim_supported',
@@ -76,22 +75,6 @@ def volume_uuid(volume_url):
 def test_luks_key(volume_url, key):
     exit_status = SpawnedSU.do(f"cryptsetup open --test-passphrase -d {key} {volume_url} 2>/dev/null", with_status=True)
     return exit_status[0] == 0
-
-
-def clear_installation_cache():
-    # clear partman cache
-    SpawnedSU.do("rm -rf /var/lib/partman")
-
-    # clear debconf cache
-    # note: removing the DB leads the ubiquity installer to crash
-    SpawnedSU.do_script("""
-        if [ ! -d /var/cache/debconf.back ]; then
-            cp -r /var/cache/debconf/ /var/cache/debconf.back
-        else
-            rm -rf /var/cache/debconf
-            cp -r /var/cache/debconf.back /var/cache/debconf
-        fi
-        """)
 
 
 def resource_file(filename):

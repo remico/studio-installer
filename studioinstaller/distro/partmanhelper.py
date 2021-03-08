@@ -22,11 +22,11 @@
 import re
 from pathlib import Path
 
-from spawned import Spawned, SpawnedSU, create_py_script, onExit
+from spawned import Spawned, SpawnedSU, create_py_script
 
-from .scheme import Scheme
+from ..scheme import Scheme
 
-__all__ = ['PartmanHelper', 'DisksMountHelper']
+__all__ = ['PartmanHelper']
 
 
 class PathResolver:
@@ -188,32 +188,3 @@ class PartmanHelper:
             python3 "{self.visuals_updater}" "${{partman_volume}}/../partition_tree_cache" "{do_format}" "{mountpoint}"
             python3 "{self.visuals_updater}" "{PathResolver.PARTMAN_BASE}/snoop" "{do_format}" "{mountpoint}"
             """)
-
-
-class DisksMountHelper:
-    """Temporarily disables ``udisksd`` service in order to prevent auto-mounting of newly created partitions"""
-
-    was_daemon_active = None
-
-    def __init__(self):
-        DisksMountHelper.was_daemon_active = self.is_daemon_active()
-        SpawnedSU.do("systemctl stop udisks2.service")
-        print("udisks2.service stopped")
-
-    def __del__(self):
-        self.on_exit()
-
-    @staticmethod
-    def is_daemon_active():
-        return Spawned.do(
-                "systemctl status udisks2.service | grep '(running)'", with_status=True
-            )[0] == 0
-
-    @staticmethod
-    def on_exit():
-        if DisksMountHelper.was_daemon_active and not DisksMountHelper.is_daemon_active():
-            SpawnedSU.do("systemctl start udisks2.service")
-            print("udisks2.service started")
-
-
-onExit(lambda: DisksMountHelper.on_exit())

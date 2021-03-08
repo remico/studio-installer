@@ -27,24 +27,14 @@ from sys import exit as app_exit
 from spawned import SpawnedSU, Spawned, ask_user, SETENV, logger
 
 from .argparser import *
-from .partmanhelper import PartmanHelper, DisksMountHelper
+from .disksmounthelper import DisksMountHelper
+from .distro import InstallerFactory
 from .pluginloader import PluginLoader
 from .preinstaller import PreInstaller
 from .postinstaller import PostInstaller
 
 from . import partitioning
 from . import util
-
-
-def run_os_installation():
-    if "ubuntu" in util.distro_name().lower():
-        if seed_file := util.preseeding_file():
-            SpawnedSU.do(f"debconf-set-selections {seed_file}")
-
-    # parse the .desktop file to get the installation command; grep for 'ubiquity' to filter other .desktop files if any
-    data = Spawned.do("grep '^Exec' ~/Desktop/*.desktop | grep 'ubiquity' | tail -1 | sed 's/^Exec=//'")
-    cmd = data.replace("ubiquity", "ubiquity -b --automatic")
-    Spawned(cmd).waitfor(Spawned.TASK_END, timeout=Spawned.TIMEOUT_INFINITE)
 
 
 def select_target_disk():
@@ -54,24 +44,20 @@ def select_target_disk():
 
 def handle_subcmd_default(op, scheme, postinstaller, **kwargs):
     if not op.n:
-        util.clear_installation_cache()
-
         # unused; just prevents partitions automounting during the OS installation
         do_not_automount_new_partitions = DisksMountHelper()
 
         preinstaller = PreInstaller(scheme)
         preinstaller.prepare_partitions()
 
-        # wait for Partman and modify values in background
-        PartmanHelper(scheme).run()
-
-        run_os_installation()
+        os_installer = InstallerFactory.getInstaller(scheme)
+        os_installer.start()
 
     if util.ready_for_postinstall(op.chroot):
         # do mandatory post-installation actions
         postinstaller.run()
 
-        # install the tool into target OS (will be available after reboot)
+        # install the tool into the target OS so that it will be available after reboot
         if op.inject is not None:
             # NOTE: magic values, defined by argparser setup
             postinstaller.inject_tool(extras='extra' in op.inject,
