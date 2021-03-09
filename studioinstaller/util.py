@@ -54,8 +54,7 @@ _tp = tagged_printer("[util]")
 
 
 def is_efi_boot():
-    exit_status = Spawned.do("mount | grep efivars", with_status=True)
-    return exit_status[0] == 0
+    return Spawned.do("mount | grep efivars", with_status=True).success
 
 
 def is_volume_on_ssd(volume_url):
@@ -73,8 +72,10 @@ def volume_uuid(volume_url):
 
 
 def test_luks_key(volume_url, key):
-    exit_status = SpawnedSU.do(f"cryptsetup open --test-passphrase -d {key} {volume_url} 2>/dev/null", with_status=True)
-    return exit_status[0] == 0
+    return SpawnedSU.do(
+            f"cryptsetup open --test-passphrase -d {key} {volume_url} 2>/dev/null",
+            with_status=True
+        ).success
 
 
 def resource_file(filename):

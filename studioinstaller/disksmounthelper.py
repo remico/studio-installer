@@ -33,8 +33,9 @@ class DisksMountHelper:
     @staticmethod
     def is_daemon_active():
         return Spawned.do(
-                "systemctl status udisks2.service | grep '(running)'", with_status=True
-            )[0] == 0
+                "systemctl status udisks2.service | grep '(running)'",
+                with_status=True
+            ).success
 
     @staticmethod
     def on_exit():

@@ -129,7 +129,7 @@ class PartmanHelper:
 
     def run(self):
         # check partman availability
-        if Spawned.do("which partman", with_status=True)[0] != 0:
+        if not Spawned.do("which partman", with_status=True).success:
             return
 
         SpawnedSU.do_script(f"""
