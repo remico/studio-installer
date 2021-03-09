@@ -16,45 +16,24 @@
 
 from pathlib import Path
 
-from spawned import SpawnedSU, ChrootContext, ENV, Spawned
+from spawned import ChrootContext, ENV, Spawned
 
-from .action import Involve, Release
-from .configfile import IniConfig, FstabConfig
-from .partition.base import LUKS, Container, FS
-from .scheme import Scheme
-from . import util
+from ..postinstaller import PostInstaller
+from ...configfile import IniConfig, FstabConfig
+from ...partition.base import LUKS, Container, FS
+from ...scheme import Scheme
+from ... import util
 
-__all__ = ['PostInstaller']
+__all__ = ['UbuntuPostInstaller']
 
 
-class PostInstaller:
+class UbuntuPostInstaller(PostInstaller):
     def __init__(self, scheme: Scheme, bl_disk: str, chroot: str):
         self.scheme = scheme
         self.chroot = chroot
         self.bl_disk = bl_disk
 
-    def mount_target_system(self):
-        SpawnedSU.do(f"mkdir -p {self.chroot}")
-        self.scheme.execute(Involve(chroot=self.chroot))
-
-        SpawnedSU.do(f"""
-            for n in sys dev etc/resolv.conf; do
-                mount --bind /$n {self.chroot}/$n;
-            done
-            mount -t proc none {self.chroot}/proc
-            mount -t devpts devpts {self.chroot}/dev/pts
-            """)
-
-    def unmount_target_system(self):
-        SpawnedSU.do(f"""
-            for n in dev/pts dev proc sys etc/resolv.conf; do
-                umount {self.chroot}/$n;
-            done
-            """)
-
-        self.scheme.execute(Release())
-
-    def run(self):
+    def _run(self):
         self.mount_target_system()
 
         with ChrootContext(self.chroot) as cntx:
@@ -78,7 +57,7 @@ class PostInstaller:
             cntx.do("apt -q install -y python3-pip git > /dev/null")
 
             # install the tool into the target system
-            x_all = '[all]' if extras else ''
+            x_all = '[seed]' if extras else ''
             x_dev = '--pre' if develop else ''
             cmd_inject = f"pip3 install -U --force-reinstall --extra-index-url=https://remico.github.io/pypi" \
                          f"studioinstaller{x_all} {x_dev}"

@@ -24,7 +24,7 @@ from pathlib import Path
 
 from spawned import Spawned, SpawnedSU, create_py_script
 
-from ..scheme import Scheme
+from ...scheme import Scheme
 
 __all__ = ['PartmanHelper']
 

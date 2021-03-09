@@ -12,6 +12,3 @@
 #
 #  Copyright (c) 2021 remico
 
-from .distrofactory import *
-from .osinstaller import *
-from .postinstaller import *

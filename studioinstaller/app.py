@@ -28,10 +28,9 @@ from spawned import SpawnedSU, Spawned, ask_user, SETENV, logger
 
 from .argparser import *
 from .disksmounthelper import DisksMountHelper
-from .distro import InstallerFactory
+from .distro import DistroFactory, PostInstaller, OsInstaller
 from .pluginloader import PluginLoader
 from .preinstaller import PreInstaller
-from .postinstaller import PostInstaller
 
 from . import partitioning
 from . import util
@@ -43,6 +42,9 @@ def select_target_disk():
 
 
 def handle_subcmd_default(op, scheme, postinstaller, **kwargs):
+    if op.hard:
+        postinstaller.unmount_target_system()
+
     if not op.n:
         # unused; just prevents partitions automounting during the OS installation
         do_not_automount_new_partitions = DisksMountHelper()
@@ -50,12 +52,12 @@ def handle_subcmd_default(op, scheme, postinstaller, **kwargs):
         preinstaller = PreInstaller(scheme)
         preinstaller.prepare_partitions()
 
-        os_installer = InstallerFactory.getInstaller(scheme)
-        os_installer.start()
+        os_installer = DistroFactory.getInstaller(scheme)
+        os_installer.execute()
 
     if util.ready_for_postinstall(op.chroot):
         # do mandatory post-installation actions
-        postinstaller.run()
+        postinstaller.execute()
 
         # install the tool into the target OS so that it will be available after reboot
         if op.inject is not None:
@@ -108,7 +110,7 @@ def main():
 
     target_disk = select_target_disk()
     scheme = partitioning.scheme(target_disk)
-    postinstaller = PostInstaller(scheme, target_disk, op.chroot)
+    postinstaller = DistroFactory.getPostInstaller(scheme, op, target_disk)
 
     # call a bound function (defined by argparser)
     op.func(op, postinstaller=postinstaller, scheme=scheme)

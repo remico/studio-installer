@@ -19,12 +19,13 @@ __all__ = ['DisksMountHelper']
 class DisksMountHelper:
     """Temporarily disables ``udisksd`` service in order to prevent auto-mounting of newly created partitions"""
 
-    was_daemon_active = None
+    daemon_active = None
 
     def __init__(self):
-        DisksMountHelper.was_daemon_active = self.is_daemon_active()
-        SpawnedSU.do("systemctl stop udisks2.service")
-        print("udisks2.service stopped")
+        DisksMountHelper.daemon_active = self.is_daemon_active()
+        if DisksMountHelper.daemon_active:
+            SpawnedSU.do("systemctl stop udisks2.service")
+            print("udisks2.service stopped")
 
     def __del__(self):
         self.on_exit()
@@ -37,7 +38,7 @@ class DisksMountHelper:
 
     @staticmethod
     def on_exit():
-        if DisksMountHelper.was_daemon_active and not DisksMountHelper.is_daemon_active():
+        if DisksMountHelper.daemon_active and not DisksMountHelper.is_daemon_active():
             SpawnedSU.do("systemctl start udisks2.service")
             print("udisks2.service started")
 
