@@ -19,6 +19,7 @@
 - create an LVM LV
 """
 
+import re
 from spawned import SpawnedSU, Spawned
 
 from .actionbase import ActionBase, _sort_key
@@ -65,8 +66,8 @@ class Create(ActionBase):
         if locally:
             t = SpawnedSU(f"gdisk {partition.disk}")
 
-        # extract numeric ID value from the actual id (e.g. '1' from 'sda1')
-        partition_id = ''.join([ch for ch in partition.id if ch.isdigit()])
+        # extract numeric ID value from the whole id value (e.g. '1' from 'sda1')
+        partition_id = m.group(1) if m := re.match(r".*(\d*)$", partition.id) else ''
 
         basic_prompt = "Command (? for help)"
         t.interact(basic_prompt, "n")
