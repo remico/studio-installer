@@ -67,7 +67,7 @@ class Create(ActionBase):
             t = SpawnedSU(f"gdisk {partition.disk}")
 
         # extract numeric ID value from the whole id value (e.g. '1' from 'sda1')
-        partition_id = m.group(1) if m := re.match(r".*(\d*)$", partition.id) else ''
+        partition_id = m.group(1) if (m := re.match(r".*(\d*)$", partition.id)) else ''
 
         basic_prompt = "Command (? for help)"
         t.interact(basic_prompt, "n")

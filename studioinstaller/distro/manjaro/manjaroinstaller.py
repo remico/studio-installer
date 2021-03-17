@@ -30,7 +30,7 @@ class ManjaroInstaller(OsInstaller):
         if not Path("/etc/calamares").exists():
                 return
 
-        packagename = str(__package__).split('.')[0]  # top-level package
+        packagename = str(__package__).split('.')[0]  # top-level package name
         calamares_modules = [
             str(f.locate()) for f in app_files(packagename) if "calamares" in str(f) and str(f).endswith(".conf")
         ]

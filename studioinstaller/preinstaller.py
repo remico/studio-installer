@@ -14,7 +14,9 @@
 
 """Prepare partitions for OS installation according to the partitioning scheme"""
 
-from spawned import ask_user, logger as log
+import re
+
+from spawned import ask_user, logger as log, SpawnedSU
 
 from .action import Create, Format
 from .partition.base import Partition, FS
@@ -55,10 +57,27 @@ class PreInstaller:
             assert "efi" not in pt.mountpoint or is_efi_boot(), \
                 "Partitioning scheme contains a EFI partition while the system doesn't look to booted in EFI mode"
 
+    def free_space_on_disks(self):
+        for disk in self.scheme.disks():
+            # ask for clearing the whole disk
+            if 'y' == ask_user(f"Delete all partitions on disk '{disk.url}'? [y/N]:").lower():
+                disk.create_new_partition_table()
+
+            # otherwise ask for removing individual partitions
+            else:
+                t = SpawnedSU(f"parted {disk.url} print")
+                partitions = [line for line in t.datalines if line.strip() and line.strip()[0].isdigit()]
+
+                for partition in partitions:
+                    partition_colored = log.ok_blue_s(partition.strip())  # strip and colorize
+                    print(f"Partition [[ {partition_colored} ]]")
+
+                    if 'y' == ask_user("Delete [y/N]:").lower():
+                        partition_id = re.search(r"(\d+)", partition).group()
+                        SpawnedSU.do(f"sgdisk --delete={partition_id} {disk.url}")
+                        print(f" * Partition {disk.url}{partition_id} DELETED", end="\n\n")
+
     def prepare_partitions(self):
-        for d in self.scheme.disks():
-            # TODO support pre-existing partitions
-            if may_clear_whole_disk := True:
-                d.create_new_partition_table()
+        self.free_space_on_disks()
         self.scheme.execute(Create())
         self.scheme.execute(Format())

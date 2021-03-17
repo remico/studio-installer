@@ -51,10 +51,17 @@ class Scheme:
         return list(disks)
 
     def partitions(self, *types, new=None, disk=None) -> List[Partition]:
-        # TODO filter by disk
-        types = types or (Partition,)  # return the whole scheme if no types specified
-        return [pt for pt in self.scheme if all(isinstance(pt, T) for T in types)
-                and (pt.is_new == new if new is not None else True)]
+        """
+        ``types`` - return only subclasses of the Partition class
+        ``new`` - return only new partitions
+        ``disk`` - return only partitions on this disk
+        """
+        types = types or (Partition,)
+        return [pt for pt in self.scheme
+                    if all(isinstance(pt, T) for T in types)
+                        # and (pt.disk == disk if disk is not None else True)
+                        and (pt.is_new == new if new is not None else True)
+                ]
 
     def partition(self, mountpoint) -> Partition:
         return next((pt for pt in self.scheme if mountpoint in pt.mountpoint), None)

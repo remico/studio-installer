@@ -21,8 +21,7 @@ __all__ = ['MediumBase', 'URL_PV', 'URL_DISK', 'URL_MAPPED', 'URL_LVM_LV']
 
 
 def _cut_trailing_digits(s):
-    # cut trailing digits
-    return m.group(1) if m := re.match(r"(.*)\d*$", s) else ''
+    return m.group(1) if (m := re.match(r"(.*)\d*$", s)) else ''
 
 
 def URL_PV(id_):
