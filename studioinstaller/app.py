@@ -37,7 +37,7 @@ from . import util
 
 
 def select_target_disk():
-    SpawnedSU.do(r"parted -ls | egrep --color 'Disk\s+/dev|[kMG\d]B\s|Size'")
+    SpawnedSU.do(r"parted -ls 2>/dev/null | egrep --color 'Disk\s+/dev|[kMG\d]B\s|Size'")
     return ask_user("Select target disk:")
 
 

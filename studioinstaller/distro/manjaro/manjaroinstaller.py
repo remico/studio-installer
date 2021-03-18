@@ -39,4 +39,7 @@ class ManjaroInstaller(OsInstaller):
 
     def _begin_installation(self):
         # Spawned.do("/usr/bin/calamares_polkit", timeout=Spawned.TIMEOUT_INFINITE)
-        SpawnedSU.do("setup", timeout=Spawned.TIMEOUT_INFINITE)
+
+        t = SpawnedSU("setup", timeout=Spawned.TIMEOUT_INFINITE)
+        t.interact_user()
+        t.waitfor(SpawnedSU.TASK_END)

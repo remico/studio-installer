@@ -66,14 +66,13 @@ class PreInstaller:
             # otherwise ask for removing individual partitions
             else:
                 t = SpawnedSU(f"parted {disk.url} print")
-                partitions = [line for line in t.datalines if line.strip() and line.strip()[0].isdigit()]
+                partitions = [line.strip() for line in t.datalines if line.strip() and line.strip()[0].isdigit()]
 
                 for partition in partitions:
-                    partition_colored = log.ok_blue_s(partition.strip())  # strip and colorize
-                    print(f"Partition [[ {partition_colored} ]]")
+                    print(f"Partition [[ {log.ok_blue_s(partition)} ]]")
+                    partition_id = re.search(r"(\d+)", partition).group()
 
-                    if 'y' == ask_user("Delete [y/N]:").lower():
-                        partition_id = re.search(r"(\d+)", partition).group()
+                    if 'y' == ask_user(f"Delete partition {disk.url}{partition_id} [y/N]:").lower():
                         SpawnedSU.do(f"sgdisk --delete={partition_id} {disk.url}")
                         print(f" * Partition {disk.url}{partition_id} DELETED", end="\n\n")
 
