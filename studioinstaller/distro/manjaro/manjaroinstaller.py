@@ -38,8 +38,9 @@ class ManjaroInstaller(OsInstaller):
             SpawnedSU.do(f"mkdir -p /etc/calamares/modules && cp {' '.join(calamares_modules)} /etc/calamares/modules")
 
     def _begin_installation(self):
-        # Spawned.do("/usr/bin/calamares_polkit", timeout=Spawned.TIMEOUT_INFINITE)
-
-        t = SpawnedSU("setup", timeout=Spawned.TIMEOUT_INFINITE)
-        t.interact_user()
-        t.waitfor(SpawnedSU.TASK_END)
+        if 0:  # calamares
+            Spawned.do("/usr/bin/calamares_polkit", timeout=Spawned.TIMEOUT_INFINITE)
+        else:  # manjaro architect
+            t = SpawnedSU("setup", timeout=Spawned.TIMEOUT_INFINITE)
+            t.interact_user()
+            t.waitfor(SpawnedSU.TASK_END)

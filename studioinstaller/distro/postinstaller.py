@@ -43,7 +43,7 @@ class PostInstaller(ABC):
 
     def unmount_target_system(self):
         SpawnedSU.do(f"""
-            for n in dev/pts dev proc sys etc/resolv.conf; do
+            for n in dev/pts dev proc sys run etc/resolv.conf; do
                 umount {self.chroot}/$n;
             done
             """)

@@ -75,7 +75,7 @@ class ArgParser:
         self.subcmd_parsers[cmd_name].set_defaults(func=handler)
 
     def parse(self):
-        """Implement "default" sub-command (it can be omitted and will be passed implicitly)"""
+        """Implements "default" sub-command so that it can be omitted and will be passed implicitly"""
 
         # first try to parse only known args (to avoid parsing errors)
         parsing_result = self.argparser.parse_known_args()
