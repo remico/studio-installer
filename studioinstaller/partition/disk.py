@@ -25,12 +25,8 @@ class Disk(MediumBase):
         super().__init__(id_=id_.replace('/dev/', ''), **kwargs)
 
     def create_new_partition_table(self):
-        basic_prompt = "Command (? for help)"
-        with SpawnedSU(f"gdisk {self.url}") as t:
-            t.interact(basic_prompt, "o")
-            t.interact("Proceed?", "Y")
-            t.interact(basic_prompt, "w")
-            t.interact("proceed?", "Y")
+        SpawnedSU.do(f"sgdisk --zap-all {self.url}")
+
 
     @property
     def url(self):
