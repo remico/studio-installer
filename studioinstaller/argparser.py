@@ -17,6 +17,8 @@
 import argparse
 from sys import argv as sys_argv
 
+from .distro.distrofactory import DistroFactory
+
 __all__ = ['ArgParser', 'SUBCMD_DEFAULT', 'SUBCMD_SCHEME']
 
 SUBCMD_DEFAULT = "default"
@@ -41,7 +43,7 @@ class ArgParser:
         argparser.add_argument("--version", action="store_true", help="Show version and exit")
         argparser.add_argument("--selftest", action="store_true", help="Check environment and own resources and exit")
 
-        DEFAULT_CHROOT = "/target"
+        DEFAULT_CHROOT = DistroFactory.defaultChrootDir()
         argparser.add_argument("--chroot", type=str, default=DEFAULT_CHROOT,
                                help=f"Target system's mountpoint (Default: {DEFAULT_CHROOT})")
 

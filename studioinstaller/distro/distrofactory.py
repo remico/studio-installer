@@ -30,6 +30,13 @@ class DistroFactory:
     distro_name = util.distro_name().lower()
 
     @staticmethod
+    def defaultChrootDir():
+        if "ubuntu" in DistroFactory.distro_name:
+            return "/target"
+        elif "manjaro" in DistroFactory.distro_name:
+            return "/mnt"
+
+    @staticmethod
     def getInstaller(scheme) -> OsInstaller:
         if "ubuntu" in DistroFactory.distro_name:
             return UbuntuInstaller(scheme)
