@@ -57,7 +57,7 @@ def handle_subcmd_default(conf):
         preinstaller = PreInstaller(conf.scheme)
         preinstaller.prepare_partitions()
 
-        os_installer = DistroFactory.getInstaller(conf.scheme)
+        os_installer = DistroFactory.getInstaller(conf)
         os_installer.execute()
 
     if util.ready_for_postinstall(conf.op.chroot):

@@ -15,15 +15,36 @@
 """Make file system"""
 
 from spawned import SpawnedSU
+
 from .actionbase import ActionBase
+from ..partition.base import VType
 
 __all__ = ['Format']
 
 
 def _options(partition):
         opts = []
-        if partition.fs == "btrfs":
+
+        if partition.mountpoint == "swap":
+            if partition.label:
+                opts.append(f"-L {partition.label}")
+
+        elif "efi" in partition.mountpoint:
+            opts.append("-F32")
+
+            if partition.label:
+                opts.append(f"-n {partition.label}")
+
+        elif partition.fs == "btrfs":
             opts.append('-f')
+
+            if partition.label:
+                opts.append(f"-L {partition.label}")
+
+        elif "ext" in partition.fs:
+            if partition.label:
+                opts.append(f"-L {partition.label}")
+
         return ' '.join(opts)
 
 
@@ -36,15 +57,15 @@ class Format(ActionBase):
     @staticmethod
     def _format(partition):
         if "efi" in partition.mountpoint:
-            cmd = "mkfs.vfat -F32 %s"
+            cmd = f"mkfs.vfat {_options(partition)} %s"
         elif partition.mountpoint == "/boot":
-            cmd = "mkfs.ext2 %s"
+            cmd = f"mkfs.ext2 {_options(partition)} %s"
         elif partition.mountpoint == "swap":
-            cmd = "mkswap %s"
+            cmd = f"mkswap {_options(partition)} %s"
         elif partition.fs:
             cmd = f"mkfs.{partition.fs} {_options(partition)} %s"
         else:
-            cmd = "mkfs.ext4 %s"
+            cmd = f"mkfs.ext4 {_options(partition)} %s"
         SpawnedSU.do(cmd % partition.url)
 
     def serve_standard_pv(self, pt):

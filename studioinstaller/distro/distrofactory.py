@@ -32,11 +32,11 @@ class DistroFactory:
     distro_name = util.distro_name().lower()
 
     @staticmethod
-    def getInstaller(scheme) -> OsInstaller:
+    def getInstaller(runtime_config: RuntimeConfig) -> OsInstaller:
         if "ubuntu" in DistroFactory.distro_name:
-            return UbuntuInstaller(scheme)
+            return UbuntuInstaller(runtime_config)
         elif "manjaro" in DistroFactory.distro_name:
-            return ManjaroInstaller(scheme)
+            return ManjaroInstaller(runtime_config)
 
     @staticmethod
     def getPostInstaller(runtime_config: RuntimeConfig) -> PostInstaller:

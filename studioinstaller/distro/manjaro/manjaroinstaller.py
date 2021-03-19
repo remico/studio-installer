@@ -25,7 +25,7 @@ __all__ = ['ManjaroInstaller']
 
 class ManjaroInstaller(OsInstaller):
     def _prepare_installation(self):
-        postinsaller = Mounter(self.chroot, self.scheme).unmount_target_system()
+        Mounter(self.chroot, self.scheme).mount_target_system()
 
     def _setup_unattended_installation(self):
         if not Path("/etc/calamares").exists():
