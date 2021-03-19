@@ -90,8 +90,6 @@ class Create(ActionBase):
             t.interact("proceed?", "Y")
             t.waitfor(Spawned.TASK_END)
 
-        SpawnedSU.do("partprobe")
-
     def serve_standard_pv(self, pt):
         self._create(pt)
 
