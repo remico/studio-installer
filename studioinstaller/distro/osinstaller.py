@@ -14,11 +14,14 @@
 
 from abc import abstractmethod, ABC
 
+from ..runtimeconfig import RuntimeConfig
+
 __all__ = ['OsInstaller']
 
 class OsInstaller(ABC):
-    def __init__(self, scheme) -> None:
-        self.scheme = scheme
+    def __init__(self, runtime_config: RuntimeConfig) -> None:
+        self.scheme = runtime_config.scheme
+        self.chroot = runtime_config.op.chroot
 
     def execute(self):
         self._prepare_installation()

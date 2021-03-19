@@ -18,13 +18,14 @@ from importlib.metadata import files as app_files
 from spawned import Spawned, SpawnedSU
 
 from ..osinstaller import OsInstaller
+from ...mounter import Mounter
 
 __all__ = ['ManjaroInstaller']
 
 
 class ManjaroInstaller(OsInstaller):
     def _prepare_installation(self):
-        pass
+        postinsaller = Mounter(self.chroot, self.scheme).unmount_target_system()
 
     def _setup_unattended_installation(self):
         if not Path("/etc/calamares").exists():

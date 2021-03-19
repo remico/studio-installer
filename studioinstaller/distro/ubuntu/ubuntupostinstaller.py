@@ -28,17 +28,12 @@ __all__ = ['UbuntuPostInstaller']
 
 
 class UbuntuPostInstaller(PostInstaller):
-    def __init__(self, runtime_config: RuntimeConfig):
-        self.scheme = runtime_config.scheme
-        self.chroot = runtime_config.op.chroot
-        self.bl_disk = runtime_config.disk
-
     def _run(self):
-        self.mount_target_system()
+        self.mounter.mount_target_system()
 
         with ChrootContext(self.chroot) as cntx:
             # TODO check if /boot is encrypted and pass cryptoboot accordingly
-            setup_bootloader(cntx, self.bl_disk, grub_id="studio", cryptoboot=True)
+            setup_bootloader(cntx, self.disk, grub_id="studio", cryptoboot=True)
 
             luks_volumes = self.scheme.partitions(LUKS, Container)
             setup_luks_volumes(cntx, luks_volumes)
@@ -48,10 +43,10 @@ class UbuntuPostInstaller(PostInstaller):
             cntx.do("update-initramfs -u -k all")
             setup_fstrim_timer(cntx)
 
-        self.unmount_target_system()
+        self.mounter.unmount_target_system()
 
     def inject_tool(self, extras=False, develop=False):
-        self.mount_target_system()
+        self.mounter.mount_target_system()
 
         with ChrootContext(self.chroot) as cntx:
             cntx.do("apt -q install -y python3-pip git > /dev/null")
@@ -71,7 +66,7 @@ class UbuntuPostInstaller(PostInstaller):
                 tmp = str(cntx.chroot_tmp).replace(cntx.root, "")
                 cntx.do(f"pip3 install -U {Path(tmp, repo_name)}")
 
-        self.unmount_target_system()
+        self.mounter.unmount_target_system()
 
 
 def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):

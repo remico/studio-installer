@@ -29,6 +29,7 @@ from spawned import SpawnedSU, Spawned, ask_user, SETENV, logger
 from .argparser import *
 from .disksmounthelper import DisksMountHelper
 from .distro import DistroFactory, PostInstaller, OsInstaller
+from .mounter import Mounter
 from .pluginloader import PluginLoader
 from .preinstaller import PreInstaller
 from .runtimeconfig import RuntimeConfig
@@ -43,10 +44,11 @@ def select_target_disk():
 
 
 def handle_subcmd_default(conf):
+    mounter = Mounter(conf.op.chroot, conf.scheme)
     postinstaller = DistroFactory.getPostInstaller(conf)
 
     if conf.op.hard:
-        postinstaller.unmount_target_system()
+        mounter.unmount_target_system()
 
     if not conf.op.n:
         # unused; just prevents partitions automounting during the OS installation
@@ -70,19 +72,18 @@ def handle_subcmd_default(conf):
     else:
         logger.warning("It looks like the target system is not ready for post-installation actions. "
                        "Trying to unmount the whole partitioning scheme and exit.")
-        conf.postinstaller.unmount_target_system()
+        mounter.unmount_target_system()
 
 
 def handle_subcmd_scheme(conf):
-    postinstaller = DistroFactory.getPostInstaller(conf)
+    mounter = Mounter(conf.op.chroot, conf.scheme)
 
     if conf.op.mount:
-        postinstaller.chroot = conf.op.mount  # op.mount value takes precedence over op.chroot for 'mount' command
-        postinstaller.mount_target_system()
+        mounter.mount_target_system()
         app_exit()
 
     if conf.op.umount or conf.op.hard:
-        postinstaller.unmount_target_system()
+        mounter.unmount_target_system()
         conf.op.umount and app_exit()  # exit if this option specified
 
 

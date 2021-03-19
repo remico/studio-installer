@@ -20,6 +20,13 @@ from .actionbase import ActionBase
 __all__ = ['Format']
 
 
+def _options(partition):
+        opts = []
+        if partition.fs == "btrfs":
+            opts.append('-f')
+        return ' '.join(opts)
+
+
 class Format(ActionBase):
     def iterator(self, scheme):
         # filter only partitions to be formatted
@@ -35,7 +42,7 @@ class Format(ActionBase):
         elif partition.mountpoint == "swap":
             cmd = "mkswap %s"
         elif partition.fs:
-            cmd = f"mkfs.{partition.fs} %s"
+            cmd = f"mkfs.{partition.fs} {_options(partition)} %s"
         else:
             cmd = "mkfs.ext4 %s"
         SpawnedSU.do(cmd % partition.url)

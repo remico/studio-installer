@@ -14,40 +14,21 @@
 
 from abc import abstractclassmethod, ABC
 
-from spawned import SpawnedSU
-
-from ..action import Involve, Release
+from ..runtimeconfig import RuntimeConfig
+from ..mounter import Mounter
 
 __all__ = ['PostInstaller']
 
 
 class PostInstaller(ABC):
-    def __init__(self, scheme, op) -> None:
-        self.scheme = scheme
-        self.op = op
+    def __init__(self, runtime_config: RuntimeConfig) -> None:
+        self.scheme = runtime_config.scheme
+        self.chroot = runtime_config.op.chroot
+        self.disk = runtime_config.disk
+        self.mounter = Mounter(self.chroot, self.scheme)
 
     def execute(self):
         self._run()
-
-    def mount_target_system(self):
-        SpawnedSU.do(f"mkdir -p {self.chroot}")
-        self.scheme.execute(Involve(chroot=self.chroot))
-
-        SpawnedSU.do(f"""
-            for n in sys proc dev etc/resolv.conf; do
-                mount --bind /$n {self.chroot}/$n;
-            done
-            mount -t devpts devpts {self.chroot}/dev/pts
-            """)
-
-    def unmount_target_system(self):
-        mounts = SpawnedSU.do(f'mount | grep "{self.chroot}" | cut -d" " -f3', list_=True)
-        mounts.reverse()
-
-        for m in mounts:
-            SpawnedSU.do(f"umount {m}")
-
-        self.scheme.execute(Release())
 
     @abstractclassmethod
     def _run(self):
