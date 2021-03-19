@@ -28,7 +28,7 @@ from spawned import SpawnedSU, Spawned, ask_user, SETENV, logger
 
 from .argparser import *
 from .disksmounthelper import DisksMountHelper
-from .distro import DistroFactory, PostInstaller, OsInstaller
+from .distro import DistroFactory
 from .mounter import Mounter
 from .pluginloader import PluginLoader
 from .preinstaller import PreInstaller
@@ -69,7 +69,7 @@ def handle_subcmd_default(conf):
             if conf.op.inject is not None:
                 # NOTE: magic values, defined by argparser setup
                 postinstaller.inject_tool(extras='extra' in conf.op.inject,
-                                            develop='devel' in conf.op.inject)
+                                          develop='devel' in conf.op.inject)
         else:
             logger.warning("It looks like the target system is not ready for post-installation actions. "
                         "Trying to unmount the whole partitioning scheme and exit.")
@@ -77,7 +77,7 @@ def handle_subcmd_default(conf):
 
 
 def handle_subcmd_scheme(conf):
-    mounter = Mounter(conf.op.chroot, conf.scheme)
+    mounter = Mounter(conf.op.mount or conf.op.chroot, conf.scheme)
 
     if conf.op.mount:
         mounter.mount_target_system()
