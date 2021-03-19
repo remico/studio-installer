@@ -60,19 +60,20 @@ def handle_subcmd_default(conf):
         os_installer = DistroFactory.getInstaller(conf)
         os_installer.execute()
 
-    if util.ready_for_postinstall(conf.op.chroot):
-        # do mandatory post-installation actions
-        postinstaller.execute()
+    if not conf.op.N:
+        if util.ready_for_postinstall(conf.op.chroot):
+            # do mandatory post-installation actions
+            postinstaller.execute()
 
-        # install the tool into the target OS so that it will be available after reboot
-        if conf.op.inject is not None:
-            # NOTE: magic values, defined by argparser setup
-            postinstaller.inject_tool(extras='extra' in conf.op.inject,
-                                           develop='devel' in conf.op.inject)
-    else:
-        logger.warning("It looks like the target system is not ready for post-installation actions. "
-                       "Trying to unmount the whole partitioning scheme and exit.")
-        mounter.unmount_target_system()
+            # install the tool into the target OS so that it will be available after reboot
+            if conf.op.inject is not None:
+                # NOTE: magic values, defined by argparser setup
+                postinstaller.inject_tool(extras='extra' in conf.op.inject,
+                                            develop='devel' in conf.op.inject)
+        else:
+            logger.warning("It looks like the target system is not ready for post-installation actions. "
+                        "Trying to unmount the whole partitioning scheme and exit.")
+            mounter.unmount_target_system()
 
 
 def handle_subcmd_scheme(conf):
