@@ -12,6 +12,8 @@
 #
 #  Copyright (c) 2021 remico
 
+from ..runtimeconfig import RuntimeConfig
+
 from .osinstaller import OsInstaller
 from .postinstaller import PostInstaller
 
@@ -30,13 +32,6 @@ class DistroFactory:
     distro_name = util.distro_name().lower()
 
     @staticmethod
-    def defaultChrootDir():
-        if "ubuntu" in DistroFactory.distro_name:
-            return "/target"
-        elif "manjaro" in DistroFactory.distro_name:
-            return "/mnt"
-
-    @staticmethod
     def getInstaller(scheme) -> OsInstaller:
         if "ubuntu" in DistroFactory.distro_name:
             return UbuntuInstaller(scheme)
@@ -44,8 +39,8 @@ class DistroFactory:
             return ManjaroInstaller(scheme)
 
     @staticmethod
-    def getPostInstaller(scheme, op, target_disk) -> PostInstaller:
+    def getPostInstaller(runtime_config: RuntimeConfig) -> PostInstaller:
         if "ubuntu" in DistroFactory.distro_name:
-            return UbuntuPostInstaller(scheme, target_disk, op.chroot)
+            return UbuntuPostInstaller(runtime_config)
         elif "manjaro" in DistroFactory.distro_name:
-            return ManjaroPostInstaller(scheme, target_disk, op.chroot)
+            return ManjaroPostInstaller(runtime_config)

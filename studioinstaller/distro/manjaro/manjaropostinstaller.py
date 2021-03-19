@@ -13,15 +13,16 @@
 #  Copyright (c) 2021 remico
 
 from ..postinstaller import PostInstaller
+from ...runtimeconfig import RuntimeConfig
 
 __all__ = ['ManjaroPostInstaller']
 
 
 class ManjaroPostInstaller(PostInstaller):
-    def __init__(self, scheme, bl_disk: str, chroot: str) -> None:
-        self.scheme = scheme
-        self.chroot = chroot
-        self.bl_disk = bl_disk
+    def __init__(self, runtime_config: RuntimeConfig) -> None:
+        self.scheme = runtime_config.scheme
+        self.chroot = runtime_config.op.chroot
+        self.bl_disk = runtime_config.disk
 
     def _run(self):
         self.mount_target_system()

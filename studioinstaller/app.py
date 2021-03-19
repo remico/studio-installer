@@ -31,6 +31,7 @@ from .disksmounthelper import DisksMountHelper
 from .distro import DistroFactory, PostInstaller, OsInstaller
 from .pluginloader import PluginLoader
 from .preinstaller import PreInstaller
+from .runtimeconfig import RuntimeConfig
 
 from . import partitioning
 from . import util
@@ -41,44 +42,48 @@ def select_target_disk():
     return ask_user("Select target disk:")
 
 
-def handle_subcmd_default(op, scheme, postinstaller, **kwargs):
-    if op.hard:
+def handle_subcmd_default(conf):
+    postinstaller = DistroFactory.getPostInstaller(conf)
+
+    if conf.op.hard:
         postinstaller.unmount_target_system()
 
-    if not op.n:
+    if not conf.op.n:
         # unused; just prevents partitions automounting during the OS installation
         do_not_automount_new_partitions = DisksMountHelper()
 
-        preinstaller = PreInstaller(scheme)
+        preinstaller = PreInstaller(conf.scheme)
         preinstaller.prepare_partitions()
 
-        os_installer = DistroFactory.getInstaller(scheme)
+        os_installer = DistroFactory.getInstaller(conf.scheme)
         os_installer.execute()
 
-    if util.ready_for_postinstall(op.chroot):
+    if util.ready_for_postinstall(conf.op.chroot):
         # do mandatory post-installation actions
         postinstaller.execute()
 
         # install the tool into the target OS so that it will be available after reboot
-        if op.inject is not None:
+        if conf.op.inject is not None:
             # NOTE: magic values, defined by argparser setup
-            postinstaller.inject_tool(extras='extra' in op.inject,
-                                      develop='devel' in op.inject)
+            postinstaller.inject_tool(extras='extra' in conf.op.inject,
+                                           develop='devel' in conf.op.inject)
     else:
         logger.warning("It looks like the target system is not ready for post-installation actions. "
                        "Trying to unmount the whole partitioning scheme and exit.")
-        postinstaller.unmount_target_system()
+        conf.postinstaller.unmount_target_system()
 
 
-def handle_subcmd_scheme(op, postinstaller, **kwargs):
-    if op.mount:
-        postinstaller.chroot = op.mount  # op.mount value takes precedence over op.chroot for 'mount' command
+def handle_subcmd_scheme(conf):
+    postinstaller = DistroFactory.getPostInstaller(conf)
+
+    if conf.op.mount:
+        postinstaller.chroot = conf.op.mount  # op.mount value takes precedence over op.chroot for 'mount' command
         postinstaller.mount_target_system()
         app_exit()
 
-    if op.umount or op.hard:
+    if conf.op.umount or conf.op.hard:
         postinstaller.unmount_target_system()
-        op.umount and app_exit()  # exit if this option specified
+        conf.op.umount and app_exit()  # exit if this option specified
 
 
 def main():
@@ -110,10 +115,10 @@ def main():
 
     target_disk = select_target_disk()
     scheme = partitioning.scheme(target_disk)
-    postinstaller = DistroFactory.getPostInstaller(scheme, op, target_disk)
+    runtime_config = RuntimeConfig(target_disk, scheme, op)
 
     # call a bound function (defined by argparser)
-    op.func(op, postinstaller=postinstaller, scheme=scheme)
+    op.func(runtime_config)
 
 
 if __name__ == '__main__':

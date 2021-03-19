@@ -17,7 +17,7 @@
 import argparse
 from sys import argv as sys_argv
 
-from .distro.distrofactory import DistroFactory
+from .util import distro_name
 
 __all__ = ['ArgParser', 'SUBCMD_DEFAULT', 'SUBCMD_SCHEME']
 
@@ -43,7 +43,11 @@ class ArgParser:
         argparser.add_argument("--version", action="store_true", help="Show version and exit")
         argparser.add_argument("--selftest", action="store_true", help="Check environment and own resources and exit")
 
-        DEFAULT_CHROOT = DistroFactory.defaultChrootDir()
+        if "ubuntu" in distro_name():
+            DEFAULT_CHROOT = "/target"
+        else:
+            DEFAULT_CHROOT = "/mnt"
+
         argparser.add_argument("--chroot", type=str, default=DEFAULT_CHROOT,
                                help=f"Target system's mountpoint (Default: {DEFAULT_CHROOT})")
 

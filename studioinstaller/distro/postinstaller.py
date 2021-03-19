@@ -34,19 +34,18 @@ class PostInstaller(ABC):
         self.scheme.execute(Involve(chroot=self.chroot))
 
         SpawnedSU.do(f"""
-            for n in sys dev etc/resolv.conf; do
+            for n in sys proc dev etc/resolv.conf; do
                 mount --bind /$n {self.chroot}/$n;
             done
-            mount -t proc none {self.chroot}/proc
             mount -t devpts devpts {self.chroot}/dev/pts
             """)
 
     def unmount_target_system(self):
-        SpawnedSU.do(f"""
-            for n in dev/pts dev proc sys run etc/resolv.conf; do
-                umount {self.chroot}/$n;
-            done
-            """)
+        mounts = SpawnedSU.do(f'mount | grep "{self.chroot}" | cut -d" " -f3', list_=True)
+        mounts.reverse()
+
+        for m in mounts:
+            SpawnedSU.do(f"umount {m}")
 
         self.scheme.execute(Release())
 

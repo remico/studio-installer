@@ -21,17 +21,17 @@ from spawned import ChrootContext, ENV, Spawned
 from ..postinstaller import PostInstaller
 from ...configfile import IniConfig, FstabConfig
 from ...partition.base import LUKS, Container, FS
-from ...scheme import Scheme
+from ...runtimeconfig import RuntimeConfig
 from ... import util
 
 __all__ = ['UbuntuPostInstaller']
 
 
 class UbuntuPostInstaller(PostInstaller):
-    def __init__(self, scheme: Scheme, bl_disk: str, chroot: str):
-        self.scheme = scheme
-        self.chroot = chroot
-        self.bl_disk = bl_disk
+    def __init__(self, runtime_config: RuntimeConfig):
+        self.scheme = runtime_config.scheme
+        self.chroot = runtime_config.op.chroot
+        self.bl_disk = runtime_config.disk
 
     def _run(self):
         self.mount_target_system()
