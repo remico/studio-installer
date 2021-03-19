@@ -41,7 +41,7 @@ class Involve(ActionBase):
             t.interact("Enter passphrase for", partition.passphrase)
 
     @staticmethod
-    def _mount(partition, chroot, mountpoint=None):
+    def _mount(partition, chroot, mountpoint=None, mount_options=''):
         if partition.isswap:
             SpawnedSU.do(f"swapon {partition.url}")
 
@@ -60,12 +60,20 @@ class Involve(ActionBase):
             mpoint = Path(chroot, mpoint)
 
             SpawnedSU.do(f"mkdir -p {mpoint}")
-            SpawnedSU.do(f"mount {partition.url} {mpoint}")
+            SpawnedSU.do(f"mount {mount_options} {partition.url} {mpoint}")
 
     def serve_standard_pv(self, pt, mountpoint=None, chroot=None):
         chroot = chroot or self._extra_kw.get('chroot')
         mountpoint = mountpoint or self._extra_kw.get('mountpoint')
-        self._mount(pt, chroot, mountpoint)
+
+        if pt.fs == "btrfs":
+            if pt.subvolumes:
+                for subv, mpoint in pt.subvolumes.items():
+                    self._mount(pt, chroot, mpoint, mount_options=f"-o compress=lzo,subvol={subv}")
+            else:
+                self._mount(pt, chroot, mountpoint, mount_options="-o compress=lzo")
+        else:
+            self._mount(pt, chroot, mountpoint)
 
     def serve_luks_pv(self, pt, passphrase=None, mapper_id=None):
         passphrase = passphrase or self._extra_kw.get('passphrase')

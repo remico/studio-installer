@@ -31,9 +31,9 @@ def scheme(target_disk: str):
     p3 = PVLuks(3).new(label="lvm").on(disk1)
     lvm_vg = VGLvmOnLuks('studio-vg', 'CRYPTLVM').new().on(p3)
 
-    root = LVLvm('root', '/').new('10G', label='ROOTFS').on(lvm_vg).makefs('btrfs')
+    root = LVLvm('root', '/').new('10G', label='ROOTFS').on(lvm_vg).makefs('btrfs', subvolumes={'@': '/', '@cache': '/var/cache'})
     swap = LVLvm('swap', 'swap').new('5G', VType.SWAP, label="SWAP").on(lvm_vg)
     # data = LVLvm('data', '/media/studio-data').new('30G', label="DATA").on(lvm_vg).makefs('ext4')
-    home = LVLvm('home', '/home').new(LVLvm.MAX_SIZE, label="HOME").on(lvm_vg).makefs('btrfs')
+    home = LVLvm('home', '/home').new(LVLvm.MAX_SIZE, label="HOME").on(lvm_vg).makefs('btrfs', subvolumes={'@home': '/home'})
 
     return Scheme([p1, p2, p3, lvm_vg, boot, root, home, swap, ])

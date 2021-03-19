@@ -51,7 +51,7 @@ class Release(ActionBase):
         self._luks_close(pt, mapper_id)
 
     def serve_lvm_on_luks_vg(self, pt):
-        SpawnedSU.do(f"vgchange -a n {pt.lvm_vg}")
+        SpawnedSU.do(f"vgchange -an {pt.lvm_vg}")
 
     def serve_lvm_lv(self, pt):
         self._umount(pt)

@@ -20,7 +20,11 @@ __all__ = ['FS']
 
 
 class FS(Partition):
-    def makefs(self, fs=''):
+    def makefs(self, fs='', subvolumes={}):
         self.do_format = True
         self.fs = fs.lower()
+
+        if self.fs == "btrfs" and subvolumes:
+            self.subvolumes.update(subvolumes)
+
         return self

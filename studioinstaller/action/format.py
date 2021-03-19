@@ -66,7 +66,15 @@ class Format(ActionBase):
             cmd = f"mkfs.{partition.fs} {_options(partition)} %s"
         else:
             cmd = f"mkfs.ext4 {_options(partition)} %s"
+
         SpawnedSU.do(cmd % partition.url)
+
+        if partition.fs == "btrfs" and partition.subvolumes:
+            root = "/mnt"
+            SpawnedSU.do(f"mount -o compress=lzo {partition.url} {root}")
+            for subv, mpoint in partition.subvolumes.items():
+                SpawnedSU.do(f"mkdir -p {root}{mpoint} && btrfs subvolume create {root}/{subv}")
+            SpawnedSU.do(f"umount {partition.url}")
 
     def serve_standard_pv(self, pt):
         self._format(pt)

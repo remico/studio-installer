@@ -58,6 +58,7 @@ class Partition(MediumBase):
         self.size = ''
         self.type = str(VType.DEFAULT)
         self.fs = ''
+        self.subvolumes = {}
         self.label = ''
 
         self.lvm_vg = vg

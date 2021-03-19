@@ -67,9 +67,10 @@ class Create(ActionBase):
             t = SpawnedSU(f"gdisk {partition.disk}")
 
         # extract numeric ID value from the whole id value (e.g. '1' from 'sda1')
-        partition_id = m.group(1) if (m := re.match(r".*(\d*)$", partition.id)) else ''
+        partition_id = re.search(r"(\d*)$", partition.id).group()
 
         basic_prompt = "Command (? for help)"
+
         t.interact(basic_prompt, "n")
         t.interact("Partition number", partition_id or Spawned.ANSWER_DEFAULT)
         t.interact("First sector", Spawned.ANSWER_DEFAULT)
@@ -78,14 +79,14 @@ class Create(ActionBase):
 
         # add partition label
         if partition_id and partition.label:
-            t.interact("Command (? for help)", "c")
+            t.interact(basic_prompt, "c")
 
             while 0 != t.interact(("Enter name", "studio-" + partition.label),
                                   ("Partition number", partition_id)):
                 continue
 
         if locally:
-            t.interact("Command (? for help)", "w")
+            t.interact(basic_prompt, "w")
             t.interact("proceed?", "Y")
             t.waitfor(Spawned.TASK_END)
 

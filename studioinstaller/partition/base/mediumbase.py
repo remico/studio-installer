@@ -21,7 +21,7 @@ __all__ = ['MediumBase', 'URL_PV', 'URL_DISK', 'URL_MAPPED', 'URL_LVM_LV']
 
 
 def _cut_trailing_digits(s):
-    return m.group(1) if (m := re.match(r"(.*)\d*$", s)) else ''
+    return re.match(r".*?(?=\d*$)", s).group()
 
 
 def URL_PV(id_):
