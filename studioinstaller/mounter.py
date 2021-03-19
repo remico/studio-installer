@@ -29,7 +29,7 @@ class Mounter:
         self.scheme.execute(Involve(chroot=self.chroot))
 
         SpawnedSU.do(f"""
-            for n in sys proc dev etc/resolv.conf; do
+            for n in sys proc dev etc/resolv.conf sys/firmware/efi/efivars; do
                 mount --bind /$n {self.chroot}/$n;
             done
             mount -t devpts devpts {self.chroot}/dev/pts

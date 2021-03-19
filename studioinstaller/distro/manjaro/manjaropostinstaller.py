@@ -12,6 +12,8 @@
 #
 #  Copyright (c) 2021 remico
 
+from spawned import ChrootContext, ENV, Spawned
+
 from ..postinstaller import PostInstaller
 
 __all__ = ['ManjaroPostInstaller']
@@ -21,7 +23,8 @@ class ManjaroPostInstaller(PostInstaller):
     def _run(self):
         self.mounter.mount_target_system()
 
-        # do useful stuff here
+        with ChrootContext(self.chroot, self.disk, grub_id="studio") as cntx:
+            setup_bootloader(cntx)
 
         self.mounter.unmount_target_system()
 
@@ -31,3 +34,11 @@ class ManjaroPostInstaller(PostInstaller):
         # install the tool into the target OS
 
         self.mounter.unmount_target_system()
+
+def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):
+    cntx.do(f"""
+    pacman -S grub
+    sed -i s/^#GRUB_ENABLE_CRYPTODISK=y/GRUB_ENABLE_CRYPTODISK=y/ /etc/default/grub
+    grub-install --recheck --efi-directory=/boot/efi {grub_disk}
+    update-grub
+    """)
