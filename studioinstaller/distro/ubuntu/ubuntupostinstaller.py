@@ -73,7 +73,7 @@ def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):
     cmd_is_cryptoboot_enabled = 'grep "GRUB_ENABLE_CRYPTODISK=y" /etc/default/grub'
     cmd_enable_cryptoboot = 'echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub' if cryptoboot else 'true'
 
-    if util.is_efi_boot():
+    if util.uefi_loaded():
         deps = "apt -q install -y grub-efi > /dev/null"
         opts = "--target=x86_64-efi"
         grub_id_opt = f"--no-uefi-secure-boot --bootloader-id={grub_id}" if grub_id else ""
@@ -101,7 +101,7 @@ def setup_luks_volumes(cntx, volumes):
         luks_add_key(cntx, pt.url, keyfile, pt.passphrase)
 
         opts = "luks"
-        if util.is_trim_supported(pt):
+        if util.disc_discardable(pt):
             opts += ",discard"
         cntx.do(f'echo "{pt.mapperID} UUID={pt.uuid} {keyfile} {opts}" >> /etc/crypttab')
 

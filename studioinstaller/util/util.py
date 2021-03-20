@@ -20,13 +20,13 @@ from pathlib import Path
 
 from spawned import SpawnedSU, Spawned, logger, create_py_script, ask_user, ENV, SETENV
 
-__all__ = ['is_efi_boot',
+__all__ = ['uefi_loaded',
            'is_volume_on_ssd',
            'volume_uuid',
            'test_luks_key',
            'resource_file',
            'preseeding_file',
-           'is_trim_supported',
+           'disc_discardable',
            'tagged_printer',
            'cmd_edit_inplace',
            'target_user',
@@ -39,9 +39,14 @@ __all__ = ['is_efi_boot',
            'ready_for_postinstall',
            'get_target_upass',
            'read_upass_from_preseeding_file',
-           'distro_name'
+           'distro_name',
+           'boot_partition',
+           'root_partition',
            ]
 
+
+# TODO lsblk -o name,type,path,mountpoint,rota,uuid,disc-gran,disc-max,label,partlabel --json /dev/sd*
+# -l -n
 
 def tagged_printer(tag: str):
     @logger.tagged(tag, logger.ok_blue_s)
@@ -53,7 +58,7 @@ def tagged_printer(tag: str):
 _tp = tagged_printer("[util]")
 
 
-def is_efi_boot():
+def uefi_loaded():
     return Spawned.do("mount | grep efivars", with_status=True).success
 
 
@@ -61,7 +66,7 @@ def is_volume_on_ssd(volume_url):
     return Spawned.do(f"lsblk -n -d -o ROTA {volume_url}").strip() == "0"  # 0 - SSD, 1 - HDD
 
 
-def is_trim_supported(partition):
+def disc_discardable(partition):
     pattern = "TRIM supported"
     return is_volume_on_ssd(partition.url) and \
         pattern in SpawnedSU.do(f'sudo hdparm -I {partition.disk} | grep "{pattern}"')
@@ -194,3 +199,17 @@ def read_upass_from_preseeding_file(pass_key):
 
 def distro_name():
     return Spawned.do("less /etc/lsb-release | grep -oP '(?<=DISTRIB_ID=).*'")
+
+
+def boot_partition(scheme):
+    for pt in scheme:
+        if pt.mountpoint == "/boot":
+            return pt
+
+    return root_partition(scheme)
+
+
+def root_partition(scheme):
+    for pt in scheme:
+        if pt.mountpoint == "/":
+            return pt

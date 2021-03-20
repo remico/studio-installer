@@ -53,6 +53,14 @@ class MediumBase(ABC):
         return self._parent
 
     @property
+    def pchain(self):
+        items = [self]
+        p = self
+        while p := p.parent:
+            items.append(p)
+        return tuple(items)
+
+    @property
     def id(self):
         return f"{self.parent.id}{self._id}" if str(self._id).isdigit() and self.parent else self._id
 
