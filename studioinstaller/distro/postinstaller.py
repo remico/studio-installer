@@ -23,9 +23,9 @@ __all__ = ['PostInstaller']
 class PostInstaller(ABC):
     def __init__(self, runtime_config: RuntimeConfig) -> None:
         self.scheme = runtime_config.scheme
-        self.chroot = runtime_config.op.chroot
+        self.op = runtime_config.op
         self.disk = runtime_config.disk
-        self.mounter = Mounter(self.chroot, self.scheme)
+        self.mounter = Mounter(self.op.chroot, self.scheme)
 
     def execute(self):
         self._run()

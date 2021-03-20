@@ -18,18 +18,19 @@ from .partition.base import VType, LuksType
 from .partition import Disk, PVPlain, PVLuks, VGLvmOnLuks, LVLvm, VVCrypt
 from .scheme import Scheme
 
+# TODO: fill scheme dynamically
 
 # edit partitioning configuration according to your needs
 def scheme(target_disk: str):
     disk1 = Disk(target_disk)
 
-    p1 = PVPlain(1, '/boot/efi').new('200M', VType.EFI, "EFI").on(disk1).makefs()
+    p1 = PVPlain(1, '/boot/efi').new('200M', VType.EFI, "efi").on(disk1).makefs()
 
     p2 = PVLuks(2, type=LuksType.luks1).new('500M', label="boot").on(disk1)
     boot = VVCrypt('boot', '/boot').new(label="BOOT").on(p2).makefs('ext2')
 
     p3 = PVLuks(3).new(label="lvm").on(disk1)
-    lvm_vg = VGLvmOnLuks('studio-vg', 'CRYPTLVM').new().on(p3)
+    lvm_vg = VGLvmOnLuks('studio-vg', 'CRYPTLVM').new().on(p3)  # FIXME: replace hardcoded <studio>
 
     root = LVLvm('root', '/').new('10G', label='ROOTFS').on(lvm_vg).makefs('btrfs', subvolumes={'@': '/', '@cache': '/var/cache'})
     swap = LVLvm('swap', 'swap').new('5G', VType.SWAP, label="SWAP").on(lvm_vg)

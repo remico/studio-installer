@@ -42,6 +42,7 @@ class ArgParser:
         argparser.add_argument("-d", action="store_true", help="Enable commands debug output")
         argparser.add_argument("--version", action="store_true", help="Show version and exit")
         argparser.add_argument("--selftest", action="store_true", help="Check environment and own resources and exit")
+        argparser.add_argument("-L", type=str, metavar="SYSTEM_LABEL", help="System label")
 
         if "ubuntu" in distro_name():
             DEFAULT_CHROOT = "/target"

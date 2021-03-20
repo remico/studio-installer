@@ -23,6 +23,7 @@
 
 from importlib.metadata import version as app_version
 from sys import exit as app_exit
+from time import sleep
 
 from spawned import SpawnedSU, Spawned, ask_user, SETENV, logger
 
@@ -54,11 +55,13 @@ def handle_subcmd_default(conf):
         # unused; just prevents partitions automounting during the OS installation
         do_not_automount_new_partitions = DisksMountHelper()
 
-        preinstaller = PreInstaller(conf.scheme)
+        preinstaller = PreInstaller(conf.scheme, conf.op)
         preinstaller.prepare_partitions()
 
         os_installer = DistroFactory.getInstaller(conf)
         os_installer.execute()
+
+    sleep(5)  # guard delay: wait for target system gets unmounted
 
     if not conf.op.N:
         if util.ready_for_postinstall(conf.op.chroot):

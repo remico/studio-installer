@@ -31,9 +31,9 @@ class UbuntuPostInstaller(PostInstaller):
     def _run(self):
         self.mounter.mount_target_system()
 
-        with ChrootContext(self.chroot) as cntx:
+        with ChrootContext(self.op.chroot) as cntx:
             # TODO check if /boot is encrypted and pass cryptoboot accordingly
-            setup_bootloader(cntx, self.disk, grub_id="studio", cryptoboot=True)
+            setup_bootloader(cntx, self.disk, grub_id=self.op.L, cryptoboot=True)
 
             luks_volumes = self.scheme.partitions(LUKS, Container)
             setup_luks_volumes(cntx, luks_volumes)
@@ -48,7 +48,7 @@ class UbuntuPostInstaller(PostInstaller):
     def inject_tool(self, extras=False, develop=False):
         self.mounter.mount_target_system()
 
-        with ChrootContext(self.chroot) as cntx:
+        with ChrootContext(self.op.chroot) as cntx:
             cntx.do("apt -q install -y python3-pip git > /dev/null")
 
             # install the tool into the target system

@@ -69,9 +69,9 @@ class Involve(ActionBase):
         if pt.fs == "btrfs":
             if pt.subvolumes:
                 for subv, mpoint in pt.subvolumes.items():
-                    self._mount(pt, chroot, mpoint, mount_options=f"-o compress=lzo,subvol={subv}")
+                    self._mount(pt, chroot, mpoint, mount_options=f"-o defaults,compress=lzo,subvol={subv}")
             else:
-                self._mount(pt, chroot, mountpoint, mount_options="-o compress=lzo")
+                self._mount(pt, chroot, mountpoint, mount_options="-o defaults,compress=lzo")
         else:
             self._mount(pt, chroot, mountpoint)
 

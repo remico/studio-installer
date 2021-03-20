@@ -28,9 +28,10 @@ __all__ = ['PreInstaller']
 
 
 class PreInstaller:
-    def __init__(self, scheme: Scheme):
+    def __init__(self, scheme: Scheme, op):
         self.scheme = scheme
         self.lukspass = ''
+        self.op = op
 
         for pt in self.scheme:
             log.print_dict(pt)
@@ -78,5 +79,5 @@ class PreInstaller:
 
     def prepare_partitions(self):
         self.free_space_on_disks()
-        self.scheme.execute(Create())
+        self.scheme.execute(Create(system_label=self.op.L))
         self.scheme.execute(Format())

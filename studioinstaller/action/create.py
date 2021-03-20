@@ -57,19 +57,16 @@ class Create(ActionBase):
 
         return self
 
-    @staticmethod
-    def _create(partition, t: Spawned = None):
+    def _create(self, partition):
         if not partition.is_new:
             return
-
-        locally = not t
-        if locally:
-            t = SpawnedSU(f"gdisk {partition.disk}")
 
         # extract numeric ID value from the whole id value (e.g. '1' from 'sda1')
         partition_id = re.search(r"(\d*)$", partition.id).group()
 
         basic_prompt = "Command (? for help)"
+
+        t = SpawnedSU(f"gdisk {partition.disk}")
 
         t.interact(basic_prompt, "n")
         t.interact("Partition number", partition_id or Spawned.ANSWER_DEFAULT)
@@ -81,14 +78,18 @@ class Create(ActionBase):
         if partition_id and partition.label:
             t.interact(basic_prompt, "c")
 
-            while 0 != t.interact(("Enter name", "studio-" + partition.label),
+            if label_prefix := self._extra_kw.get('system_label'):
+                partition_label = label_prefix + '-' + partition.label
+            else:
+                partition_label = partition.label
+
+            while 0 != t.interact(("Enter name", partition_label),
                                   ("Partition number", partition_id)):
                 continue
 
-        if locally:
-            t.interact(basic_prompt, "w")
-            t.interact("proceed?", "Y")
-            t.waitfor(Spawned.TASK_END)
+        t.interact(basic_prompt, "w")
+        t.interact("proceed?", "Y")
+        t.waitfor(Spawned.TASK_END)
 
     def serve_standard_pv(self, pt):
         self._create(pt)
