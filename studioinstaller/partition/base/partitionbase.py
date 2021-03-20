@@ -27,6 +27,7 @@ __all__ = ['Partition', 'VType']
 
 class VType(StringEnum):
     DEFAULT = ""
+    GRUB_BIOS_BOOT = "ef02"
     EFI = "ef00"
     SWAP = "8200"
     LUKS = "8309"
