@@ -85,6 +85,12 @@ class ManjaroPostInstaller(PostInstaller):
             """
         enable_grub_encrypted = config_grub_encrypted if partition_boot_encrypted else ""
 
+        # bootloader packages to install
+        grub_packages = "grub"
+
+        if partition_root.fs == "btrfs":
+            grub_packages += " grub-btrfs"
+
         # bootloader installation command
         if util.uefi_loaded():
             grub_install = f"grub-install --recheck --efi-directory=/boot/efi --bootloader-id={grub_id} --boot-directory=/boot"
@@ -93,7 +99,7 @@ class ManjaroPostInstaller(PostInstaller):
 
         # execute installation
         cntx.do(f"""
-            pacman --noconfirm -S grub
+            pacman --noconfirm -S {grub_packages}
             {enable_root_encrypted}
             {enable_grub_encrypted}
             {grub_install}
