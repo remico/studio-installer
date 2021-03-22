@@ -164,3 +164,6 @@ def luks_add_key(cntx, pt, key):
 
     with cntx.doi(f"cryptsetup luksAddKey {pt.url} {key}") as t:
         t.interact("Enter any existing passphrase:", pt.passphrase)
+
+
+# TODO pacman -S hibernator && resume=UUID=... kernel parameter

@@ -22,8 +22,10 @@ if 'linux' not in platform.system().lower():
 
 
 def data_files():
-    files = [str(f) for f in Path("preseed").glob("*") if f.is_file()]
-    return [('studioinstaller-data', files)]
+    return [
+        ('studioinstaller-data', [str(f) for f in Path("preseed").glob("*") if f.is_file()]),
+        ('studioinstaller-data/calamares', [str(f) for f in Path("preseed/calamares").glob("*") if f.is_file()])
+    ]
 
 
 # make the distribution platform dependent
@@ -40,7 +42,7 @@ except ImportError:
 
 
 setuptools.setup(
-    # data_files=data_files(),
+    data_files=data_files(),
     cmdclass={
         'bdist_wheel': bdist_wheel
     }
