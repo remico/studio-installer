@@ -17,6 +17,7 @@
 import os
 import stat
 from pathlib import Path
+from time import sleep
 
 from spawned import SpawnedSU, Spawned, logger, create_py_script, ask_user, ENV, SETENV
 
@@ -42,6 +43,7 @@ __all__ = ['uefi_loaded',
            'distro_name',
            'boot_partition',
            'root_partition',
+           'delay',
            ]
 
 
@@ -213,3 +215,11 @@ def root_partition(scheme):
     for pt in scheme:
         if pt.mountpoint == "/":
             return pt
+
+
+def delay(sec):
+    print()
+    for i in range(sec):
+        print('.', end='')
+        sleep(1)
+    print()
