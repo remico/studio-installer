@@ -63,7 +63,7 @@ class ManjaroPostInstaller(PostInstaller):
                     root_mapper_id = pt.mapperID
 
         cryptdevice_param = f"cryptdevice=UUID={root_pv_uuid}:{root_mapper_id}" if root_pv_uuid else ""
-        cryptdevice_options = ":allow-discards" if cryptdevice_param and util.is_volume_on_ssd(partition_root) else ""
+        cryptdevice_options = ":allow-discards" if cryptdevice_param and util.is_volume_on_ssd(partition_root.url) else ""
 
         grub_cmdline_linux = f"{cryptdevice_param}{cryptdevice_options}"
 
