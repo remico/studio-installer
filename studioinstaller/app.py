@@ -45,7 +45,7 @@ def select_target_disk():
 
 def handle_subcmd_default(conf):
     mounter = Mounter(conf.op.chroot, conf.scheme)
-    postinstaller = DistroFactory.getPostInstaller(conf)
+    distrofactory = DistroFactory.instance()
 
     if conf.op.hard:
         mounter.unmount_target_system()
@@ -57,7 +57,7 @@ def handle_subcmd_default(conf):
         preinstaller = PreInstaller(conf.scheme, conf.op)
         preinstaller.prepare_partitions()
 
-        os_installer = DistroFactory.getInstaller(conf)
+        os_installer = distrofactory.getInstaller(conf)
         os_installer.execute()
 
     # wait a little; target OS partitions get unmounted
@@ -66,6 +66,7 @@ def handle_subcmd_default(conf):
     if not conf.op.N:
         if util.ready_for_postinstall(conf.op.chroot):
             # do mandatory post-installation actions
+            postinstaller = distrofactory.getPostInstaller(conf)
             postinstaller.execute()
 
             # install the tool into the target OS so that it will be available after reboot
