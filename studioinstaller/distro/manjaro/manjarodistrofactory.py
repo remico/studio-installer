@@ -14,7 +14,7 @@
 
 from ...runtimeconfig import RuntimeConfig
 
-from ..distrofactory import DistroFactory
+from ..distrofactorybase import DistroFactoryBase
 
 from .manjaroinstaller import ManjaroInstaller
 from .manjaropostinstaller import ManjaroPostInstaller
@@ -22,7 +22,7 @@ from .manjaropostinstaller import ManjaroPostInstaller
 __all__ = ['ManjaroDistroFactory']
 
 
-class ManjaroDistroFactory(DistroFactory):
+class ManjaroDistroFactory(DistroFactoryBase):
 
     def getInstaller(self, runtime_config: RuntimeConfig) -> ManjaroInstaller:
         return ManjaroInstaller(runtime_config)

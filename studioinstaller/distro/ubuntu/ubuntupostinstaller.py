@@ -73,7 +73,7 @@ def setup_bootloader(cntx, grub_disk, grub_id=None, cryptoboot=False):
     cmd_is_cryptoboot_enabled = 'grep "GRUB_ENABLE_CRYPTODISK=y" /etc/default/grub'
     cmd_enable_cryptoboot = 'echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub' if cryptoboot else 'true'
 
-    if util.uefi_loaded():
+    if util.system.uefi_loaded():
         deps = "apt -q install -y grub-efi > /dev/null"
         opts = "--target=x86_64-efi"
         grub_id_opt = f"--no-uefi-secure-boot --bootloader-id={grub_id}" if grub_id else ""
@@ -101,7 +101,7 @@ def setup_luks_volumes(cntx, volumes):
         luks_add_key(cntx, pt.url, keyfile, pt.passphrase)
 
         opts = "luks"
-        if util.disc_discardable(pt):
+        if util.blockdevice.discardable(pt):
             opts += ",discard"
         cntx.do(f'echo "{pt.mapperID} UUID={pt.uuid} {keyfile} {opts}" >> /etc/crypttab')
 
@@ -127,7 +127,7 @@ def create_keys(cntx, keyfile):
 
 
 def luks_add_key(cntx, pt_url, key, passphrase):
-    if util.test_luks_key(pt_url, '/'.join([cntx.root, key])):
+    if util.blockdevice.test_luks_key(pt_url, '/'.join([cntx.root, key])):
         return
 
     with cntx.doi(f"cryptsetup luksAddKey {pt_url} {key}") as t:
@@ -146,7 +146,7 @@ def setup_fstab(cntx, scheme):
 
         # assume that additional user partitions are mounted in /media
         if "/media" in pt.mountpoint:
-            user = util.target_user(cntx.root)
+            user = util.target.target_user(cntx.root)
             cntx.do(f"chown -R {user}:{user} {pt.mountpoint}")
 
 

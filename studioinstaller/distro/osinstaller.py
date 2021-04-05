@@ -14,6 +14,10 @@
 
 from abc import abstractmethod, ABC
 
+from spawned import Spawned
+
+from ..action import Involve
+from ..partition import Disk
 from ..runtimeconfig import RuntimeConfig
 
 __all__ = ['OsInstaller']
@@ -24,6 +28,12 @@ class OsInstaller(ABC):
         self.chroot = runtime_config.op.chroot
 
     def execute(self):
+        # ensure crypt/lvm volumes are available
+        dm_list = Spawned.do(f"ls /dev/mapper", list_=True)
+        for pt in [pt for pt in self.scheme if pt.mapperID]:
+            if isinstance(pt.parent, Disk) and pt.mapperID not in dm_list:
+                pt.execute(Involve())
+
         self._prepare_installation()
         self._setup_unattended_installation()
         self._begin_installation()

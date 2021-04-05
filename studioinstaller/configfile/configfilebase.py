@@ -36,10 +36,10 @@ class ConfigFileBase(ABC):
     def _execute(self, cmd: str, edit=True):
         """Execute a shell command ``cmd`` in a chroot jail or in current file system"""
         if self.chroot_cntx:
-            owner = util.owner_uid(self.stat)
+            owner = util.system.owner_uid(self.stat)
             self.chroot_cntx.do(cmd, user=owner)
         else:
-            condition = util.is_editable(self.stat) if edit else util.is_readable(self.stat)
+            condition = util.system.is_editable(self.stat) if edit else util.system.is_readable(self.stat)
             S_ = Spawned if condition else SpawnedSU
             S_.do_script(cmd, timeout=Spawned.TIMEOUT_DEFAULT, bg=False)
 
@@ -55,10 +55,10 @@ class ConfigFileBase(ABC):
     def stat(self):
         self._st = None
         if not self._st:
-            self._st = util.os_stat(self.abs_filepath)
+            self._st = util.system.os_stat(self.abs_filepath)
         return self._st
 
     @property
     def content(self):
-        lines = Spawned(f"cat {self.abs_filepath}", sudo=not util.is_readable(self.stat)).datalines
+        lines = Spawned(f"cat {self.abs_filepath}", sudo=not util.system.is_readable(self.stat)).datalines
         return [line_stripped for line in lines if (line_stripped := line.strip())]

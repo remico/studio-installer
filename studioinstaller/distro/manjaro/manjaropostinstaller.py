@@ -47,7 +47,7 @@ class ManjaroPostInstaller(PostInstaller):
         grub_id = self.op.L
 
         # root partition
-        partition_root = util.root_partition(self.scheme)
+        partition_root = util.blockdevice.root_partition(self.scheme)
         partition_root_encrypted = any(isinstance(p, PVLuks) for p in partition_root.pchain)
 
         root_pv_uuid = ''
@@ -63,7 +63,7 @@ class ManjaroPostInstaller(PostInstaller):
                     root_mapper_id = pt.mapperID
 
         cryptdevice_param = f"cryptdevice=UUID={root_pv_uuid}:{root_mapper_id}" if root_pv_uuid else ""
-        cryptdevice_options = ":allow-discards" if cryptdevice_param and util.is_volume_on_ssd(partition_root.url) else ""
+        cryptdevice_options = ":allow-discards" if cryptdevice_param and util.blockdevice.solid(partition_root.url) else ""
 
         grub_cmdline_linux = f"{cryptdevice_param}{cryptdevice_options}"
 
@@ -73,7 +73,7 @@ class ManjaroPostInstaller(PostInstaller):
         enable_root_encrypted = config_root_encrypted if partition_root_encrypted else ""
 
         # boot partition
-        partition_boot = util.boot_partition(self.scheme)
+        partition_boot = util.blockdevice.boot_partition(self.scheme)
         partition_boot_encrypted = any(isinstance(p, PVLuks) for p in partition_boot.pchain)
 
         config_grub_encrypted = rf"""
@@ -92,7 +92,7 @@ class ManjaroPostInstaller(PostInstaller):
             grub_packages += " grub-btrfs"
 
         # bootloader installation command
-        if util.uefi_loaded():
+        if util.system.uefi_loaded():
             grub_install = f"grub-install --recheck --efi-directory=/boot/efi --bootloader-id={grub_id} --boot-directory=/boot"
         else:
             grub_install = f"grub-install --recheck --boot-directory=/boot {self.disk}"
@@ -112,7 +112,7 @@ class ManjaroPostInstaller(PostInstaller):
             return
 
         # guard: unencrypted /boot => don't use keyfiles !
-        if not any(isinstance(p, PVLuks) for p in util.boot_partition(self.scheme).pchain):
+        if not any(isinstance(p, PVLuks) for p in util.blockdevice.boot_partition(self.scheme).pchain):
             return
 
         keyfile = "/root/boot_os.keyfile"
@@ -124,11 +124,11 @@ class ManjaroPostInstaller(PostInstaller):
             luks_add_key(cntx, pt, keyfile)
 
             # skip adding a luks partition with the root FS inside; it's unlocked via a kernel parameter
-            if any(pt == p for p in util.root_partition(self.scheme).pchain):
+            if any(pt == p for p in util.blockdevice.root_partition(self.scheme).pchain):
                 continue
 
             opts = "luks"
-            if util.disc_discardable(pt):
+            if util.blockdevice.discardable(pt):
                 opts += ",discard"
             cntx.do(f'echo "{pt.mapperID} UUID={pt.uuid} {keyfile} {opts}" >> /etc/crypttab')
 
@@ -159,7 +159,7 @@ def generate_keyfile(cntx, keyfile):
 
 
 def luks_add_key(cntx, pt, key):
-    if util.test_luks_key(pt.url, '/'.join([cntx.root, key])):
+    if util.blockdevice.test_luks_key(pt.url, '/'.join([cntx.root, key])):
         return
 
     with cntx.doi(f"cryptsetup luksAddKey {pt.url} {key}") as t:

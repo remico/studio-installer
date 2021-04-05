@@ -14,7 +14,7 @@
 
 from ...runtimeconfig import RuntimeConfig
 
-from ..distrofactory import DistroFactory
+from ..distrofactorybase import DistroFactoryBase
 
 from .ubuntuinstaller import UbuntuInstaller
 from .ubuntupostinstaller import UbuntuPostInstaller
@@ -22,7 +22,7 @@ from .ubuntupostinstaller import UbuntuPostInstaller
 __all__ = ['UbuntuDistroFactory']
 
 
-class UbuntuDistroFactory(DistroFactory):
+class UbuntuDistroFactory(DistroFactoryBase):
 
     def getInstaller(self, runtime_config: RuntimeConfig) -> UbuntuInstaller:
         return UbuntuInstaller(runtime_config)

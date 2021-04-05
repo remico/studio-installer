@@ -20,7 +20,7 @@ from typing import final
 from _typing import StringEnum
 
 from .mediumbase import MediumBase, URL_MAPPED, URL_PV, URL_DISK, URL_LVM_LV
-from ...util import volume_uuid
+from ...util import blockdevice
 
 __all__ = ['Partition', 'VType']
 
@@ -141,4 +141,4 @@ class Partition(MediumBase):
         """Partition UUID.
         A luks partition must be open before, otherwise uuid is empty.
         """
-        return volume_uuid(self.url)
+        return blockdevice.uuid(self.url)

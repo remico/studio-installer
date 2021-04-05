@@ -12,33 +12,29 @@
 #
 #  Copyright (c) 2021 remico
 
-from ..runtimeconfig import RuntimeConfig
-
-from .osinstaller import OsInstaller
-from .postinstaller import PostInstaller
-
 from .manjaro.manjarodistrofactory import ManjaroDistroFactory
 from .ubuntu.ubuntudistrofactory import UbuntuDistroFactory
 
-from .. import util
+from ..util.system import distro_name
 
 __all__ = ['DistroFactory']
 
 
+def _instance():
+    distro = distro_name().lower()
+
+    if "ubuntu" in distro:
+        return UbuntuDistroFactory()
+    elif "manjaro" in distro:
+        return ManjaroDistroFactory()
+
+    raise NotImplementedError(f"DistroFactory for '{distro}' is not supported")
+
+
 class DistroFactory:
+
+    _me = _instance()
 
     @staticmethod
     def instance():
-        distro_name = util.distro_name().lower()
-        if "ubuntu" in distro_name:
-            return UbuntuDistroFactory()
-        elif "manjaro" in distro_name:
-            return ManjaroDistroFactory()
-        else:
-            raise NotImplementedError(f"DistroFactory for '{distro_name}' distro is not supported")
-
-    def getInstaller(self, runtime_config: RuntimeConfig) -> OsInstaller:
-        pass
-
-    def getPostInstaller(self, runtime_config: RuntimeConfig) -> PostInstaller:
-        pass
+        return DistroFactory._me

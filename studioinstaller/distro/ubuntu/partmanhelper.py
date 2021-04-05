@@ -121,7 +121,6 @@ except FileNotFoundError:
 
 
 class PartmanHelper:
-    visuals_updater = create_py_script(_text_replacer())
 
     def __init__(self, scheme: Scheme):
         self.scheme = scheme
@@ -130,7 +129,10 @@ class PartmanHelper:
     def run(self):
         # check partman availability
         if not Spawned.do("which partman", with_status=True).success:
+            print("[II] partman not found => skip PartmanHelper actions")
             return
+
+        self.visuals_updater = create_py_script(_text_replacer())
 
         SpawnedSU.do_script(f"""
             echo "Waiting for PARTMAN files in '{PathResolver.PARTMAN_BASE}' ..."

@@ -41,7 +41,7 @@ class UbuntuInstaller(OsInstaller):
         PartmanHelper(self.scheme).run()
 
     def _setup_unattended_installation(self):
-        if seed_file := util.preseeding_file():
+        if seed_file := util.target.preseeding_file():
             SpawnedSU.do(f"debconf-set-selections {seed_file}")
 
     def _begin_installation(self):

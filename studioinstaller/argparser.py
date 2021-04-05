@@ -17,7 +17,7 @@
 import argparse
 from sys import argv as sys_argv
 
-from .util import distro_name
+from .util import system
 
 __all__ = ['ArgParser', 'SUBCMD_DEFAULT', 'SUBCMD_SCHEME']
 
@@ -46,7 +46,7 @@ class ArgParser:
         DEFAULT_SYSTEM_LABEL = "studio"
         argparser.add_argument("-L", type=str, default=DEFAULT_SYSTEM_LABEL, metavar="SYSTEM_LABEL", help="System label")
 
-        if "ubuntu" in distro_name():
+        if "ubuntu" in system.distro_name().lower():
             DEFAULT_CHROOT = "/target"
         else:
             DEFAULT_CHROOT = "/mnt"

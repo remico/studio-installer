@@ -64,7 +64,7 @@ def handle_subcmd_default(conf):
     util.delay(5)
 
     if not conf.op.N:
-        if util.ready_for_postinstall(conf.op.chroot):
+        if util.target.ready_for_postinstall(conf.op.chroot):
             # do mandatory post-installation actions
             postinstaller = distrofactory.getPostInstaller(conf)
             postinstaller.execute()

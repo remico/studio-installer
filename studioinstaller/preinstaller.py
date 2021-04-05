@@ -22,7 +22,7 @@ from .action import Create, Format
 from .partition.base import Partition, FS
 from .partition import LVLvm
 from .scheme import Scheme
-from .util import uefi_loaded
+from . import util
 
 __all__ = ['PreInstaller']
 
@@ -55,7 +55,7 @@ class PreInstaller:
             assert not pt.islvmlv or pt.lvm_vg, "No LVM VG is defined for an LVM LV"
             assert not pt.islvmlv or pt.lvm_vg in LVLvm.groups(self.scheme), "LVM VGs do not match"
             assert not pt.do_format or isinstance(pt, FS), f"Partition {pt.id} can't be formatted"
-            assert "efi" not in pt.mountpoint or uefi_loaded(), \
+            assert "efi" not in pt.mountpoint or util.system.uefi_loaded(), \
                 "Partitioning scheme contains a EFI partition while the system doesn't look to booted in EFI mode"
 
     def free_space_on_disks(self):

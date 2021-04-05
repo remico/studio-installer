@@ -19,6 +19,7 @@ from spawned import Spawned, SpawnedSU
 
 from ..osinstaller import OsInstaller
 from ...mounter import Mounter
+from ... import util
 
 __all__ = ['ManjaroInstaller']
 
@@ -31,7 +32,7 @@ class ManjaroInstaller(OsInstaller):
         if not Path("/etc/calamares").exists():
                 return
 
-        packagename = str(__package__).split('.')[0]  # top-level package name
+        packagename = util.package_name()
         calamares_modules = [
             str(f.locate()) for f in app_files(packagename) if "calamares" in str(f) and str(f).endswith(".conf")
         ]
