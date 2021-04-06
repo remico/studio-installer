@@ -16,6 +16,8 @@ from spawned import Spawned, SpawnedSU
 
 from .partmanhelper import PartmanHelper
 from ..osinstaller import OsInstaller
+from ...action import Involve
+from ...partition import Disk
 from ... import util
 
 __all__ = ['UbuntuInstaller']
@@ -36,6 +38,12 @@ class UbuntuInstaller(OsInstaller):
                 cp -r /var/cache/debconf.back /var/cache/debconf
             fi
             """)
+
+        # ensure crypt/lvm volumes are available
+        dm_list = Spawned.do(f"ls /dev/mapper", list_=True)
+        for pt in [pt for pt in self.scheme if pt.mapperID]:
+            if isinstance(pt.parent, Disk) and pt.mapperID not in dm_list:
+                pt.execute(Involve())
 
         # wait for Partman and modify values in background
         PartmanHelper(self.scheme).run()
