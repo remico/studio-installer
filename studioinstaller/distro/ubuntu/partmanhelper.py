@@ -25,8 +25,11 @@ from pathlib import Path
 from spawned import Spawned, SpawnedSU, create_py_script
 
 from ...scheme import Scheme
+from ...util import tagged_printer
 
 __all__ = ['PartmanHelper']
+
+_pn = tagged_printer("[PartmanHelper]")
 
 
 class PathResolver:
@@ -129,7 +132,7 @@ class PartmanHelper:
     def run(self):
         # check partman availability
         if not Spawned.do("which partman", with_status=True).success:
-            print("[II] partman not found => skip PartmanHelper actions")
+            _pn("[II] partman not found => skip PartmanHelper actions")
             return
 
         self.visuals_updater = create_py_script(_text_replacer())
