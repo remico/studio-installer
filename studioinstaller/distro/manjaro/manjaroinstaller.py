@@ -14,6 +14,7 @@
 
 from pathlib import Path
 from importlib.metadata import files as app_files
+from sys import exit as app_exit
 
 from spawned import Spawned, SpawnedSU
 
@@ -24,8 +25,15 @@ from ... import util
 __all__ = ['ManjaroInstaller']
 
 
+_pn = util.tagged_printer("[ManjaroInstaller]")
+
 class ManjaroInstaller(OsInstaller):
     def _prepare_installation(self):
+        # ensure setup script is installed
+        if not SpawnedSU.do("which setup || pacman -S manjaro-architect --noconfirm", with_status=True).success:
+            _pn("manjaro-architect isn't available. Abort...")
+            app_exit()
+
         Mounter(self.chroot, self.scheme).mount_target_system()
 
     def _setup_unattended_installation(self):
