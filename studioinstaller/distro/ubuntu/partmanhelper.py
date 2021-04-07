@@ -29,50 +29,43 @@ from ...util import tagged_logger
 
 __all__ = ['PartmanHelper']
 
+
 _tlog = tagged_logger("[PartmanHelper]")
+
+PARTMAN_BASE = Path("/var/lib/partman")
 
 
 class PathResolver:
-    PARTMAN_BASE = Path("/var/lib/partman")
-
     def __init__(self):
         self._system_volumes = {}
-
-    @staticmethod
-    def _pm_encode(device_path: str):
-        return device_path.replace("/", "=")
-
-    @staticmethod
-    def _pm_path(disk: str):
-        return Path(PathResolver.PARTMAN_BASE, 'devices', PathResolver._pm_encode(disk))
 
     @property
     def system_volumes(self):
         if not self._system_volumes:
-            t = SpawnedSU("parted -s /dev/sda 'unit B print all' 2>/dev/null")  # hardcoded /dev/sda does not affect result
+            t = SpawnedSU("parted -s /dev 'unit B print all' 2>/dev/null")
 
             current_key = ""
 
-            disk_name_pat = r"Disk[\s\t]+(.*?):[\s\t]+\d+"
-            partition_number_pat = r"(\d+)[\s\t]+(\d+)B[\s\t]+(\d+)B[\s\t]+(\d+)B"
+            re_disk_name = r"Disk[\s\t]+(.*?):[\s\t]+\d+"
+            re_partition_number = r"(\d+)[\s\t]+(\d+)B[\s\t]+(\d+)B[\s\t]+(\d+)B"
 
-            def prsr(data_line):
+            def geometry_parser(data_line):
                 nonlocal current_key
 
-                if mo := re.search(disk_name_pat, data_line):
+                if mo := re.search(re_disk_name, data_line):
                     # group-1 : disk, e.g. /dev/sda or /dev/mapper/swap
                     current_key = mo.group(1)
                     return
-                elif mo := re.search(partition_number_pat, data_line):
-                    # group-1 : partition number (1, 2, 3, ...)
-                    # group-2 : first Byte of the partition
-                    # group-3 : last Byte of the partition
-                    volume_key = current_key if "mapper" in current_key else current_key + mo.group(1)
-                    # return a tuple ('volume_url', 'begin-end', 'disk_url') for each partition
-                    return volume_key, "-".join((mo.group(2), mo.group(3))), current_key
+                elif mo := re.search(re_partition_number, data_line):
+                    partition_number = mo.group(1)
+                    first_byte = mo.group(2)
+                    last_byte = mo.group(3)
+                    volume_key = current_key if "mapper" in current_key else current_key + partition_number
+                    # returns a tuple ('volume_url', 'begin-end', 'disk_url') for each partition
+                    return volume_key, f"{first_byte}-{last_byte}", current_key
 
             # {volume_url: (begin-end, disk_url)}
-            self._system_volumes = {tpl[0]: (tpl[1], tpl[2]) for line in t.datalines if (tpl := prsr(line))}
+            self._system_volumes = {tpl[0]: (tpl[1], tpl[2]) for line in t.datalines if (tpl := geometry_parser(line))}
 
         return self._system_volumes
 
@@ -89,17 +82,21 @@ class PathResolver:
     def system_disk(self, volume_url: str):
         return self.volume(volume_url)[1]  # disk_url
 
-    def pm_volume_name(self, volume_url: str):
+    def pm_resolve_volume_name(self, volume_url: str):
         return self.volume(volume_url)[0]  # volume's begin-end, partman uses it as the volume name
 
-    def pm_resolve_device(self, volume_url: str):
-        return self._pm_path(self.system_disk(volume_url))
+    def pm_resolve_disk_path(self, volume_url: str):
+        # partman uses '=' instead of '/' in paths
+        disk = self.system_disk(volume_url)
+        return Path(PARTMAN_BASE, 'devices', disk.replace("/", "="))
 
-    def pm_resolve_volume(self, volume_url: str):
-        return self.pm_resolve_device(volume_url).joinpath(self.pm_volume_name(volume_url))
+    def pm_resolve_volume_path(self, volume_url: str):
+        pm_volume_name = self.pm_resolve_volume_name(volume_url)
+        pm_disk = self.pm_resolve_disk_path(volume_url)
+        return Path(pm_disk, pm_volume_name)
 
 
-def _text_replacer():
+def re_script():
     re_pattern = r"\${!TAB}\${!TAB}\${!TAB}(\w+)\${!TAB}\${!TAB}\${!TAB}"
     re_replacement = r"${!TAB}${!TAB}%s${!TAB}\1${!TAB}${!TAB}%s${!TAB}"
 
@@ -135,11 +132,12 @@ class PartmanHelper:
             _tlog("[II] partman not found => skip PartmanHelper actions")
             return
 
-        self.visuals_updater = create_py_script(_text_replacer())
+        script = re_script()
+        self.visuals_updater = create_py_script(script)
 
         SpawnedSU.do_script(f"""
-            echo "Waiting for PARTMAN files in '{PathResolver.PARTMAN_BASE}' ..."
-            while [ ! -d {PathResolver.PARTMAN_BASE} ]; do
+            echo "Waiting for PARTMAN files in '{PARTMAN_BASE}' ..."
+            while [ ! -d {PARTMAN_BASE} ]; do
                 sleep 1
             done
             echo ""PARTMAN files found. Ready for processing.""
@@ -154,7 +152,7 @@ class PartmanHelper:
     # format: ++ method {format}, format
     # use mounted: ++ mountpoint {<path>}
     def mark_to_use(self, volume_url, mountpoint, do_format, fs):
-        volume_path = self.resolver.pm_resolve_volume(volume_url)
+        volume_path = self.resolver.pm_resolve_volume_path(volume_url)
         SpawnedSU.do_script(f"""
             while [ ! -d {volume_path} ]
             do
@@ -162,34 +160,32 @@ class PartmanHelper:
                 echo "waiting for {volume_path} ..."
             done
 
-            partman_volume={volume_path}
-
-            touch ${{partman_volume}}/existing
-            touch ${{partman_volume}}/formatable
-            touch ${{partman_volume}}/use_filesystem
-            echo "{mountpoint}" > ${{partman_volume}}/mountpoint
+            touch {volume_path}/existing
+            touch {volume_path}/formatable
+            touch {volume_path}/use_filesystem
+            echo "{mountpoint}" > {volume_path}/mountpoint
 
             if [ "{do_format}" == "True" ]; then
-                touch ${{partman_volume}}/format
-                echo "format" > ${{partman_volume}}/method
-                echo "{fs}" > ${{partman_volume}}/filesystem
-                echo "{fs}" > ${{partman_volume}}/acting_filesystem
+                touch {volume_path}/format
+                echo "format" > {volume_path}/method
+                echo "{fs}" > {volume_path}/filesystem
+                echo "{fs}" > {volume_path}/acting_filesystem
             else
-                echo "keep" > ${{partman_volume}}/method
+                echo "keep" > {volume_path}/method
 
-                while [ ! -f ${{partman_volume}}/detected_filesystem ]
+                while [ ! -f {volume_path}/detected_filesystem ]
                 do
                     sleep 1
-                    echo "waiting for ${{partman_volume}}/detected_filesystem ..."
+                    echo "waiting for {volume_path}/detected_filesystem ..."
                 done
 
-                cat ${{partman_volume}}/detected_filesystem > ${{partman_volume}}/acting_filesystem
-                cat ${{partman_volume}}/detected_filesystem > ${{partman_volume}}/filesystem
+                cat {volume_path}/detected_filesystem > {volume_path}/acting_filesystem
+                cat {volume_path}/detected_filesystem > {volume_path}/filesystem
             fi
 
             # replace visuals
-            echo "{mountpoint}" > ${{partman_volume}}/visual_mountpoint
-            python3 "{self.visuals_updater}" "${{partman_volume}}/view" "{do_format}" "{mountpoint}"
-            python3 "{self.visuals_updater}" "${{partman_volume}}/../partition_tree_cache" "{do_format}" "{mountpoint}"
-            python3 "{self.visuals_updater}" "{PathResolver.PARTMAN_BASE}/snoop" "{do_format}" "{mountpoint}"
+            echo "{mountpoint}" > {volume_path}/visual_mountpoint
+            python3 "{self.visuals_updater}" "{volume_path}/view" "{do_format}" "{mountpoint}"
+            python3 "{self.visuals_updater}" "{volume_path}/../partition_tree_cache" "{do_format}" "{mountpoint}"
+            python3 "{self.visuals_updater}" "{PARTMAN_BASE}/snoop" "{do_format}" "{mountpoint}"
             """)
