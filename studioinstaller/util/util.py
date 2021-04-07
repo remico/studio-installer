@@ -58,8 +58,8 @@ def cmd_edit_inplace(filepath: str, re_old: str, str_new: str):
 
 
 def delay(sec):
-    print()
+    print("waiting for OS installer finishes job...")
     for i in range(sec):
-        print('.', end='')
+        print(i)
         sleep(1)
     print()
