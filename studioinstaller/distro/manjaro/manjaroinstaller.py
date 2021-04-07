@@ -29,11 +29,6 @@ _tlog = util.tagged_logger("[ManjaroInstaller]")
 
 class ManjaroInstaller(OsInstaller):
     def _prepare_installation(self):
-        # ensure setup script is installed
-        if not SpawnedSU.do("which setup || pacman -S manjaro-architect --noconfirm", with_status=True).success:
-            _tlog("manjaro-architect isn't available. Abort...")
-            app_exit()
-
         Mounter(self.chroot, self.scheme).mount_target_system()
 
     def _setup_unattended_installation(self):
@@ -50,7 +45,14 @@ class ManjaroInstaller(OsInstaller):
     def _begin_installation(self):
         if 0:  # calamares
             Spawned.do("/usr/bin/calamares_polkit", timeout=Spawned.TIMEOUT_INFINITE)
-        else:  # manjaro architect
+
+        else:  # manjaro-architect
+            # ensure the setup script is installed
+            if not SpawnedSU.do("which setup || pacman -S manjaro-architect --noconfirm", with_status=True).success:
+                _tlog("manjaro-architect isn't available. Abort...")
+                app_exit()
+
+            # run manjaro-architect
             t = SpawnedSU("setup", timeout=Spawned.TIMEOUT_INFINITE)
             t.interact_user()
             t.waitfor(SpawnedSU.TASK_END)
