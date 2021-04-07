@@ -59,13 +59,23 @@ class Scheme:
         types = types or (Partition,)
         return [pt for pt in self.scheme
                     if all(isinstance(pt, T) for T in types)
-                        # and (pt.disk == disk if disk is not None else True)
+                        and (pt.disk == disk if disk is not None else True)
                         and (pt.is_new == new if new is not None else True)
                 ]
-
-    def partition(self, mountpoint) -> Partition:
-        return next((pt for pt in self.scheme if mountpoint in pt.mountpoint), None)
 
     def execute(self, action):
         for pt in action.iterator(self):
             pt.execute(action)
+
+    @property
+    def boot_partition(self):
+        for pt in self.scheme:
+            if pt.mountpoint == "/boot":
+                return pt
+        return self.root_partition
+
+    @property
+    def root_partition(self):
+        for pt in self.scheme:
+            if pt.mountpoint == "/":
+                return pt

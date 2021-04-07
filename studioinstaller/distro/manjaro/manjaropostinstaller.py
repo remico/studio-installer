@@ -47,7 +47,7 @@ class ManjaroPostInstaller(PostInstaller):
         grub_id = self.op.L
 
         # root partition
-        partition_root = util.blockdevice.root_partition(self.scheme)
+        partition_root = self.scheme.root_partition
         partition_root_encrypted = any(isinstance(p, PVLuks) for p in partition_root.pchain)
 
         root_pv_uuid = ''
@@ -73,7 +73,7 @@ class ManjaroPostInstaller(PostInstaller):
         enable_root_encrypted = config_root_encrypted if partition_root_encrypted else ""
 
         # boot partition
-        partition_boot = util.blockdevice.boot_partition(self.scheme)
+        partition_boot = self.scheme.boot_partition
         partition_boot_encrypted = any(isinstance(p, PVLuks) for p in partition_boot.pchain)
 
         config_grub_encrypted = rf"""
@@ -112,7 +112,7 @@ class ManjaroPostInstaller(PostInstaller):
             return
 
         # guard: unencrypted /boot => don't use keyfiles !
-        if not any(isinstance(p, PVLuks) for p in util.blockdevice.boot_partition(self.scheme).pchain):
+        if not any(isinstance(p, PVLuks) for p in self.scheme.boot_partition.pchain):
             return
 
         keyfile = "/root/boot_os.keyfile"
@@ -124,7 +124,7 @@ class ManjaroPostInstaller(PostInstaller):
             luks_add_key(cntx, pt, keyfile)
 
             # skip adding a luks partition with the root FS inside; it's unlocked via a kernel parameter
-            if any(pt == p for p in util.blockdevice.root_partition(self.scheme).pchain):
+            if any(pt == p for p in self.scheme.root_partition.pchain):
                 continue
 
             opts = "luks"

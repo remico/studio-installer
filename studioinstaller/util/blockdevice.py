@@ -19,8 +19,6 @@ __all__ = [
     'discardable',
     'uuid',
     'test_luks_key',
-    'boot_partition',
-    'root_partition',
 ]
 
 
@@ -43,19 +41,6 @@ def test_luks_key(volume_url, key):
             f"cryptsetup open --test-passphrase -d {key} {volume_url} 2>/dev/null",
             with_status=True
         ).success
-
-
-def boot_partition(scheme):
-    for pt in scheme:
-        if pt.mountpoint == "/boot":
-            return pt
-    return root_partition(scheme)
-
-
-def root_partition(scheme):
-    for pt in scheme:
-        if pt.mountpoint == "/":
-            return pt
 
 
 # TODO lsblk -o name,type,path,mountpoint,rota,uuid,disc-gran,disc-max,label,partlabel --json /dev/sd*
