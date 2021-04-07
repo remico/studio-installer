@@ -25,13 +25,13 @@ from ... import util
 __all__ = ['ManjaroInstaller']
 
 
-_pn = util.tagged_printer("[ManjaroInstaller]")
+_tlog = util.tagged_logger("[ManjaroInstaller]")
 
 class ManjaroInstaller(OsInstaller):
     def _prepare_installation(self):
         # ensure setup script is installed
         if not SpawnedSU.do("which setup || pacman -S manjaro-architect --noconfirm", with_status=True).success:
-            _pn("manjaro-architect isn't available. Abort...")
+            _tlog("manjaro-architect isn't available. Abort...")
             app_exit()
 
         Mounter(self.chroot, self.scheme).mount_target_system()

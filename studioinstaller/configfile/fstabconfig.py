@@ -26,7 +26,7 @@ from .. import util
 __all__ = ['FstabConfig', 'FstabItem']
 
 
-_tp = util.tagged_printer('[FstabConfig]')
+_tlog = util.tagged_logger('[FstabConfig]')
 
 
 class FstabItem:
@@ -75,7 +75,7 @@ class FstabConfig(ConfigFileBase):
 
     def replace(self, old: FstabItem, new: FstabItem):
         if not Path(self.abs_filepath).exists():
-            _tp(f"File '{self.abs_filepath}' doesn't exist. No replacement done.")
+            _tlog(f"File '{self.abs_filepath}' doesn't exist. No replacement done.")
             return
 
         re_old = r'[\s\t]+'.join(str(old).split())

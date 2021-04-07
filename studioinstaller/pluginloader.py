@@ -31,7 +31,7 @@ D_ATTR_HELP_MSG = "help"
 D_ATTR_MAIN_ENTRY = "main_entry"
 D_ATTR_OPTS = "options"
 
-_p = util.tagged_printer(f'[{__name__}]')
+_tlog = util.tagged_logger(f'[{__name__}]')
 
 
 def _attr(plugin_descriptor, attr_name, default=None):
@@ -49,7 +49,7 @@ class PluginLoader:
             # key - plugin_descriptor.name attribute
             # value - plugin_descriptor module itself (already loaded)
             self.plugins = {getattr(d := ep.load(), D_ATTR_NAME): d for ep in eps_plugins}
-        _p(f"Found plugins: {self.list()}")
+        _tlog(f"Found plugins: {self.list()}")
 
     def list(self):
         return self.plugins.keys()
@@ -66,7 +66,7 @@ class PluginLoader:
                 for opt_name, opt_params in plugin_opts.items():
                     subcmd_parser.add_argument(opt_name, **opt_params)
             else:
-                _p(logger.warning_s(f"Skipping plugin '{plugin_name}': plugin's main_entry is not defined"))
+                _tlog(logger.warning_s(f"Skipping plugin '{plugin_name}': plugin's main_entry is not defined"))
 
     def run_plugin_action(self, name, **kwargs):
         plugin_action = self.load(name)

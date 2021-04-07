@@ -19,14 +19,14 @@ from spawned import logger, create_py_script
 
 
 __all__ = [
-           'tagged_printer',
+           'tagged_logger',
            'package_name',
            'cmd_edit_inplace',
            'delay',
            ]
 
 
-def tagged_printer(tag: str):
+def tagged_logger(tag: str):
     @logger.tagged(tag, logger.ok_blue_s)
     def _p(*text: str):
         return text

@@ -18,7 +18,7 @@ from pathlib import Path
 from spawned import Spawned, SpawnedSU, logger, ask_user, ENV, SETENV
 
 from .system import owner_uid
-from .util import tagged_printer, package_name
+from .util import tagged_logger, package_name
 
 __all__ = [
     'resource_file',
@@ -31,7 +31,7 @@ __all__ = [
     'deploy_resource',
 ]
 
-_tp = tagged_printer("[target]")
+_tlog = tagged_logger("[target]")
 
 
 def resource_file(filename):
@@ -96,7 +96,7 @@ def deploy_resource(filename, dst_path, owner=None, mode=None):
 
     if not Path(dst_full_path).parent.exists():
         colored_warn = logger.fail_s("WARNING:")
-        _tp(f"{colored_warn} Path {Path(dst_full_path).parent} doesn't exist; deploy_resource('{filename}') skipped")
+        _tlog(f"{colored_warn} Path {Path(dst_full_path).parent} doesn't exist; deploy_resource('{filename}') skipped")
         return  # just skip processing for now
 
     owner = owner or owner_uid(Path(dst_full_path).parent)

@@ -23,13 +23,13 @@ from .. import util
 __all__ = ['IniConfig']
 
 
-_tp = util.tagged_printer('[IniConfig]')
+_tlog = util.tagged_logger('[IniConfig]')
 
 
 class IniConfig(ConfigFileBase):
     def replace(self, re_old: str, str_new: str):
         if not Path(self.abs_filepath).exists():
-            _tp(f"File '{self.abs_filepath}' doesn't exist. No replacement done.")
+            _tlog(f"File '{self.abs_filepath}' doesn't exist. No replacement done.")
             return
 
         cmd = util.cmd_edit_inplace(self.filepath, re_old, str_new)

@@ -20,7 +20,7 @@ from .. import util
 
 __all__ = ['YamlConfig']
 
-_tp = util.tagged_printer('YamlConfig')
+_tlog = util.tagged_logger('YamlConfig')
 
 
 class YamlConfig(ConfigFileBase):
