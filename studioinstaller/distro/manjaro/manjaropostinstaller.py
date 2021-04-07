@@ -103,8 +103,9 @@ class ManjaroPostInstaller(PostInstaller):
             {enable_root_encrypted}
             {enable_grub_encrypted}
             {grub_install}
-            update-grub
             """)
+
+        cntx.do("update-grub")
 
     def setup_luks_volumes(self, cntx, volumes):
         # guard: keyfiles unnecessary
@@ -138,8 +139,9 @@ class ManjaroPostInstaller(PostInstaller):
             chmod 600 /boot/initramfs-*
 
             sed -Ei 's,GRUB_CMDLINE_LINUX="(.*)",GRUB_CMDLINE_LINUX="\1 {cryptkey_param}",' /etc/default/grub
-            update-grub
             """)
+
+        cntx.do("update-grub")
 
 
 def generate_keyfile(cntx, keyfile):
