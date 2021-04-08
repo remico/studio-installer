@@ -34,7 +34,7 @@ class ConfigFileBase(ABC):
         return self.content.__iter__()
 
     def _execute(self, cmd: str, edit=True):
-        """Execute a shell command ``cmd`` in a chroot jail or in current file system"""
+        """Execute ``cmd`` in a shell"""
         if self.chroot_cntx:
             owner = util.system.owner_uid(self.stat)
             self.chroot_cntx.do(cmd, user=owner)
