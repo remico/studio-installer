@@ -99,8 +99,8 @@ def main():
     argparser.set_subcommand_handler(SUBCMD_DEFAULT, handle_subcmd_default)
     argparser.set_subcommand_handler(SUBCMD_SCHEME, handle_subcmd_scheme)
 
-    plugins_loader = PluginLoader()
-    plugins_loader.extend_argparser(argparser)
+    plugin_loader = PluginLoader()
+    plugin_loader.extend_argparser(argparser)
 
     op = argparser.parse()
 

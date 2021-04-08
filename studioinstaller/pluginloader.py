@@ -49,10 +49,10 @@ class PluginLoader:
             # key - plugin_descriptor.name attribute
             # value - plugin_descriptor module itself (already loaded)
             self.plugins = {getattr(d := ep.load(), D_ATTR_NAME): d for ep in eps_plugins}
-        _tlog(f"Found plugins: {self.list()}")
+        _tlog("Found plugins:", self.list())
 
     def list(self):
-        return self.plugins.keys()
+        return list(self.plugins.keys())
 
     def extend_argparser(self, argparser):
         for plugin_name in self.list():
