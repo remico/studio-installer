@@ -22,6 +22,7 @@ __all__ = ['RuntimeConfig']
 
 @dataclass
 class RuntimeConfig:
+    plugin_api: str
     disk: str
     scheme: Scheme
     op: ArgParser

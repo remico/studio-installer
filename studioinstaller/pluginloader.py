@@ -27,6 +27,7 @@ ENTRY_POINT_GROUP_PLUGINS = "studioinstaller.plugins"
 
 # plugin descriptor attributes
 D_ATTR_NAME = "name"
+D_ATTR_API = "api"
 D_ATTR_HELP_MSG = "help"
 D_ATTR_MAIN_ENTRY = "main_entry"
 D_ATTR_OPTS = "options"
@@ -39,16 +40,25 @@ def _attr(plugin_descriptor, attr_name, default=None):
 
 
 class PluginLoader:
-    def __init__(self):
+    def __init__(self, api):
         all_ep_groups = entry_points()
 
+        self.api_major = int(api.split('.')[0])
         self.plugin_descriptors = {}
         self.plugins = {}
 
         if eps_plugins := all_ep_groups.get(ENTRY_POINT_GROUP_PLUGINS):
             # key - plugin_descriptor.name attribute
             # value - plugin_descriptor module itself (already loaded)
-            self.plugins = {getattr(d := ep.load(), D_ATTR_NAME): d for ep in eps_plugins}
+            all_plugins = {getattr(d := ep.load(), D_ATTR_NAME): d for ep in eps_plugins}
+
+            # validate api compatibility
+            for name, plugin in all_plugins.items():
+                plugin_api = _attr(plugin, D_ATTR_API)
+                plugin_api_major = int(plugin_api.split('.')[0])
+                if self.api_major == plugin_api_major:
+                    self.plugins[name] = plugin
+
         _tlog("Found plugins:", self.list())
 
     def list(self):

@@ -105,3 +105,6 @@ class ArgParser:
             ns = self.argparser.parse_args()  # fallback: check arg list for errors
 
         return ns  # Namespace
+
+    def register_plugins(self, plugin_loader):
+        pass

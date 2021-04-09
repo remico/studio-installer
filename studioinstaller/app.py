@@ -37,6 +37,8 @@ from .runtimeconfig import RuntimeConfig
 from . import partitioning
 from . import util
 
+PLUGIN_API = '1.0'
+
 
 def select_target_disk():
     SpawnedSU.do(r"parted -ls 2>/dev/null | egrep --color 'Disk\s+/dev|[kMG\d]B\s|Size'")
@@ -99,8 +101,10 @@ def main():
     argparser.set_subcommand_handler(SUBCMD_DEFAULT, handle_subcmd_default)
     argparser.set_subcommand_handler(SUBCMD_SCHEME, handle_subcmd_scheme)
 
-    plugin_loader = PluginLoader()
+    plugin_loader = PluginLoader(PLUGIN_API)
     plugin_loader.extend_argparser(argparser)
+
+    argparser.register_plugins(plugin_loader)
 
     op = argparser.parse()
 
@@ -121,7 +125,7 @@ def main():
 
     target_disk = select_target_disk()
     scheme = partitioning.scheme(target_disk)
-    runtime_config = RuntimeConfig(target_disk, scheme, op)
+    runtime_config = RuntimeConfig(PLUGIN_API, target_disk, scheme, op)
 
     # call a bound function (defined by argparser)
     op.func(runtime_config)
