@@ -15,10 +15,6 @@
 """Find and load plugins using entry_points mechanism"""
 
 from importlib.metadata import entry_points
-
-from spawned import logger
-
-from .argparser import *
 from . import util
 
 __all__ = ['PluginLoader']
@@ -44,8 +40,7 @@ class PluginLoader:
         all_ep_groups = entry_points()
 
         self.api_major = int(api.split('.')[0])
-        self.plugin_descriptors = {}
-        self.plugins = {}
+        self._plugins = {}
 
         if eps_plugins := all_ep_groups.get(ENTRY_POINT_GROUP_PLUGINS):
             # key - plugin_descriptor.name attribute
@@ -57,29 +52,34 @@ class PluginLoader:
                 plugin_api = _attr(plugin, D_ATTR_API)
                 plugin_api_major = int(plugin_api.split('.')[0])
                 if self.api_major == plugin_api_major:
-                    self.plugins[name] = plugin
+                    self._plugins[name] = plugin
 
-        _tlog("Found plugins:", self.list())
+        _tlog("Found plugins:", self.names())
 
-    def list(self):
+    def names(self):
         return list(self.plugins.keys())
 
-    def extend_argparser(self, argparser):
-        for plugin_name in self.list():
-            d = self.plugins[plugin_name]  # plugin descriptor
-            main_entry = _attr(d, D_ATTR_MAIN_ENTRY)
+    def descriptors(self):
+        return list(self.plugins.values())
 
-            if main_entry:
-                subcmd_parser = argparser.add_subcommand_parser(plugin_name, main_entry,
-                                                                help_msg=_attr(d, D_ATTR_HELP_MSG))
-                plugin_opts = _attr(d, D_ATTR_OPTS)
-                for opt_name, opt_params in plugin_opts.items():
-                    subcmd_parser.add_argument(opt_name, **opt_params)
-            else:
-                _tlog(logger.warning_s(f"Skipping plugin '{plugin_name}': plugin's main_entry is not defined"))
+    @property
+    def plugins(self):
+        return self._plugins
 
-    def run_plugin_action(self, name, **kwargs):
-        plugin_action = self.load(name)
-        if plugin_action:
-            plugin_action(**kwargs)
+    def plugin_entry_point(self, name):
+        d = self.plugins.get(name)
+        return _attr(d, D_ATTR_MAIN_ENTRY)
+
+    def plugin_help_message(self, name):
+        d = self.plugins.get(name)
+        return _attr(d, D_ATTR_HELP_MSG)
+
+    def plugin_options(self, name):
+        d = self.plugins.get(name)
+        return _attr(d, D_ATTR_OPTS)
+
+    # def run_plugin_action(self, name, **kwargs):
+    #     plugin_action = self.load(name)
+    #     if plugin_action:
+    #         plugin_action(**kwargs)
 

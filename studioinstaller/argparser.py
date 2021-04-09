@@ -16,10 +16,13 @@
 
 import argparse
 from sys import argv as sys_argv
-
-from .util import system
+from spawned import logger
+from .util import system, tagged_logger
 
 __all__ = ['ArgParser', 'SUBCMD_DEFAULT', 'SUBCMD_SCHEME']
+
+_tlog = tagged_logger(f'[{__name__}]')
+
 
 SUBCMD_DEFAULT = "default"
 SUBCMD_SCHEME = "scheme"
@@ -107,4 +110,17 @@ class ArgParser:
         return ns  # Namespace
 
     def register_plugins(self, plugin_loader):
-        pass
+        for plugin_name in plugin_loader.names():
+            main_entry = plugin_loader.plugin_entry_point(plugin_name)
+            help_message = plugin_loader.plugin_help_message(plugin_name)
+            plugin_options = plugin_loader.plugin_options(plugin_name)
+
+            if main_entry:
+                subcmd_parser = self.add_subcommand_parser(
+                    plugin_name, main_entry,
+                    help_msg=help_message
+                )
+                for opt_name, opt_params in plugin_options.items():
+                    subcmd_parser.add_argument(opt_name, **opt_params)
+            else:
+                _tlog(logger.warning_s(f"Plugin '{plugin_name}' skipped: 'main_entry' callable not found"))

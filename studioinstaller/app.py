@@ -102,8 +102,6 @@ def main():
     argparser.set_subcommand_handler(SUBCMD_SCHEME, handle_subcmd_scheme)
 
     plugin_loader = PluginLoader(PLUGIN_API)
-    plugin_loader.extend_argparser(argparser)
-
     argparser.register_plugins(plugin_loader)
 
     op = argparser.parse()
