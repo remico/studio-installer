@@ -37,10 +37,8 @@ def _attr(plugin_descriptor, attr_name, default=None):
 
 class PluginLoader:
     def __init__(self, api):
-        all_ep_groups = entry_points()
-
-        self.api_major = int(api.split('.')[0])
         self._plugins = {}
+        all_ep_groups = entry_points()
 
         if eps_plugins := all_ep_groups.get(ENTRY_POINT_GROUP_PLUGINS):
             # key - plugin_descriptor.name attribute
@@ -48,11 +46,7 @@ class PluginLoader:
             all_plugins = {getattr(d := ep.load(), D_ATTR_NAME): d for ep in eps_plugins}
 
             # validate api compatibility
-            for name, plugin in all_plugins.items():
-                plugin_api = _attr(plugin, D_ATTR_API)
-                plugin_api_major = int(plugin_api.split('.')[0])
-                if self.api_major == plugin_api_major:
-                    self._plugins[name] = plugin
+            self._plugins = {name: d for name, d in all_plugins.items() if api == _attr(d, D_ATTR_API)}
 
         _tlog("Found plugins:", self.names())
 

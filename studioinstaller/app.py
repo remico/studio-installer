@@ -37,7 +37,7 @@ from .runtimeconfig import RuntimeConfig
 from . import partitioning
 from . import util
 
-PLUGIN_API = '1.0'
+PLUGIN_API = 1
 
 
 def select_target_disk():
