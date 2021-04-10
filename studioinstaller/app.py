@@ -45,6 +45,15 @@ def select_target_disk():
     return ask_user("Select target disk:")
 
 
+def register_plugins(argparser, plugin_loader):
+    for plugin_name in plugin_loader.names():
+        main_entry = plugin_loader.plugin_entry_point(plugin_name)
+        help_message = plugin_loader.plugin_help_message(plugin_name)
+        plugin_options = plugin_loader.plugin_options(plugin_name)
+
+        argparser.register_plugin(plugin_name, main_entry, help_message, plugin_options)
+
+
 def handle_subcmd_default(conf):
     mounter = Mounter(conf.op.chroot, conf.scheme)
     distrofactory = DistroFactory.instance()
@@ -101,8 +110,7 @@ def main():
     argparser.set_subcommand_handler(SUBCMD_DEFAULT, handle_subcmd_default)
     argparser.set_subcommand_handler(SUBCMD_SCHEME, handle_subcmd_scheme)
 
-    plugin_loader = PluginLoader(PLUGIN_API)
-    argparser.register_plugins(plugin_loader)
+    register_plugins(argparser, PluginLoader(PLUGIN_API))
 
     op = argparser.parse()
 

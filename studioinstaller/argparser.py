@@ -16,13 +16,12 @@
 
 import argparse
 from sys import argv as sys_argv
+from traceback import format_exc
+
 from spawned import logger
 from .util import system, tagged_logger
 
 __all__ = ['ArgParser', 'SUBCMD_DEFAULT', 'SUBCMD_SCHEME']
-
-_tlog = tagged_logger(f'[{__name__}]')
-
 
 SUBCMD_DEFAULT = "default"
 SUBCMD_SCHEME = "scheme"
@@ -57,7 +56,7 @@ class ArgParser:
         argparser.add_argument("--chroot", type=str, default=DEFAULT_CHROOT,
                                help=f"Target system's mountpoint (Default: {DEFAULT_CHROOT})")
 
-        # SUB-COMMANDS
+        # SUBCOMMANDS
         # default
         default_argparser = self.add_subcommand_parser(SUBCMD_DEFAULT,
             help_msg="Default command, it is implied if no other commands specified")
@@ -69,7 +68,7 @@ class ArgParser:
         default_argparser.add_argument("--inject", choices=['extra', 'devel'],
             help="Install the tool into the target OS, so that it will be available on the user's first GUI login")
 
-        # scheme-related steps (mount/umount, etc)
+        # scheme
         scheme_argparser = self.add_subcommand_parser(SUBCMD_SCHEME,
                                                       help_msg="Actions on the partitioning scheme")
 
@@ -109,18 +108,26 @@ class ArgParser:
 
         return ns  # Namespace
 
-    def register_plugins(self, plugin_loader):
-        for plugin_name in plugin_loader.names():
-            main_entry = plugin_loader.plugin_entry_point(plugin_name)
-            help_message = plugin_loader.plugin_help_message(plugin_name)
-            plugin_options = plugin_loader.plugin_options(plugin_name)
+    def register_plugin(self, name, main_entry, help_message, options_dict):
+        _tlog = tagged_logger(f'[PluginLoader]')
 
-            if main_entry:
-                subcmd_parser = self.add_subcommand_parser(
-                    plugin_name, main_entry,
-                    help_msg=help_message
-                )
-                for opt_name, opt_params in plugin_options.items():
-                    subcmd_parser.add_argument(opt_name, **opt_params)
-            else:
-                _tlog(logger.warning_s(f"Plugin '{plugin_name}' skipped: 'main_entry' callable not found"))
+        if main_entry:
+            subcmd_parser = self.add_subcommand_parser(name, help_msg=help_message)
+
+            for opt_name, opt_params in options_dict.items():
+                subcmd_parser.add_argument(opt_name, **opt_params)
+
+            def plugin_runner(runtime_config):
+                api = runtime_config.plugin_api
+                # opns = runtime_config.op
+                opns = subcmd_parser.parse_known_args()
+                try:
+                    main_entry(api, opns)
+                except Exception as e:
+                    _tlog(logger.fail_s(f"Plugin '{name}': {e}"))
+                    _tlog(logger.warning_s(format_exc()))
+
+            self.set_subcommand_handler(name, plugin_runner)
+
+        else:
+            _tlog(logger.warning_s(f"Plugin '{name}' skipped: 'main_entry' callable not found"))

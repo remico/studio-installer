@@ -19,7 +19,10 @@ from . import util
 
 __all__ = ['PluginLoader']
 
-ENTRY_POINT_GROUP_PLUGINS = "studioinstaller.plugins"
+_tlog = util.tagged_logger(f'[{__name__}]')
+packagename = util.package_name()
+
+ENTRY_POINT_GROUP_PLUGINS = f"{packagename}.plugins"
 
 # plugin descriptor attributes
 D_ATTR_NAME = "name"
@@ -27,8 +30,6 @@ D_ATTR_API = "api"
 D_ATTR_HELP_MSG = "help"
 D_ATTR_MAIN_ENTRY = "main_entry"
 D_ATTR_OPTS = "options"
-
-_tlog = util.tagged_logger(f'[{__name__}]')
 
 
 def _attr(plugin_descriptor, attr_name, default=None):
@@ -71,9 +72,3 @@ class PluginLoader:
     def plugin_options(self, name):
         d = self.plugins.get(name)
         return _attr(d, D_ATTR_OPTS)
-
-    # def run_plugin_action(self, name, **kwargs):
-    #     plugin_action = self.load(name)
-    #     if plugin_action:
-    #         plugin_action(**kwargs)
-
