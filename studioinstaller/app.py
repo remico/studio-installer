@@ -30,14 +30,12 @@ from .argparser import *
 from .disksmounthelper import DisksMountHelper
 from .distro import DistroFactory
 from .mounter import Mounter
-from .pluginloader import PluginLoader
+from .pluginloader import PluginLoader, PluginRunner
 from .preinstaller import PreInstaller
 from .runtimeconfig import RuntimeConfig
 
 from . import partitioning
 from . import util
-
-PLUGIN_API = 1
 
 
 def select_target_disk():
@@ -51,7 +49,20 @@ def register_plugins(argparser, plugin_loader):
         help_message = plugin_loader.plugin_help_message(plugin_name)
         plugin_options = plugin_loader.plugin_options(plugin_name)
 
-        argparser.register_plugin(plugin_name, main_entry, help_message, plugin_options)
+        plugin_runner = PluginRunner(plugin_name)
+
+        def handle_plugin(runtime_config):
+            plugin_runner()
+
+        if main_entry:
+            subcmd_parser = argparser.add_subcommand_parser(
+                plugin_name,
+                handle_plugin,
+                help_msg=help_message,
+                options_dict=plugin_options)
+
+            plugin_opns = subcmd_parser.parse_known_args()
+            plugin_runner.set_options(plugin_opns)
 
 
 def handle_subcmd_default(conf):
@@ -110,7 +121,7 @@ def main():
     argparser.set_subcommand_handler(SUBCMD_DEFAULT, handle_subcmd_default)
     argparser.set_subcommand_handler(SUBCMD_SCHEME, handle_subcmd_scheme)
 
-    register_plugins(argparser, PluginLoader(PLUGIN_API))
+    register_plugins(argparser, PluginLoader())
 
     op = argparser.parse()
 
@@ -131,7 +142,7 @@ def main():
 
     target_disk = select_target_disk()
     scheme = partitioning.scheme(target_disk)
-    runtime_config = RuntimeConfig(PLUGIN_API, target_disk, scheme, op)
+    runtime_config = RuntimeConfig(PluginLoader.API, target_disk, scheme, op)
 
     # call a bound function (defined by argparser)
     op.func(runtime_config)

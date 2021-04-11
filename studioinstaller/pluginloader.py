@@ -15,14 +15,18 @@
 """Find and load plugins using entry_points mechanism"""
 
 from importlib.metadata import entry_points
+from traceback import format_exc
+
+from spawned import logger
+
 from . import util
 
-__all__ = ['PluginLoader']
+__all__ = ['PluginLoader', 'PluginRunner']
 
-_tlog = util.tagged_logger(f'[{__name__}]')
 packagename = util.package_name()
 
 ENTRY_POINT_GROUP_PLUGINS = f"{packagename}.plugins"
+PLUGIN_API = 1
 
 # plugin descriptor attributes
 D_ATTR_NAME = "name"
@@ -37,7 +41,9 @@ def _attr(plugin_descriptor, attr_name, default=None):
 
 
 class PluginLoader:
-    def __init__(self, api):
+    API = PLUGIN_API
+
+    def __init__(self):
         self._plugins = {}
         all_ep_groups = entry_points()
 
@@ -47,8 +53,9 @@ class PluginLoader:
             all_plugins = {getattr(d := ep.load(), D_ATTR_NAME): d for ep in eps_plugins}
 
             # validate api compatibility
-            self._plugins = {name: d for name, d in all_plugins.items() if api == _attr(d, D_ATTR_API)}
+            self._plugins = {name: d for name, d in all_plugins.items() if PluginLoader.API == _attr(d, D_ATTR_API)}
 
+        _tlog = util.tagged_logger(f'[{self.__class__.__name__}]')
         _tlog("Found plugins:", self.names())
 
     def names(self):
@@ -72,3 +79,23 @@ class PluginLoader:
     def plugin_options(self, name):
         d = self.plugins.get(name)
         return _attr(d, D_ATTR_OPTS)
+
+
+class PluginRunner:
+    def __init__(self, name) -> None:
+        self.name = name
+        self.api = PLUGIN_API
+
+    def set_options(self, opns):
+        self.opns = opns
+
+    def __call__(self):
+        loader = PluginLoader()
+        main_entry = loader.plugin_entry_point(self.name)
+
+        try:
+            main_entry(self.api, self.opns)
+        except Exception as e:
+            _tlog = util.tagged_logger(f'[{self.__class__.__name__}]')
+            _tlog(logger.fail_s(f"Plugin '{self.name}': {e}"))
+            _tlog(logger.warning_s(format_exc()))

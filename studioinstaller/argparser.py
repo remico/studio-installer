@@ -16,10 +16,8 @@
 
 import argparse
 from sys import argv as sys_argv
-from traceback import format_exc
 
-from spawned import logger
-from .util import system, tagged_logger
+from .util import system
 
 __all__ = ['ArgParser', 'SUBCMD_DEFAULT', 'SUBCMD_SCHEME']
 
@@ -77,11 +75,17 @@ class ArgParser:
                                 help=f"Mount the whole partitioning scheme and exit (Default ROOT: {DEFAULT_CHROOT})")
         mount_opts.add_argument("--umount", action="store_true", help="Unmount the whole partitioning scheme and exit")
 
-    def add_subcommand_parser(self, cmd_name, handler=None, help_msg=""):
+    def add_subcommand_parser(self, cmd_name, handler=None, help_msg="", options_dict=None):
         subcmd_parser = self.subcmd_registrar.add_parser(cmd_name, help=help_msg)
         self.subcmd_parsers[cmd_name] = subcmd_parser
+
+        if isinstance(options_dict, dict):
+            for opt_name, opt_params in options_dict.items():
+                    subcmd_parser.add_argument(opt_name, **opt_params)
+
         if handler:
             self.set_subcommand_handler(cmd_name, handler)
+
         return subcmd_parser
 
     def set_subcommand_handler(self, cmd_name, handler):
@@ -107,27 +111,3 @@ class ArgParser:
             ns = self.argparser.parse_args()  # fallback: check arg list for errors
 
         return ns  # Namespace
-
-    def register_plugin(self, name, main_entry, help_message, options_dict):
-        _tlog = tagged_logger(f'[PluginLoader]')
-
-        if main_entry:
-            subcmd_parser = self.add_subcommand_parser(name, help_msg=help_message)
-
-            for opt_name, opt_params in options_dict.items():
-                subcmd_parser.add_argument(opt_name, **opt_params)
-
-            def plugin_runner(runtime_config):
-                api = runtime_config.plugin_api
-                # opns = runtime_config.op
-                opns = subcmd_parser.parse_known_args()
-                try:
-                    main_entry(api, opns)
-                except Exception as e:
-                    _tlog(logger.fail_s(f"Plugin '{name}': {e}"))
-                    _tlog(logger.warning_s(format_exc()))
-
-            self.set_subcommand_handler(name, plugin_runner)
-
-        else:
-            _tlog(logger.warning_s(f"Plugin '{name}' skipped: 'main_entry' callable not found"))
