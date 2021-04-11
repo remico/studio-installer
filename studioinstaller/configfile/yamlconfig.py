@@ -29,7 +29,10 @@ class YamlConfig(ConfigFileBase):
         self._load()
 
     def __getattr__(self, name):
-        return self._yaml and self._yaml[name]
+        if name == '_yaml':
+            return super().__getattr__(name)
+        else:
+            return self._yaml[name]
 
     def is_valid(self):
         return bool(self._yaml)
