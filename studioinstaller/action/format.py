@@ -42,6 +42,8 @@ def _options(partition):
                 opts.append(f"-L {partition.label}")
 
         elif "ext" in partition.fs:
+            opts.append("-F")
+
             if partition.label:
                 opts.append(f"-L {partition.label}")
 
