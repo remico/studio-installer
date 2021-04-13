@@ -50,26 +50,29 @@ class ManjaroPostInstaller(PostInstaller):
         partition_root = self.scheme.root_partition
         partition_root_encrypted = any(isinstance(p, PVLuks) for p in partition_root.pchain)
 
-        root_pv_uuid = ''
-        while not root_pv_uuid:
-            for pt in partition_root.pchain:
-                if isinstance(pt, PVLuks):
-                    root_pv_uuid = pt.uuid
+        # define encryption-related kernel parameters
+        if partition_root_encrypted:
+            root_pv_uuid = ''
+            while not root_pv_uuid:
+                for pt in partition_root.pchain:
+                    if isinstance(pt, PVLuks):
+                        root_pv_uuid = pt.uuid
 
-        root_mapper_id = ''
-        while not root_mapper_id:
-            for pt in partition_root.pchain:
-                if isinstance(pt.parent, PVLuks):
-                    root_mapper_id = pt.mapperID
+            root_mapper_id = ''
+            while not root_mapper_id:
+                for pt in partition_root.pchain:
+                    if isinstance(pt.parent, PVLuks):
+                        root_mapper_id = pt.mapperID
 
-        cryptdevice_param = f"cryptdevice=UUID={root_pv_uuid}:{root_mapper_id}" if root_pv_uuid else ""
-        cryptdevice_options = ":allow-discards" if cryptdevice_param and util.blockdevice.solid(partition_root.url) else ""
+            cryptdevice_param = f"cryptdevice=UUID={root_pv_uuid}:{root_mapper_id}" if root_pv_uuid else ""
+            cryptdevice_options = ":allow-discards" if cryptdevice_param and util.blockdevice.solid(partition_root.url) else ""
 
-        grub_cmdline_linux = f"{cryptdevice_param}{cryptdevice_options}"
+            grub_cmdline_linux = f"{cryptdevice_param}{cryptdevice_options}"
 
-        config_root_encrypted = rf"""
-            sed -Ei 's,GRUB_CMDLINE_LINUX="(.*)",GRUB_CMDLINE_LINUX="\1 {grub_cmdline_linux}",' /etc/default/grub
-            """
+            config_root_encrypted = rf"""
+                sed -Ei 's,GRUB_CMDLINE_LINUX="(.*)",GRUB_CMDLINE_LINUX="\1 {grub_cmdline_linux}",' /etc/default/grub
+                """
+
         enable_root_encrypted = config_root_encrypted if partition_root_encrypted else ""
 
         # boot partition
