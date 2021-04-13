@@ -52,17 +52,15 @@ def register_plugins(argparser, plugin_loader):
         plugin_runner = PluginRunner(plugin_name)
 
         def handle_plugin(runtime_config):
+            plugin_runner.set_options(runtime_config.op)
             plugin_runner()
 
         if main_entry:
-            subcmd_parser = argparser.add_subcommand_parser(
+            argparser.add_subcommand_parser(
                 plugin_name,
                 handle_plugin,
                 help_msg=help_message,
                 options_dict=plugin_options)
-
-            plugin_opns = subcmd_parser.parse_known_args()
-            plugin_runner.set_options(plugin_opns)
 
 
 def handle_subcmd_default(conf):
