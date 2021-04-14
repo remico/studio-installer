@@ -139,7 +139,12 @@ def main():
         app_exit()
 
     target_disk = select_target_disk()
-    scheme = partitioning.scheme(target_disk)
+    scheme = partitioning.scheme(target_disk, op.P)
+
+    if not scheme:
+        logger.fail("Invalid partitioning scheme. Abort.")
+        app_exit()
+
     runtime_config = RuntimeConfig(PluginLoader.API, target_disk, scheme, op)
 
     # call a bound function (defined by argparser)
