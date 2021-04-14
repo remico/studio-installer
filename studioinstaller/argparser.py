@@ -42,6 +42,8 @@ class ArgParser:
         argparser.add_argument("-d", action="store_true", help="Enable commands debug output")
         argparser.add_argument("--version", action="store_true", help="Show version and exit")
         argparser.add_argument("--selftest", action="store_true", help="Check environment and own resources and exit")
+        argparser.add_argument("-P", type=int, default=0, choices=[0, 1],
+                               help="Pre-defined partitionings scheme id")
 
         DEFAULT_SYSTEM_LABEL = "studio"
         argparser.add_argument("-L", type=str, default=DEFAULT_SYSTEM_LABEL, metavar="SYSTEM_LABEL", help="System label")
