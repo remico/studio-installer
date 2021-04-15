@@ -1,5 +1,8 @@
 {
     "python.pythonPath": "venv/bin/python",
+    "python.analysis.extraPaths": [
+        ".github/scripts",
+    ],
     "psi-header.config": {
         "license": "MIT",
     },
