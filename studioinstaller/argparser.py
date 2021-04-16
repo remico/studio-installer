@@ -65,7 +65,7 @@ class ArgParser:
             help="Skip disk partitioning and OS installation steps")
         default_argparser.add_argument("-N", action="store_true",
             help="Skip post-installer steps")
-        default_argparser.add_argument("--inject", choices=['extra', 'devel'],
+        default_argparser.add_argument("--inject", choices=['extra', 'devel', 'all'],
             help="Install the tool into the target OS, so that it will be available on the user's first GUI login")
 
         # scheme

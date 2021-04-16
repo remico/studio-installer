@@ -48,7 +48,7 @@ class ManjaroInstaller(OsInstaller):
 
         else:  # manjaro-architect
             # ensure the setup script is installed
-            if not SpawnedSU.do("which setup || pacman -S manjaro-architect --noconfirm", with_status=True).success:
+            if not SpawnedSU.do("which setup || pacman -S manjaro-architect --noconfirm --needed --noprogressbar", with_status=True).success:
                 _tlog("manjaro-architect isn't available. Abort...")
                 app_exit()
 
