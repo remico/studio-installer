@@ -53,18 +53,12 @@ class UbuntuPostInstaller(PostInstaller):
 
             # install the tool into the target system
             x_all = '[seed]' if extras else ''
-            x_dev = '--pre' if develop else ''
-            cmd_inject = f"pip3 install -U --force-reinstall --extra-index-url=https://remico.github.io/pypi" \
-                         f"studioinstaller{x_all} {x_dev}"
-            # cntx.do(cmd_inject)
+            x_extras = '--pre' if develop else ''
+            cmd_inject = f"pip3 install -U --force-reinstall --extra-index-url=https://remico.github.io/pypi " \
+                         f"studioinstaller{x_all} {x_extras}"
 
-            # FIXME: replace the section below with the [commented] command above when the repo is ready
-            cntx.do("pip3 install -U --extra-index-url=https://remico.github.io/pypi spawned")
-            repo_names = ["studio-installer", "studio-installer-extra"]
-            for repo_name in repo_names:
-                Spawned.do(f"cp -r {Path(ENV('HOME'), repo_name)} {cntx.chroot_tmp}")
-                tmp = str(cntx.chroot_tmp).replace(cntx.root, "")
-                cntx.do(f"pip3 install -U {Path(tmp, repo_name)}")
+            with cntx.doi(cmd_inject) as t:
+                t.interact_user()
 
         self.mounter.unmount_target_system()
 

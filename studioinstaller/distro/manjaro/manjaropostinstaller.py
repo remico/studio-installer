@@ -39,7 +39,17 @@ class ManjaroPostInstaller(PostInstaller):
     def inject_tool(self, extras=False, develop=False):
         self.mounter.mount_target_system()
 
-        # install the tool into the target OS
+        with ChrootContext(self.op.chroot) as cntx:
+            cntx.do("pacman --noconfirm --needed --noprogressbar -S python-pip git")
+
+            # install the tool into the target system
+            x_extras = '[seed]' if extras else ''
+            x_dev = '--pre' if develop else ''
+            cmd_inject = f"pip3 install -U --force-reinstall --extra-index-url=https://remico.github.io/pypi " \
+                         f"studioinstaller{x_extras} {x_dev}"
+
+            with cntx.doi(cmd_inject) as t:
+                t.interact_user()
 
         self.mounter.unmount_target_system()
 
@@ -102,7 +112,7 @@ class ManjaroPostInstaller(PostInstaller):
 
         # execute installation
         cntx.do(f"""
-            pacman --noconfirm -S {grub_packages}
+            pacman --noconfirm --needed --noprogressbar -S {grub_packages}
             {enable_root_encrypted}
             {enable_grub_encrypted}
             {grub_install}

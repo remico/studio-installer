@@ -80,8 +80,9 @@ def handle_subcmd_default(conf):
         os_installer = distrofactory.getInstaller(conf)
         os_installer.execute()
 
-    # wait a little; target OS partitions get unmounted
-    util.delay(5)
+        # wait a little: target OS partitions get unmounted
+        print("waiting for the OS installer finishes the job...")
+        util.delay(5)
 
     if not conf.op.N:
         if util.target.ready_for_postinstall(conf.op.chroot):
@@ -92,8 +93,9 @@ def handle_subcmd_default(conf):
             # install the tool into the target OS so that it will be available after reboot
             if conf.op.inject is not None:
                 # NOTE: magic values, defined by argparser setup
-                postinstaller.inject_tool(extras='extra' in conf.op.inject,
-                                          develop='devel' in conf.op.inject)
+                variants = "extra,devel" if conf.op.inject == 'all' else conf.op.inject
+                postinstaller.inject_tool(extras='extra' in variants,
+                                          develop='devel' in variants)
         else:
             logger.warning("It looks like the target system is not ready for post-installation actions. "
                         "Trying to unmount the whole partitioning scheme and exit.")
