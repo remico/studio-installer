@@ -31,15 +31,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: get package name
+      - name: "get package name"
         id: packagename
         run: |
           GIT_ROOT=$(git rev-parse --show-toplevel)
           PKG=$(grep -oP '(?<=name=").*(?=",)' $GIT_ROOT/setup.py || grep -oP '(?<=name\s=\s)\w+' $GIT_ROOT/setup.cfg)
           echo "PKG_NAME=$PKG" >> $GITHUB_ENV
 
-      - name: "gather data"
-        id: preparations
+      - name: "clone remico/pypi"
+        id: clonepypi
         run: |
           rm -rf pypi
           mkdir -p pypi
@@ -51,15 +51,16 @@ jobs:
         run: |
           python3 $scripts_path/python-publish.py
 
-      - name: "push index.html to remico/pypi"
+      - name: "push index page to remico/pypi"
         if: ${{ steps.pyhandler.outputs.READY_TO_PUSH }}
         run: |
           REPO_NAME=${GITHUB_REPOSITORY##*/}
           TAG=${GITHUB_REF##*/}
+          PKG_VERSION=$(cat $PKG_NAME/VERSION)
           cd pypi
           git config user.name "${{ github.repository_owner }}"
           git config user.email "$REPO_OWNER_EMAIL"
-          git commit -am "[${{ github.event_name }}] $REPO_NAME '$TAG'" && git push || echo "NO CHANGES IN INDEX"
+          git commit -am "[${{ github.event_name }}] $REPO_NAME '$TAG' @ $PKG_VERSION" && git push || echo "NO CHANGES IN INDEX"
           echo
           echo "git log:"
           git log --oneline -5
