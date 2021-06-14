@@ -20,21 +20,18 @@ from ..util.system import distro_name
 __all__ = ['DistroFactory']
 
 
-def _instance():
-    distro = distro_name().lower()
-
-    if "ubuntu" in distro:
-        return UbuntuDistroFactory()
-    elif "manjaro" in distro:
-        return ManjaroDistroFactory()
-
-    raise NotImplementedError(f"DistroFactory for '{distro}' is not supported")
-
-
 class DistroFactory:
 
-    _me = _instance()
+    __ubuntu = UbuntuDistroFactory()
+    __manjaro = ManjaroDistroFactory()
 
     @staticmethod
     def instance():
-        return DistroFactory._me
+        distro = distro_name().lower()
+
+        if "ubuntu" in distro:
+            return DistroFactory.__ubuntu
+        elif "manjaro" in distro:
+            return DistroFactory.__manjaro
+
+        raise NotImplementedError(f"DistroFactory for '{distro}' is not supported")
